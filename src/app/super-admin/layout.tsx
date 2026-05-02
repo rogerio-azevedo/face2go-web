@@ -11,13 +11,14 @@ export default async function SuperAdminLayout({
     children: React.ReactNode;
 }) {
     const session = await auth();
-    if (!session?.user || session.user.role !== "super_admin") {
+    const user = session?.user;
+    if (!user || user.role !== "super_admin") {
         redirect("/login?error=Sem permissão");
     }
 
     return (
         <SidebarProvider>
-            <AppSidebar user={session.user} />
+            <AppSidebar user={user} />
             <SidebarInset>
                 <Header />
                 <div className="flex-1 overflow-y-auto overflow-x-hidden bg-muted/10 px-4 pb-6 pt-3 md:px-6 md:pb-8 md:pt-4">

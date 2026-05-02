@@ -9,7 +9,7 @@ import {
     updateCompanyMemberProfileAction,
     updateCompanyMemberRoleAction,
 } from "@/app/company/usuarios/actions";
-import type { CompanyUserListRow } from "@/db/queries/users";
+import type { CompanyUserListRow } from "@/types/domain";
 import { UserPermissionsDialog } from "@/components/company/usuarios/UserPermissionsDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

@@ -11,7 +11,7 @@ import {
     createClientAction,
     updateClientAction,
 } from "@/app/company/clientes/actions";
-import type { ClientListRow } from "@/db/queries/clients";
+import type { ClientListRow } from "@/types/domain";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

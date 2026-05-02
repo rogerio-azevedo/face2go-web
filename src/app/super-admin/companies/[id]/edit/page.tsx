@@ -1,9 +1,10 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
 
-import { PageHeader } from "@/components/shared/PageHeader";
-import { CompanyForm } from "@/components/super-admin/companies/CompanyForm";
-import { getCompanyById } from "@/db/queries/companies";
+import { PageHeader } from '@/components/shared/PageHeader';
+import { CompanyForm } from '@/components/super-admin/companies/CompanyForm';
+import { apiFetchAuthed } from '@/lib/api-fetch';
+import type { CompanyRow } from '@/types/domain';
 
 type PageProps = {
     params: Promise<{ id: string }>;
@@ -11,18 +12,26 @@ type PageProps = {
 
 export default async function EditCompanyPage({ params }: PageProps) {
     const { id } = await params;
-    const company = await getCompanyById(id);
+
+    let company: CompanyRow | null = null;
+    try {
+        const res = await apiFetchAuthed(`/api/companies/${id}`);
+        if (res.ok) {
+            company = (await res.json()) as CompanyRow;
+        }
+    } catch {
+        company = null;
+    }
 
     if (!company) {
         notFound();
     }
 
+    const row = company;
+
     return (
         <div className="mx-auto flex max-w-2xl flex-col gap-6">
-            <PageHeader
-                title="Editar empresa"
-                description={company.name}
-            />
+            <PageHeader title="Editar empresa" description={row.name} />
             <Link
                 href="/super-admin/companies"
                 className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
@@ -31,14 +40,14 @@ export default async function EditCompanyPage({ params }: PageProps) {
             </Link>
             <CompanyForm
                 mode="edit"
-                companyId={company.id}
+                companyId={row.id}
                 initialValues={{
-                    name: company.name,
-                    cnpj: company.cnpj ?? undefined,
-                    phone: company.phone ?? undefined,
-                    email: company.email ?? undefined,
-                    logoUrl: company.logoUrl ?? undefined,
-                    isActive: company.isActive,
+                    name: row.name,
+                    cnpj: row.cnpj ?? undefined,
+                    phone: row.phone ?? undefined,
+                    email: row.email ?? undefined,
+                    logoUrl: row.logoUrl ?? undefined,
+                    isActive: row.isActive,
                 }}
             />
         </div>

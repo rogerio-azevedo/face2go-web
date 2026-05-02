@@ -1,165 +1,78 @@
-import { and, eq } from "drizzle-orm";
+import { auth } from '@/auth';
 
-import { auth } from "@/auth";
-import { db } from "@/db";
-import { companyUserPermissions } from "@/db/schema";
+import type { FeatureSlug, PermissionAction } from './features';
 
-import {
-    ALL_FEATURES,
-    type FeatureSlug,
-    type PermissionAction,
-} from "./features";
-import { ROUTE_PERMISSIONS } from "./route-permissions";
-
-const ALL_PERMISSION_ACTIONS: PermissionAction[] = [
-    "can_read",
-    "can_create",
-    "can_update",
-    "can_delete",
-];
-
-/**
- * Verifica se o usuário logado tem uma ação em uma feature.
- * Super admin: irrestrito. Admin da empresa: sem registro no banco = acesso total (legado).
- */
 export async function can(
     featureSlug: FeatureSlug,
     action: PermissionAction,
 ): Promise<boolean> {
     const session = await auth();
+    const token = session?.accessToken;
 
-    if (!session?.user?.companyId) return false;
+    if (!session?.user?.companyId || !token) return false;
 
-    if (session.user.role === "super_admin") return true;
+    const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '');
+    if (!base) return false;
 
-    const companyUserId = session.user.companyUserId;
-    if (!companyUserId) return false;
+    try {
+        const url = new URL(`${base}/api/me/can-check`);
+        url.searchParams.set('feature', featureSlug);
+        url.searchParams.set('action', action);
 
-    const permission = await db.query.companyUserPermissions.findFirst({
-        where: and(
-            eq(companyUserPermissions.companyUserId, companyUserId),
-            eq(companyUserPermissions.featureSlug, featureSlug),
-        ),
-    });
+        const res = await fetch(url.toString(), {
+            headers: { Authorization: `Bearer ${token}` },
+            cache: 'no-store',
+        });
 
-    if (session.user.role === "company_admin") {
-        if (!permission) return true;
-        return permission.actions.includes(action);
+        if (!res.ok) return false;
+
+        const data = (await res.json()) as { allowed?: boolean };
+        return data.allowed === true;
+    } catch {
+        return false;
     }
-
-    return permission?.actions.includes(action) ?? false;
-}
-
-export async function getPermissions(
-    featureSlug: FeatureSlug,
-): Promise<PermissionAction[]> {
-    const session = await auth();
-
-    if (!session?.user?.companyId) return [];
-
-    if (session.user.role === "super_admin") {
-        return [...ALL_PERMISSION_ACTIONS];
-    }
-
-    const companyUserId = session.user.companyUserId;
-    if (!companyUserId) return [];
-
-    const permission = await db.query.companyUserPermissions.findFirst({
-        where: and(
-            eq(companyUserPermissions.companyUserId, companyUserId),
-            eq(companyUserPermissions.featureSlug, featureSlug),
-        ),
-    });
-
-    if (session.user.role === "company_admin") {
-        if (!permission) return [...ALL_PERMISSION_ACTIONS];
-        return (permission.actions ?? []) as PermissionAction[];
-    }
-
-    return (permission?.actions ?? []) as PermissionAction[];
-}
-
-function readableFeatureSlugsFromPermissionRows(
-    rows: { featureSlug: string; actions: string[] }[],
-    companyRole: "company_admin" | "company_operator" | null | undefined,
-): Set<FeatureSlug> {
-    const bySlug = new Map<string, string[]>();
-    for (const r of rows) {
-        bySlug.set(r.featureSlug, r.actions);
-    }
-
-    const readable = new Set<FeatureSlug>();
-    for (const f of ALL_FEATURES) {
-        const slug = f.slug;
-        const actions = bySlug.get(slug);
-        if (companyRole === "company_admin") {
-            if (!actions) {
-                readable.add(slug);
-            } else if (actions.includes("can_read")) {
-                readable.add(slug);
-            }
-        } else if (actions?.includes("can_read")) {
-            readable.add(slug);
-        }
-    }
-    return readable;
 }
 
 export async function getSidebarNavAccess(): Promise<{
     mainPaths: string[] | null;
 }> {
     const session = await auth();
+    const token = session?.accessToken;
     const user = session?.user;
 
     if (!user) {
         return { mainPaths: null };
     }
 
-    if (user.role === "super_admin") {
+    if (user.role === 'super_admin') {
         return { mainPaths: null };
     }
 
-    if (!user.companyId || !user.companyUserId) {
-        return { mainPaths: ["/company/dashboard"] };
+    if (!user.companyId || !token) {
+        return { mainPaths: ['/company/dashboard'] };
     }
 
-    if (user.role === "company_admin") {
-        const rows = await db.query.companyUserPermissions.findMany({
-            where: eq(companyUserPermissions.companyUserId, user.companyUserId),
+    if (user.role !== 'company_admin' && user.role !== 'company_operator') {
+        return { mainPaths: null };
+    }
+
+    const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '');
+    if (!base) {
+        return { mainPaths: ['/company/dashboard'] };
+    }
+
+    try {
+        const res = await fetch(`${base}/api/me/navigation`, {
+            headers: { Authorization: `Bearer ${token}` },
+            cache: 'no-store',
         });
 
-        const readableSlugs = readableFeatureSlugsFromPermissionRows(
-            rows,
-            "company_admin",
-        );
-
-        const mainPaths = new Set<string>(["/company/dashboard"]);
-        for (const [path, slug] of Object.entries(ROUTE_PERMISSIONS)) {
-            if (slug && readableSlugs.has(slug)) {
-                mainPaths.add(path);
-            }
+        if (!res.ok) {
+            return { mainPaths: ['/company/dashboard'] };
         }
-        return { mainPaths: [...mainPaths] };
+
+        return (await res.json()) as { mainPaths: string[] | null };
+    } catch {
+        return { mainPaths: ['/company/dashboard'] };
     }
-
-    if (user.role === "company_operator") {
-        const rows = await db.query.companyUserPermissions.findMany({
-            where: eq(companyUserPermissions.companyUserId, user.companyUserId),
-        });
-
-        const readableSlugs = readableFeatureSlugsFromPermissionRows(
-            rows,
-            "company_operator",
-        );
-
-        const mainPaths = new Set<string>(["/company/dashboard"]);
-        for (const [path, slug] of Object.entries(ROUTE_PERMISSIONS)) {
-            if (slug && readableSlugs.has(slug)) {
-                mainPaths.add(path);
-            }
-        }
-        return { mainPaths: [...mainPaths] };
-    }
-
-    return { mainPaths: null };
 }

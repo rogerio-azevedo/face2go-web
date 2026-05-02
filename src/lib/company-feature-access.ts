@@ -1,34 +1,31 @@
-import { and, eq } from "drizzle-orm";
+import type { FeatureSlug, PermissionAction } from './features';
 
-import { db } from "@/db";
-import { companyUserPermissions } from "@/db/schema";
-
-import type { FeatureSlug, PermissionAction } from "./features";
-
-/** Avalia permissão granular sem depender do `auth()` (uso em middleware / auth.config). */
+/** Avalia permissão granular chamando o backend Nest (`/api/me/can-check`). */
 export async function evaluateCompanyFeatureAction(
-    role: string,
-    companyUserId: string | undefined | null,
+    accessToken: string | undefined | null,
     featureSlug: FeatureSlug,
     action: PermissionAction,
 ): Promise<boolean> {
-    if (!companyUserId) return false;
+    if (!accessToken) return false;
 
-    const permission = await db.query.companyUserPermissions.findFirst({
-        where: and(
-            eq(companyUserPermissions.companyUserId, companyUserId),
-            eq(companyUserPermissions.featureSlug, featureSlug),
-        ),
-    });
+    const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '');
+    if (!base) return false;
 
-    if (role === "company_admin") {
-        if (!permission) return true;
-        return permission.actions.includes(action);
+    try {
+        const url = new URL(`${base}/api/me/can-check`);
+        url.searchParams.set('feature', featureSlug);
+        url.searchParams.set('action', action);
+
+        const res = await fetch(url.toString(), {
+            headers: { Authorization: `Bearer ${accessToken}` },
+            cache: 'no-store',
+        });
+
+        if (!res.ok) return false;
+
+        const data = (await res.json()) as { allowed?: boolean };
+        return data.allowed === true;
+    } catch {
+        return false;
     }
-
-    if (role === "company_operator") {
-        return permission?.actions.includes(action) ?? false;
-    }
-
-    return false;
 }

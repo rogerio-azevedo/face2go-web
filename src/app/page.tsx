@@ -4,8 +4,9 @@ import { redirect } from "next/navigation";
 
 export default async function HomePage() {
     const session = await auth();
-    if (!session?.user) {
+    const user = session?.user;
+    if (!user) {
         redirect("/login");
     }
-    redirect(getDashboardPathForRole(session.user.role));
+    redirect(getDashboardPathForRole(user.role));
 }

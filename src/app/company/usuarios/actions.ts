@@ -1,45 +1,24 @@
-"use server";
+'use server';
 
-import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
-import { ZodError } from "zod";
-import { z } from "zod";
+import { revalidatePath } from 'next/cache';
 
-import { auth } from "@/auth";
-import { db } from "@/db";
-import { users } from "@/db/schema";
 import {
-    deleteCompanyUserPermission,
-    upsertCompanyUserPermission,
-} from "@/db/queries/permissions";
-import {
-    countActiveAdmins,
-    getCompanyUserRow,
-    setCompanyUserActive,
-    updateCompanyUserProfile,
-    updateCompanyUserRole,
-} from "@/db/queries/users";
-import { ALL_FEATURES, type FeatureSlug, type PermissionAction } from "@/lib/features";
+    apiFetchAuthed,
+    nestErrorMessage,
+    parseResponseJson,
+} from '@/lib/api-fetch';
+import { ALL_FEATURES, type FeatureSlug, type PermissionAction } from '@/lib/features';
+import { ZodError } from 'zod';
+import { z } from 'zod';
 
 function zodFirstMessage(error: unknown): string {
     if (error instanceof ZodError && error.issues[0]?.message) {
         return error.issues[0].message;
     }
-    return "Dados inválidos.";
+    return 'Dados inválidos.';
 }
 
-async function requireCompanyAdmin() {
-    const session = await auth();
-    if (
-        !session?.user?.companyId ||
-        session.user.role !== "company_admin"
-    ) {
-        return null;
-    }
-    return session;
-}
-
-const roleSchema = z.enum(["company_admin", "company_operator"]);
+const roleSchema = z.enum(['company_admin', 'company_operator']);
 
 const updateRoleSchema = z.object({
     companyUserId: z.string().uuid(),
@@ -49,40 +28,32 @@ const updateRoleSchema = z.object({
 export async function updateCompanyMemberRoleAction(
     input: unknown,
 ): Promise<{ success: true } | { error: string }> {
-    const session = await requireCompanyAdmin();
-    if (!session?.user.companyId) {
-        return { error: "Sem permissão." };
-    }
-
-    const parsed = updateRoleSchema.safeParse(input);
-    if (!parsed.success) {
-        return { error: zodFirstMessage(parsed.error) };
-    }
-
-    const { companyUserId, role } = parsed.data;
-    const companyId = session.user.companyId;
-
-    const row = await getCompanyUserRow(companyUserId, companyId);
-    if (!row) {
-        return { error: "Usuário não encontrado." };
-    }
-
-    if (row.userId === session.user.id) {
-        return { error: "Você não pode alterar seu próprio papel por aqui." };
-    }
-
-    if (row.role === "company_admin" && role === "company_operator") {
-        const others = await countActiveAdmins(companyId, companyUserId);
-        if (others < 1) {
-            return {
-                error: "Mantenha pelo menos outro administrador ativo antes desta alteração.",
-            };
+    try {
+        const parsed = updateRoleSchema.safeParse(input);
+        if (!parsed.success) {
+            return { error: zodFirstMessage(parsed.error) };
         }
-    }
 
-    await updateCompanyUserRole(companyUserId, companyId, role);
-    revalidatePath("/company/usuarios");
-    return { success: true };
+        const { companyUserId, role } = parsed.data;
+
+        const res = await apiFetchAuthed(
+            `/api/company-users/${companyUserId}/role`,
+            {
+                method: 'PATCH',
+                body: JSON.stringify({ role }),
+            },
+        );
+
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { error: nestErrorMessage(data) };
+        }
+
+        revalidatePath('/company/usuarios');
+        return { success: true };
+    } catch {
+        return { error: 'Sem permissão.' };
+    }
 }
 
 const toggleActiveSchema = z.object({
@@ -93,40 +64,32 @@ const toggleActiveSchema = z.object({
 export async function toggleCompanyMemberActiveAction(
     input: unknown,
 ): Promise<{ success: true } | { error: string }> {
-    const session = await requireCompanyAdmin();
-    if (!session?.user.companyId) {
-        return { error: "Sem permissão." };
-    }
-
-    const parsed = toggleActiveSchema.safeParse(input);
-    if (!parsed.success) {
-        return { error: zodFirstMessage(parsed.error) };
-    }
-
-    const { companyUserId, isActive } = parsed.data;
-    const companyId = session.user.companyId;
-
-    const row = await getCompanyUserRow(companyUserId, companyId);
-    if (!row) {
-        return { error: "Usuário não encontrado." };
-    }
-
-    if (row.userId === session.user.id) {
-        return { error: "Você não pode desativar a si mesmo." };
-    }
-
-    if (!isActive && row.role === "company_admin") {
-        const others = await countActiveAdmins(companyId, companyUserId);
-        if (others < 1) {
-            return {
-                error: "Mantenha pelo menos um administrador ativo na empresa.",
-            };
+    try {
+        const parsed = toggleActiveSchema.safeParse(input);
+        if (!parsed.success) {
+            return { error: zodFirstMessage(parsed.error) };
         }
-    }
 
-    await setCompanyUserActive(companyUserId, companyId, isActive);
-    revalidatePath("/company/usuarios");
-    return { success: true };
+        const { companyUserId, isActive } = parsed.data;
+
+        const res = await apiFetchAuthed(
+            `/api/company-users/${companyUserId}/active`,
+            {
+                method: 'PATCH',
+                body: JSON.stringify({ isActive }),
+            },
+        );
+
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { error: nestErrorMessage(data) };
+        }
+
+        revalidatePath('/company/usuarios');
+        return { success: true };
+    } catch {
+        return { error: 'Sem permissão.' };
+    }
 }
 
 const profileSchema = z.object({
@@ -139,96 +102,84 @@ const profileSchema = z.object({
 export async function updateCompanyMemberProfileAction(
     input: unknown,
 ): Promise<{ success: true } | { error: string }> {
-    const session = await requireCompanyAdmin();
-    if (!session?.user.companyId) {
-        return { error: "Sem permissão." };
+    try {
+        const parsed = profileSchema.safeParse(input);
+        if (!parsed.success) {
+            return { error: zodFirstMessage(parsed.error) };
+        }
+
+        const { companyUserId, name, jobTitle, phone } = parsed.data;
+
+        const body: Record<string, unknown> = {};
+        if (name !== undefined) body.name = name;
+        if (jobTitle !== undefined) body.jobTitle = jobTitle;
+        if (phone !== undefined) body.phone = phone;
+
+        const res = await apiFetchAuthed(
+            `/api/company-users/${companyUserId}/profile`,
+            {
+                method: 'PATCH',
+                body: JSON.stringify(body),
+            },
+        );
+
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { error: nestErrorMessage(data) };
+        }
+
+        revalidatePath('/company/usuarios');
+        return { success: true };
+    } catch {
+        return { error: 'Sem permissão.' };
     }
-
-    const parsed = profileSchema.safeParse(input);
-    if (!parsed.success) {
-        return { error: zodFirstMessage(parsed.error) };
-    }
-
-    const companyId = session.user.companyId;
-    const { companyUserId, name, jobTitle, phone } = parsed.data;
-
-    const row = await getCompanyUserRow(companyUserId, companyId);
-    if (!row) {
-        return { error: "Usuário não encontrado." };
-    }
-
-    if (name !== undefined) {
-        await db
-            .update(users)
-            .set({ name })
-            .where(eq(users.id, row.userId));
-    }
-
-    const phoneNorm =
-        phone === null || phone === undefined
-            ? phone
-            : phone.replace(/\D/g, "") || phone.trim();
-
-    if (jobTitle !== undefined || phone !== undefined) {
-        await updateCompanyUserProfile(companyUserId, companyId, {
-            ...(jobTitle !== undefined ? { jobTitle } : {}),
-            ...(phone !== undefined ? { phone: phoneNorm } : {}),
-        });
-    }
-
-    revalidatePath("/company/usuarios");
-    return { success: true };
 }
 
 const permissionsSchema = z.object({
     companyUserId: z.string().uuid(),
     featureSlug: z.string(),
     actions: z.array(
-        z.enum(["can_read", "can_create", "can_update", "can_delete"]),
+        z.enum(['can_read', 'can_create', 'can_update', 'can_delete']),
     ),
 });
 
 export async function updateCompanyMemberPermissionsAction(
     input: unknown,
 ): Promise<{ success: true } | { error: string }> {
-    const session = await requireCompanyAdmin();
-    if (!session?.user.companyId) {
-        return { error: "Sem permissão." };
+    try {
+        const parsed = permissionsSchema.safeParse(input);
+        if (!parsed.success) {
+            return { error: zodFirstMessage(parsed.error) };
+        }
+
+        const { companyUserId, featureSlug, actions } = parsed.data;
+
+        if (!ALL_FEATURES.some((f) => f.slug === featureSlug)) {
+            return { error: 'Módulo inválido.' };
+        }
+
+        const slug = featureSlug as FeatureSlug;
+        const uniqueActions = [...new Set(actions)] as PermissionAction[];
+
+        const res = await apiFetchAuthed(
+            `/api/company-users/${companyUserId}/permissions`,
+            {
+                method: 'PATCH',
+                body: JSON.stringify({
+                    featureSlug: slug,
+                    actions: uniqueActions,
+                }),
+            },
+        );
+
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { error: nestErrorMessage(data) };
+        }
+
+        revalidatePath('/company/usuarios');
+        return { success: true };
+    } catch {
+        return { error: 'Sem permissão.' };
     }
-
-    const parsed = permissionsSchema.safeParse(input);
-    if (!parsed.success) {
-        return { error: zodFirstMessage(parsed.error) };
-    }
-
-    const { companyUserId, featureSlug, actions } = parsed.data;
-
-    if (!ALL_FEATURES.some((f) => f.slug === featureSlug)) {
-        return { error: "Módulo inválido." };
-    }
-
-    const slug = featureSlug as FeatureSlug;
-    const companyId = session.user.companyId;
-
-    const row = await getCompanyUserRow(companyUserId, companyId);
-    if (!row) {
-        return { error: "Usuário não encontrado." };
-    }
-
-    if (row.role === "company_admin") {
-        return {
-            error: "Administradores já têm acesso amplo; altere o papel para operador para usar permissões granulares.",
-        };
-    }
-
-    const uniqueActions = [...new Set(actions)] as PermissionAction[];
-
-    if (uniqueActions.length === 0) {
-        await deleteCompanyUserPermission(companyUserId, slug);
-    } else {
-        await upsertCompanyUserPermission(companyUserId, slug, uniqueActions);
-    }
-
-    revalidatePath("/company/usuarios");
-    return { success: true };
 }

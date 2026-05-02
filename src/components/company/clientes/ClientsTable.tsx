@@ -5,7 +5,7 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { toggleClientActiveAction } from "@/app/company/clientes/actions";
-import type { ClientListRow } from "@/db/queries/clients";
+import type { ClientListRow } from "@/types/domain";
 import { ClientForm } from "@/components/company/clientes/ClientForm";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

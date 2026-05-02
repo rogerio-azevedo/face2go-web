@@ -1,0 +1,10 @@
+# Pastas grandes — reduz indexação/busca (rg) no Cursor
+node_modules/
+.pnpm-store/
+.next/
+out/
+coverage/
+build/
+dist/
+*.tsbuildinfo
+

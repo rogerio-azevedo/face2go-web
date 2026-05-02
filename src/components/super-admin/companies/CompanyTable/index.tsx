@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 
-import type { InferSelectModel } from "drizzle-orm";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
@@ -14,19 +13,18 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { companies } from "@/db/schema";
+import type { CompanyRow } from "@/types/domain";
 
 import { DeleteCompanyButton } from "../DeleteCompanyButton";
-
-export type CompanyRow = InferSelectModel<typeof companies>;
 
 type CompanyTableProps = {
     companies: CompanyRow[];
 };
 
-function formatDate(d: Date) {
+function formatDate(d: Date | string) {
     try {
-        return d.toLocaleDateString("pt-BR", {
+        const date = typeof d === "string" ? new Date(d) : d;
+        return date.toLocaleDateString("pt-BR", {
             day: "2-digit",
             month: "2-digit",
             year: "numeric",

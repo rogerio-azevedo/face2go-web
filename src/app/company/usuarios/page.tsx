@@ -1,36 +1,41 @@
-import { redirect } from "next/navigation";
+import { redirect } from 'next/navigation';
 
-import { auth } from "@/auth";
-import { CompanyUsersTable } from "@/components/company/usuarios/CompanyUsersTable";
-import { PageHeader } from "@/components/shared/PageHeader";
-import { listPermissionsForCompanyUser } from "@/db/queries/permissions";
-import { listCompanyUsers } from "@/db/queries/users";
+import { auth } from '@/auth';
+import { CompanyUsersTable } from '@/components/company/usuarios/CompanyUsersTable';
+import { PageHeader } from '@/components/shared/PageHeader';
+import { apiFetchAuthed } from '@/lib/api-fetch';
+import type { CompanyUserListRow } from '@/types/domain';
 
 export default async function CompanyUsersPage() {
     const session = await auth();
-    if (
-        !session?.user?.companyId ||
-        session.user.role !== "company_admin"
-    ) {
-        redirect("/login?error=Sem permissão");
+    const user = session?.user;
+
+    if (!user?.companyId || user.role !== 'company_admin') {
+        redirect('/login?error=Sem permissão');
     }
 
-    const companyId = session.user.companyId;
-    const users = await listCompanyUsers(companyId);
-
-    const permissionsMap: Record<
+    let users: CompanyUserListRow[] = [];
+    let permissionsMap: Record<
         string,
         { featureSlug: string; actions: string[] }[]
     > = {};
 
-    for (const u of users) {
-        if (u.role === "company_operator") {
-            const rows = await listPermissionsForCompanyUser(u.companyUserId);
-            permissionsMap[u.companyUserId] = rows.map((r) => ({
-                featureSlug: r.featureSlug,
-                actions: r.actions as string[],
-            }));
+    try {
+        const res = await apiFetchAuthed('/api/company-users');
+        if (res.ok) {
+            const bundle = (await res.json()) as {
+                users: CompanyUserListRow[];
+                permissionsMap: Record<
+                    string,
+                    { featureSlug: string; actions: string[] }[]
+                >;
+            };
+            users = bundle.users;
+            permissionsMap = bundle.permissionsMap ?? {};
         }
+    } catch {
+        users = [];
+        permissionsMap = {};
     }
 
     return (
@@ -41,7 +46,7 @@ export default async function CompanyUsersPage() {
             />
             <CompanyUsersTable
                 users={users}
-                currentUserId={session.user.id}
+                currentUserId={user.id}
                 permissionsMap={permissionsMap}
             />
         </div>

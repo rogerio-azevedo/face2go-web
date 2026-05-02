@@ -1,19 +1,32 @@
-import Link from "next/link";
+import Link from 'next/link';
 
-import { PageHeader } from "@/components/shared/PageHeader";
-import { CompanyTable } from "@/components/super-admin/companies/CompanyTable";
-import { buttonVariants } from "@/components/ui/button";
-import { listCompanies } from "@/db/queries/companies";
-import { cn } from "@/lib/utils";
+import { PageHeader } from '@/components/shared/PageHeader';
+import { CompanyTable } from '@/components/super-admin/companies/CompanyTable';
+import { buttonVariants } from '@/components/ui/button';
+import { apiFetchAuthed } from '@/lib/api-fetch';
+import { cn } from '@/lib/utils';
+import type { CompanyRow } from '@/types/domain';
 
 type PageProps = {
     searchParams: Promise<{ all?: string }>;
 };
 
-export default async function SuperAdminCompaniesPage({ searchParams }: PageProps) {
+export default async function SuperAdminCompaniesPage({
+    searchParams,
+}: PageProps) {
     const sp = await searchParams;
-    const includeInactive = sp.all === "1";
-    const rows = await listCompanies({ includeInactive });
+    const includeInactive = sp.all === '1';
+
+    let rows: CompanyRow[] = [];
+    try {
+        const q = includeInactive ? '?includeInactive=1' : '';
+        const res = await apiFetchAuthed(`/api/companies${q}`);
+        if (res.ok) {
+            rows = (await res.json()) as CompanyRow[];
+        }
+    } catch {
+        rows = [];
+    }
 
     return (
         <div className="space-y-6">
@@ -25,14 +38,18 @@ export default async function SuperAdminCompaniesPage({ searchParams }: PageProp
                         {includeInactive ? (
                             <Link
                                 href="/super-admin/companies"
-                                className={cn(buttonVariants({ variant: "outline" }))}
+                                className={cn(
+                                    buttonVariants({ variant: 'outline' }),
+                                )}
                             >
                                 Somente ativas
                             </Link>
                         ) : (
                             <Link
                                 href="/super-admin/companies?all=1"
-                                className={cn(buttonVariants({ variant: "outline" }))}
+                                className={cn(
+                                    buttonVariants({ variant: 'outline' }),
+                                )}
                             >
                                 Incluir inativas
                             </Link>
@@ -49,7 +66,7 @@ export default async function SuperAdminCompaniesPage({ searchParams }: PageProp
 
             {rows.length === 0 ? (
                 <p className="text-muted-foreground">
-                    Nenhuma empresa encontrada nesta lista.{" "}
+                    Nenhuma empresa encontrada nesta lista.{' '}
                     <Link
                         href="/super-admin/companies/new"
                         className="text-primary underline"

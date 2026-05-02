@@ -63,17 +63,16 @@ export const authConfig = {
                 }
                 if (
                     path.startsWith("/company/clientes") &&
-                    role === "company_operator"
+                    role === 'company_operator'
                 ) {
                     const allowed = await evaluateCompanyFeatureAction(
-                        role,
-                        user.companyUserId,
-                        "clients",
-                        "can_read",
+                        auth?.accessToken,
+                        'clients',
+                        'can_read',
                     );
                     if (!allowed) {
                         return Response.redirect(
-                            new URL("/company/dashboard", nextUrl)
+                            new URL('/company/dashboard', nextUrl),
                         );
                     }
                 }

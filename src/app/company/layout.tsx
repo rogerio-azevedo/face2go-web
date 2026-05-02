@@ -12,10 +12,11 @@ export default async function CompanyLayout({
     children: React.ReactNode;
 }) {
     const session = await auth();
+    const user = session?.user;
     if (
-        !session?.user ||
-        (session.user.role !== "company_admin" &&
-            session.user.role !== "company_operator")
+        !user ||
+        (user.role !== "company_admin" &&
+            user.role !== "company_operator")
     ) {
         redirect("/login?error=Sem permissão");
     }
@@ -24,7 +25,7 @@ export default async function CompanyLayout({
 
     return (
         <SidebarProvider>
-            <AppSidebar user={session.user} mainPaths={mainPaths} />
+            <AppSidebar user={user} mainPaths={mainPaths} />
             <SidebarInset>
                 <Header />
                 <div className="flex-1 overflow-y-auto overflow-x-hidden bg-muted/10 px-4 pb-6 pt-3 md:px-6 md:pb-8 md:pt-4">

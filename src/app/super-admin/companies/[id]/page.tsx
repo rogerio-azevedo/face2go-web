@@ -1,10 +1,10 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
 
-import { InviteGenerator } from "@/components/super-admin/companies/InviteGenerator";
-import { PageHeader } from "@/components/shared/PageHeader";
-import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { InviteGenerator } from '@/components/super-admin/companies/InviteGenerator';
+import { PageHeader } from '@/components/shared/PageHeader';
+import { Badge } from '@/components/ui/badge';
+import { buttonVariants } from '@/components/ui/button';
 import {
     Table,
     TableBody,
@@ -12,10 +12,10 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
-import { getCompanyById } from "@/db/queries/companies";
-import { listCompanyUsers } from "@/db/queries/users";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/table';
+import { apiFetchAuthed } from '@/lib/api-fetch';
+import { cn } from '@/lib/utils';
+import type { CompanyRow, CompanyUserListRow } from '@/types/domain';
 
 type PageProps = {
     params: Promise<{ id: string }>;
@@ -23,22 +23,41 @@ type PageProps = {
 
 export default async function SuperAdminCompanyDetailPage({ params }: PageProps) {
     const { id } = await params;
-    const company = await getCompanyById(id);
+
+    let company: CompanyRow | null = null;
+    let users: CompanyUserListRow[] = [];
+
+    try {
+        const [companyRes, usersRes] = await Promise.all([
+            apiFetchAuthed(`/api/companies/${id}`),
+            apiFetchAuthed(`/api/companies/${id}/users`),
+        ]);
+
+        if (companyRes.ok) {
+            company = (await companyRes.json()) as CompanyRow;
+        }
+        if (usersRes.ok) {
+            users = (await usersRes.json()) as CompanyUserListRow[];
+        }
+    } catch {
+        company = null;
+    }
+
     if (!company) {
         notFound();
     }
 
-    const users = await listCompanyUsers(id);
+    const row = company;
 
     return (
         <div className="space-y-6">
             <PageHeader
-                title={company.name}
+                title={row.name}
                 description="Links de convite e membros vinculados a esta empresa."
                 actions={
                     <Link
                         href={`/super-admin/companies/${id}/edit`}
-                        className={cn(buttonVariants({ variant: "outline" }))}
+                        className={cn(buttonVariants({ variant: 'outline' }))}
                     >
                         Editar cadastro
                     </Link>
@@ -80,14 +99,14 @@ export default async function SuperAdminCompanyDetailPage({ params }: PageProps)
                                 {users.map((row) => (
                                     <TableRow key={row.companyUserId}>
                                         <TableCell className="font-medium">
-                                            {row.name ?? "—"}
+                                            {row.name ?? '—'}
                                         </TableCell>
                                         <TableCell>{row.email}</TableCell>
-                                        <TableCell>{row.jobTitle ?? "—"}</TableCell>
+                                        <TableCell>{row.jobTitle ?? '—'}</TableCell>
                                         <TableCell>
-                                            {row.role === "company_admin"
-                                                ? "Administrador"
-                                                : "Operador"}
+                                            {row.role === 'company_admin'
+                                                ? 'Administrador'
+                                                : 'Operador'}
                                         </TableCell>
                                         <TableCell>
                                             {row.isActive ? (

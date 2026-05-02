@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { toggleReaderActiveAction } from "@/app/company/leitores/actions";
-import type { ClientListRow } from "@/db/queries/clients";
-import type { ReaderListRow } from "@/db/queries/readers";
+import type { ClientListRow, ReaderListRow } from "@/types/domain";
 import { ReaderForm } from "@/components/company/leitores/ReaderForm";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

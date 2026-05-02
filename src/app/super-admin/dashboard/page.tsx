@@ -1,18 +1,27 @@
-import Link from "next/link";
+import Link from 'next/link';
 
-import { PageHeader } from "@/components/shared/PageHeader";
+import { PageHeader } from '@/components/shared/PageHeader';
 import {
     Card,
     CardContent,
     CardHeader,
     CardTitle,
-} from "@/components/ui/card";
-import { buttonVariants } from "@/components/ui/button";
-import { listCompanies } from "@/db/queries/companies";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/card';
+import { buttonVariants } from '@/components/ui/button';
+import { apiFetchAuthed } from '@/lib/api-fetch';
+import { cn } from '@/lib/utils';
+import type { CompanyRow } from '@/types/domain';
 
 export default async function SuperAdminDashboardPage() {
-    const rows = await listCompanies({ includeInactive: true });
+    let rows: CompanyRow[] = [];
+    try {
+        const res = await apiFetchAuthed('/api/companies?includeInactive=1');
+        if (res.ok) {
+            rows = (await res.json()) as CompanyRow[];
+        }
+    } catch {
+        rows = [];
+    }
 
     return (
         <div className="space-y-6">
@@ -23,7 +32,7 @@ export default async function SuperAdminDashboardPage() {
                     <>
                         <Link
                             href="/super-admin/companies"
-                            className={cn(buttonVariants({ variant: "outline" }))}
+                            className={cn(buttonVariants({ variant: 'outline' }))}
                         >
                             Gerenciar empresas
                         </Link>
@@ -39,7 +48,7 @@ export default async function SuperAdminDashboardPage() {
 
             {rows.length === 0 ? (
                 <p className="text-muted-foreground">
-                    Nenhuma empresa cadastrada ainda.{" "}
+                    Nenhuma empresa cadastrada ainda.{' '}
                     <Link
                         href="/super-admin/companies/new"
                         className="text-primary underline"
@@ -69,7 +78,7 @@ export default async function SuperAdminDashboardPage() {
                                             <span>Inativa</span>
                                         )}
                                         <span className="mx-1">·</span>
-                                        <span>{company.slug ?? "—"}</span>
+                                        <span>{company.slug ?? '—'}</span>
                                     </CardContent>
                                 </Card>
                             </Link>

@@ -2,6 +2,9 @@
 
 # dependencies
 /node_modules
+
+# pnpm store dentro do repo (evita indexação/busca em milhões de arquivos)
+/.pnpm-store/
 /.pnp
 .pnp.*
 .yarn/*

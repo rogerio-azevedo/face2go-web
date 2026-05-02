@@ -11,8 +11,7 @@ import {
     createReaderAction,
     updateReaderAction,
 } from "@/app/company/leitores/actions";
-import type { ClientListRow } from "@/db/queries/clients";
-import type { ReaderListRow } from "@/db/queries/readers";
+import type { ClientListRow, ReaderListRow } from "@/types/domain";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
