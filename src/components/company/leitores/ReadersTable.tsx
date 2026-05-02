@@ -1,11 +1,19 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { RefreshCw } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { toggleReaderActiveAction } from "@/app/company/leitores/actions";
-import type { ClientListRow, ReaderListRow } from "@/types/domain";
+import {
+    fetchReadersMonitorStatusAction,
+    toggleReaderActiveAction,
+} from "@/app/company/leitores/actions";
+import type {
+    ClientListRow,
+    ReaderListRow,
+    ReaderMonitorDeviceApiRow,
+} from "@/types/domain";
 import { ReaderForm } from "@/components/company/leitores/ReaderForm";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +31,62 @@ import {
     type ReaderBrandSlug,
 } from "@/lib/validations/readers";
 
+function ConnectionBadge({
+    device,
+    loading,
+}: {
+    device: ReaderMonitorDeviceApiRow | undefined;
+    loading: boolean;
+}) {
+    if (loading && !device) {
+        return (
+            <span className="text-muted-foreground text-sm tabular-nums">
+                …
+            </span>
+        );
+    }
+    if (!device) {
+        return (
+            <span className="text-muted-foreground text-sm" title="Sem dados">
+                —
+            </span>
+        );
+    }
+    if (!device.streamSupported) {
+        const hint =
+            device.lastConnectionError ??
+            "Monitoramento de stream indisponível.";
+        return (
+            <Badge
+                variant="secondary"
+                className="font-normal"
+                title={hint}
+            >
+                N/D
+            </Badge>
+        );
+    }
+    if (device.connected) {
+        return (
+            <Badge
+                variant="outline"
+                className="border-emerald-200 bg-emerald-50 font-normal text-emerald-800 hover:bg-emerald-50"
+            >
+                Online
+            </Badge>
+        );
+    }
+    return (
+        <Badge
+            variant="outline"
+            className="border-red-200 bg-red-50 font-normal text-red-800 hover:bg-red-50"
+            title={device.lastConnectionError ?? "Desconectado"}
+        >
+            Offline
+        </Badge>
+    );
+}
+
 export function ReadersTable({
     readers,
     clients,
@@ -37,6 +101,48 @@ export function ReadersTable({
     const [sheetOpen, setSheetOpen] = useState(false);
     const [editReader, setEditReader] = useState<ReaderListRow | null>(null);
     const [filterClientId, setFilterClientId] = useState<string>("");
+    const [monitorByReaderId, setMonitorByReaderId] = useState<
+        Record<string, ReaderMonitorDeviceApiRow>
+    >({});
+    const [monitorLoading, setMonitorLoading] = useState(true);
+
+    const refreshMonitor = useCallback(
+        async (opts?: { silent?: boolean }) => {
+            if (!opts?.silent) {
+                setMonitorLoading(true);
+            }
+            const result = await fetchReadersMonitorStatusAction(
+                filterClientId || undefined,
+            );
+            if (!result.ok) {
+                if (!opts?.silent) {
+                    toast.error(result.error);
+                }
+                if (!opts?.silent) {
+                    setMonitorLoading(false);
+                }
+                return;
+            }
+            const next: Record<string, ReaderMonitorDeviceApiRow> = {};
+            for (const d of result.data.devices) {
+                next[d.readerId] = d;
+            }
+            setMonitorByReaderId(next);
+            if (!opts?.silent) {
+                setMonitorLoading(false);
+            }
+        },
+        [filterClientId],
+    );
+
+    useEffect(() => {
+        void refreshMonitor();
+        const id = window.setInterval(
+            () => void refreshMonitor({ silent: true }),
+            10_000,
+        );
+        return () => window.clearInterval(id);
+    }, [refreshMonitor]);
 
     const filteredReaders = useMemo(() => {
         if (!filterClientId) return readers;
@@ -70,7 +176,7 @@ export function ReadersTable({
         });
     }
 
-    const colSpan = canManage ? 7 : 6;
+    const colSpan = canManage ? 9 : 8;
 
     return (
         <>
@@ -96,16 +202,32 @@ export function ReadersTable({
                         ))}
                     </select>
                 </div>
-                {canManage ? (
+                <div className="flex flex-wrap items-end gap-2 self-end sm:self-auto">
                     <Button
                         type="button"
+                        variant="outline"
                         size="sm"
-                        className="shrink-0 self-end sm:self-auto"
-                        onClick={openCreate}
+                        className="shrink-0 gap-1.5"
+                        disabled={monitorLoading}
+                        onClick={() => void refreshMonitor()}
+                        title="Atualizar status de conexão"
                     >
-                        Novo leitor
+                        <RefreshCw
+                            className={`size-3.5 ${monitorLoading ? "animate-spin" : ""}`}
+                        />
+                        Conexão
                     </Button>
-                ) : null}
+                    {canManage ? (
+                        <Button
+                            type="button"
+                            size="sm"
+                            className="shrink-0"
+                            onClick={openCreate}
+                        >
+                            Novo leitor
+                        </Button>
+                    ) : null}
+                </div>
             </div>
 
             <div className="rounded-md border">
@@ -116,6 +238,8 @@ export function ReadersTable({
                             <TableHead>Nome</TableHead>
                             <TableHead>Marca</TableHead>
                             <TableHead>Endereço</TableHead>
+                            <TableHead>Conexão</TableHead>
+                            <TableHead>Credenciais</TableHead>
                             <TableHead>Descrição</TableHead>
                             <TableHead>Status</TableHead>
                             {canManage ? (
@@ -153,6 +277,23 @@ export function ReadersTable({
                                     </TableCell>
                                     <TableCell className="font-mono text-sm">
                                         {row.ip}:{row.port}
+                                    </TableCell>
+                                    <TableCell>
+                                        <ConnectionBadge
+                                            device={monitorByReaderId[row.id]}
+                                            loading={monitorLoading}
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        {row.hasCredentials ? (
+                                            <Badge variant="outline">
+                                                Configuradas
+                                            </Badge>
+                                        ) : (
+                                            <Badge variant="secondary">
+                                                Pendente
+                                            </Badge>
+                                        )}
                                     </TableCell>
                                     <TableCell className="max-w-[200px] truncate">
                                         {row.description ?? "—"}

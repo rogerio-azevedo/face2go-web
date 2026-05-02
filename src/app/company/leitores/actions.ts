@@ -7,6 +7,7 @@ import {
     nestErrorMessage,
     parseResponseJson,
 } from '@/lib/api-fetch';
+import type { ReadersMonitorStatusResponse } from '@/types/domain';
 import {
     createReaderSchema,
     updateReaderSchema,
@@ -73,7 +74,9 @@ export async function updateReaderAction(
             d.serialNumber === undefined &&
             d.model === undefined &&
             d.location === undefined &&
-            d.isActive === undefined
+            d.isActive === undefined &&
+            d.username === undefined &&
+            d.password === undefined
         ) {
             return { error: 'Nada para atualizar.' };
         }
@@ -99,6 +102,30 @@ const toggleActiveSchema = z.object({
     readerId: z.string().uuid(),
     isActive: z.boolean(),
 });
+
+/** Polling do painel: status de conexão do stream (Intelbras + credenciais). */
+export async function fetchReadersMonitorStatusAction(
+    clientId?: string | null,
+): Promise<
+    | { ok: true; data: ReadersMonitorStatusResponse }
+    | { ok: false; error: string }
+> {
+    try {
+        const q =
+            clientId && clientId.length > 0
+                ? `?clientId=${encodeURIComponent(clientId)}`
+                : '';
+        const res = await apiFetchAuthed(`/api/readers/monitor/status${q}`);
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { ok: false, error: nestErrorMessage(data) };
+        }
+        const data = (await res.json()) as ReadersMonitorStatusResponse;
+        return { ok: true, data };
+    } catch {
+        return { ok: false, error: 'Sem permissão.' };
+    }
+}
 
 export async function toggleReaderActiveAction(
     input: unknown,

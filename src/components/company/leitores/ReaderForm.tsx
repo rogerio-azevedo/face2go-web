@@ -1,10 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, type Resolver } from "react-hook-form";
 import { toast } from "sonner";
 
 import {
@@ -27,7 +27,7 @@ import { Switch } from "@/components/ui/switch";
 import {
     READER_BRANDS,
     READER_BRAND_LABELS,
-    readerSchema,
+    readerFormSchema,
     type ReaderFormPayload,
 } from "@/lib/validations/readers";
 import { cn } from "@/lib/utils";
@@ -38,6 +38,43 @@ const controlClass =
     "shadow-sm aria-invalid:border-destructive aria-invalid:ring-destructive/25 sm:h-10";
 const hintClass =
     "font-normal lowercase normal-case tracking-normal text-muted-foreground";
+
+function toCreateApiBody(data: ReaderFormPayload) {
+    const body: Record<string, unknown> = {
+        clientId: data.clientId,
+        brand: data.brand,
+        name: data.name,
+        description: data.description,
+        ip: data.ip,
+        port: data.port,
+        serialNumber: data.serialNumber,
+        model: data.model,
+        location: data.location,
+        isActive: data.isActive,
+    };
+    const u = data.username.trim();
+    if (u) body.username = u;
+    if (data.password.length > 0) body.password = data.password;
+    return body;
+}
+
+function toUpdateApiBody(data: ReaderFormPayload) {
+    const body: Record<string, unknown> = {
+        clientId: data.clientId,
+        brand: data.brand,
+        name: data.name,
+        description: data.description,
+        ip: data.ip,
+        port: data.port,
+        serialNumber: data.serialNumber,
+        model: data.model,
+        location: data.location,
+        isActive: data.isActive,
+        username: data.username.trim() ? data.username.trim() : null,
+    };
+    if (data.password.length > 0) body.password = data.password;
+    return body;
+}
 
 export type ReaderFormProps = {
     open: boolean;
@@ -56,6 +93,7 @@ export function ReaderForm({
 }: ReaderFormProps) {
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const defaultClientId = clients[0]?.id ?? "";
 
@@ -70,6 +108,8 @@ export function ReaderForm({
             serialNumber: undefined,
             model: undefined,
             location: undefined,
+            username: "",
+            password: "",
             isActive: true,
         }),
         [defaultClientId],
@@ -87,6 +127,8 @@ export function ReaderForm({
                 serialNumber: reader.serialNumber ?? undefined,
                 model: reader.model ?? undefined,
                 location: reader.location ?? undefined,
+                username: reader.username ?? "",
+                password: "",
                 isActive: reader.isActive,
             };
         }
@@ -94,7 +136,7 @@ export function ReaderForm({
     }, [mode, reader, emptyDefaults]);
 
     const form = useForm<ReaderFormPayload>({
-        resolver: zodResolver(readerSchema),
+        resolver: zodResolver(readerFormSchema) as Resolver<ReaderFormPayload>,
         defaultValues,
     });
 
@@ -109,6 +151,7 @@ export function ReaderForm({
     useEffect(() => {
         if (open) {
             reset(defaultValues);
+            setShowPassword(false);
         }
     }, [open, defaultValues, reset]);
 
@@ -116,7 +159,7 @@ export function ReaderForm({
         setIsSubmitting(true);
         try {
             if (mode === "create") {
-                const result = await createReaderAction(data);
+                const result = await createReaderAction(toCreateApiBody(data));
                 if ("error" in result) {
                     toast.error(result.error);
                     return;
@@ -127,7 +170,10 @@ export function ReaderForm({
                     toast.error("Leitor não informado.");
                     return;
                 }
-                const result = await updateReaderAction(reader.id, data);
+                const result = await updateReaderAction(
+                    reader.id,
+                    toUpdateApiBody(data),
+                );
                 if ("error" in result) {
                     toast.error(result.error);
                     return;
@@ -368,6 +414,108 @@ export function ReaderForm({
                                         {errors.location.message}
                                     </p>
                                 ) : null}
+                            </div>
+                        </div>
+
+                        <div className="space-y-4 rounded-xl border border-dashed border-border/80 bg-card/50 px-4 py-5 shadow-sm ring-1 ring-black/5">
+                            <div>
+                                <p className={fieldLabel}>
+                                    Credenciais no leitor
+                                </p>
+                                <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
+                                    Usuário e senha do painel HTTP (Digest) —
+                                    necessários para monitoramento Intelbras.
+                                    A senha é armazenada criptografada.
+                                </p>
+                            </div>
+                            <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div className="min-w-0 space-y-2 sm:col-span-2">
+                                    <Label
+                                        htmlFor="reader-username"
+                                        className={fieldLabel}
+                                    >
+                                        Usuário{" "}
+                                        <span className={hintClass}>
+                                            (opcional)
+                                        </span>
+                                    </Label>
+                                    <Input
+                                        id="reader-username"
+                                        autoComplete="off"
+                                        className={cn(
+                                            "bg-card h-10 px-3",
+                                            controlClass,
+                                        )}
+                                        aria-invalid={!!errors.username}
+                                        {...register("username")}
+                                        placeholder="Ex.: admin"
+                                    />
+                                    {errors.username ? (
+                                        <p className="text-destructive text-xs">
+                                            {errors.username.message}
+                                        </p>
+                                    ) : null}
+                                </div>
+                                <div className="min-w-0 space-y-2 sm:col-span-2">
+                                    <Label
+                                        htmlFor="reader-password"
+                                        className={fieldLabel}
+                                    >
+                                        Senha{" "}
+                                        <span className={hintClass}>
+                                            {mode === "edit"
+                                                ? "(deixe em branco para manter)"
+                                                : "(opcional)"}
+                                        </span>
+                                    </Label>
+                                    <div className="relative">
+                                        <Input
+                                            id="reader-password"
+                                            type={
+                                                showPassword
+                                                    ? "text"
+                                                    : "password"
+                                            }
+                                            autoComplete="new-password"
+                                            className={cn(
+                                                "bg-card h-10 pr-11 pl-3",
+                                                controlClass,
+                                            )}
+                                            aria-invalid={!!errors.password}
+                                            {...register("password")}
+                                            placeholder={
+                                                mode === "edit"
+                                                    ? "••••••••"
+                                                    : "Senha do equipamento"
+                                            }
+                                        />
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            className="absolute top-1/2 right-1 h-8 w-8 -translate-y-1/2 text-muted-foreground"
+                                            onClick={() =>
+                                                setShowPassword((v) => !v)
+                                            }
+                                            aria-label={
+                                                showPassword
+                                                    ? "Ocultar senha"
+                                                    : "Mostrar senha"
+                                            }
+                                        >
+                                            {showPassword ? (
+                                                <EyeOff className="size-4" />
+                                            ) : (
+                                                <Eye className="size-4" />
+                                            )}
+                                        </Button>
+                                    </div>
+                                    {errors.password ? (
+                                        <p className="text-destructive text-xs">
+                                            {errors.password.message}
+                                        </p>
+                                    ) : null}
+                                </div>
                             </div>
                         </div>
 

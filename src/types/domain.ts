@@ -42,9 +42,38 @@ export type ReaderListRow = {
     serialNumber: string | null;
     model: string | null;
     location: string | null;
+    username: string | null;
+    hasCredentials: boolean;
     isActive: boolean;
     lastSeenAt: string | null;
     createdAt: string;
+};
+
+/** Resposta de `GET /api/readers/monitor/status` (datas ISO). */
+export type ReaderMonitorDeviceApiRow = {
+    readerId: string;
+    readerName: string;
+    clientName: string;
+    brand: ReaderBrand;
+    host: string;
+    isActive: boolean;
+    hasCredentials: boolean;
+    streamSupported: boolean;
+    connected: boolean;
+    eventsReceived: number;
+    lastEventAt: string | null;
+    connectedSince: string | null;
+    lastConnectionError: string | null;
+    lastSeenAt: string | null;
+};
+
+export type ReadersMonitorStatusResponse = {
+    devices: ReaderMonitorDeviceApiRow[];
+    summary: {
+        total: number;
+        connected: number;
+        disconnected: number;
+    };
 };
 
 export type CompanyUserListRow = {

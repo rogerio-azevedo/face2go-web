@@ -21,7 +21,8 @@ export const READER_BRAND_LABELS: Record<ReaderBrandSlug, string> = {
     hikvision: "Hikvision",
 };
 
-export const readerSchema = z.object({
+/** Objeto base sem refinamentos — permite `.partial()` no PATCH (Zod 4). */
+const readerFields = z.object({
     clientId: z.string().uuid("Cliente inválido."),
     brand: z.enum(READER_BRANDS, { message: "Marca inválida." }),
     name: z
@@ -44,12 +45,62 @@ export const readerSchema = z.object({
     serialNumber: optionalTrimmed,
     model: optionalTrimmed,
     location: optionalTrimmed,
+    username: z.string().max(120, "Usuário muito longo"),
+    password: z.string(),
     isActive: z.boolean(),
 });
 
-export const createReaderSchema = readerSchema;
+function passwordLengthOk(password: string | undefined): boolean {
+    if (password === undefined || password.length === 0) return true;
+    return password.length >= 4 && password.length <= 256;
+}
 
-export const updateReaderSchema = readerSchema.partial();
+/** Schema do formulário (react-hook-form). */
+export const readerFormSchema = readerFields.refine(
+    (d) => passwordLengthOk(d.password),
+    {
+        message: "Senha deve ter entre 4 e 256 caracteres",
+        path: ["password"],
+    },
+);
 
-export type ReaderFormPayload = z.input<typeof createReaderSchema>;
-export type ReaderUpdatePayload = z.input<typeof updateReaderSchema>;
+/** POST só no servidor — exige usuário se houver senha. */
+export const createReaderSchema = readerFormSchema.refine(
+    (d) =>
+        !d.password ||
+        d.password.length === 0 ||
+        d.username.trim().length > 0,
+    {
+        message: "Informe o usuário do leitor para salvar a senha.",
+        path: ["username"],
+    },
+);
+
+/** PATCH: campos opcionais; mesma regra de tamanho da senha quando enviada. */
+export const updateReaderSchema = readerFields
+    .partial()
+    .refine((d) => passwordLengthOk(d.password), {
+        message: "Senha deve ter entre 4 e 256 caracteres",
+        path: ["password"],
+    });
+
+/** Alias legado (imports antigos). */
+export const readerSchema = readerFormSchema;
+
+/** Valores do formulário (alinhados ao defaultValues do react-hook-form). */
+export type ReaderFormPayload = {
+    clientId: string;
+    brand: ReaderBrandSlug;
+    name: string;
+    description?: string;
+    ip: string;
+    port: number;
+    serialNumber?: string;
+    model?: string;
+    location?: string;
+    username: string;
+    password: string;
+    isActive: boolean;
+};
+
+export type ReaderUpdatePayload = z.infer<typeof updateReaderSchema>;
