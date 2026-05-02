@@ -15,12 +15,12 @@ export function Header() {
             className={cn(
                 "shrink-0 border-b bg-card transition-[width,height] ease-linear",
                 hasSecondaryContent
-                    ? "px-4 py-3"
-                    : "flex h-16 items-center px-4 group-has-data-[collapsible=icon]/sidebar-wrapper:h-12",
+                    ? "px-4 py-3 md:px-6"
+                    : "flex h-16 items-center px-4 md:px-6 group-has-data-[collapsible=icon]/sidebar-wrapper:h-12",
             )}
         >
             {hasSecondaryContent && (
-                <div className="mx-auto flex w-full max-w-6xl items-start gap-4">
+                <div className="flex w-full items-start gap-4">
                     <SidebarTrigger className="mt-1 -ml-1 shrink-0" />
 
                     <div className="flex min-w-0 flex-1 flex-col gap-2 md:flex-row md:items-start md:justify-between md:gap-4">
