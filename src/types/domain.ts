@@ -87,3 +87,32 @@ export type CompanyUserListRow = {
     isActive: boolean;
     createdAt: string;
 };
+
+/** Item de `GET /api/client/registration-links` (datas ISO). */
+export type RegistrationLinkListRow = {
+    id: string;
+    code: string;
+    isActive: boolean;
+    validFrom: string | null;
+    expiresAt: string | null;
+    createdAt: string;
+    registrationUrl: string;
+};
+
+/** Item de `GET /api/client/registrations` (datas ISO). */
+export type ClientRegistrationListRow = {
+    id: string;
+    clientId: string;
+    registrationLinkId: string;
+    name: string | null;
+    document: string | null;
+    phone: string | null;
+    email: string | null;
+    additionalData: Record<string, unknown> | null;
+    status: "draft" | "approved" | "rejected";
+    submittedAt: string | null;
+    approvedAt: string | null;
+    rejectionNotes: string | null;
+    createdAt: string;
+    hasFacePhoto: boolean;
+};

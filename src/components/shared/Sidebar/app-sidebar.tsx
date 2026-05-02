@@ -102,6 +102,18 @@ function navItemsForRole(
         }
         case "client_admin":
         case "client_operator":
+            return [
+                {
+                    title: "Painel",
+                    url: "/client/dashboard",
+                    icon: LayoutDashboard,
+                },
+                {
+                    title: "Usuários",
+                    url: "/client/usuarios",
+                    icon: Users,
+                },
+            ];
         case "face_user":
             return [
                 {

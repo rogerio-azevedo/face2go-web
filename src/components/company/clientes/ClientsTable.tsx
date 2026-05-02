@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -79,6 +80,7 @@ export function ClientsTable({
                             <TableHead>Telefone</TableHead>
                             <TableHead>E-mail</TableHead>
                             <TableHead>Status</TableHead>
+                            <TableHead>Cadastro via link</TableHead>
                             {canManage ? (
                                 <TableHead className="text-right">
                                     Ações
@@ -90,7 +92,7 @@ export function ClientsTable({
                         {clients.length === 0 ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={canManage ? 7 : 6}
+                                    colSpan={canManage ? 8 : 7}
                                     className="text-muted-foreground py-10 text-center"
                                 >
                                     Nenhum cliente cadastrado.
@@ -131,6 +133,14 @@ export function ClientsTable({
                                                 </Badge>
                                             )}
                                         </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Link
+                                            href={`/company/clientes/${row.id}/usuarios`}
+                                            className="text-primary text-sm font-medium underline-offset-4 hover:underline"
+                                        >
+                                            Abrir
+                                        </Link>
                                     </TableCell>
                                     {canManage ? (
                                         <TableCell className="text-right">
