@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { CompanyClientRegistrationLinksPanel } from "@/components/company/clientes/CompanyClientRegistrationLinksPanel";
 import { RegistrationsReviewBoard } from "@/components/registrations/RegistrationsReviewBoard";
+import { SyncAllProgressModal } from "@/components/registrations/SyncAllProgressModal";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { can } from "@/lib/permissions";
 import {
@@ -84,7 +85,15 @@ export default async function CompanyClientUsuariosPage({
                 />
             </section>
             <section className="space-y-3">
-                <h2 className="text-sm font-medium">Solicitações recebidas</h2>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <h2 className="text-sm font-medium">
+                        Solicitações recebidas
+                    </h2>
+                    <SyncAllProgressModal
+                        variant="company"
+                        companyClientId={clientId}
+                    />
+                </div>
                 <RegistrationsReviewBoard
                     variant="company"
                     companyClientId={clientId}

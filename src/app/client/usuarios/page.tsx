@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { ClientRegistrationLinksPanel } from "@/components/client/ClientRegistrationLinksPanel";
 import { RegistrationsReviewBoard } from "@/components/registrations/RegistrationsReviewBoard";
+import { SyncAllProgressModal } from "@/components/registrations/SyncAllProgressModal";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { auth } from "@/auth";
 import {
@@ -50,7 +51,12 @@ export default async function ClientUsuariosPage() {
                 <ClientRegistrationLinksPanel initialLinks={links} />
             </section>
             <section className="space-y-3">
-                <h2 className="text-sm font-medium">Solicitações recebidas</h2>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <h2 className="text-sm font-medium">
+                        Solicitações recebidas
+                    </h2>
+                    <SyncAllProgressModal variant="client" />
+                </div>
                 <RegistrationsReviewBoard
                     variant="client"
                     initialRows={registrations}

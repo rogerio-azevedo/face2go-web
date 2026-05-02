@@ -1,7 +1,7 @@
 ---
 name: project-conventions
 description: >
-  Convenções obrigatórias do projeto Faciem. Consultar antes de criar rotas,
+  Convenções obrigatórias do projeto Face2go. Consultar antes de criar rotas,
   schema, actions ou componentes. Define stack, multi-tenant, estrutura de
   pastas e autenticação.
 metadata:
@@ -9,11 +9,11 @@ metadata:
   version: "1.0.0"
 ---
 
-# Project Conventions — Faciem
+# Project Conventions — Face2go
 
 ## Contexto do Domínio
 
-**Faciem** é um SaaS **multi-tenant** para **cadastro de faces em leitores faciais**.
+**Face2go** é um SaaS **multi-tenant** para **cadastro de faces em leitores faciais**.
 
 Hierarquia:
 
@@ -133,7 +133,7 @@ Componentes por **rota**: `src/components/login/LoginForm/index.tsx`, etc.
 
 ## 6. Variáveis de ambiente
 
-Ver `.env.example` na raiz do projeto Faciem. Obrigatórios para produção:
+Ver `.env.example` na raiz do projeto Face2go. Obrigatórios para produção:
 
 - `DATABASE_URL` (pooled)
 - `DATABASE_URL_UNPOOLED` (migrations)

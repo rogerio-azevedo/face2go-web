@@ -3,8 +3,11 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
+import { auth } from '@/auth';
+
 import {
     apiFetchAuthed,
+    getApiBaseUrl,
     nestErrorMessage,
     parseResponseJson,
 } from '@/lib/api-fetch';
@@ -129,5 +132,57 @@ export async function deactivateCompanyRegistrationLinkAction(
         return { success: true };
     } catch {
         return { error: 'Sem permissão.' };
+    }
+}
+
+export async function syncCompanyRegistrationFaceAction(
+    clientId: string,
+    registrationId: string,
+): Promise<
+    | {
+          success: true;
+          deviceSyncStatus: string;
+          deviceSyncError: string | null;
+      }
+    | { error: string }
+> {
+    const cid = z.string().uuid().safeParse(clientId);
+    const rid = z.string().uuid().safeParse(registrationId);
+    if (!cid.success || !rid.success) return { error: 'ID inválido.' };
+    try {
+        const res = await apiFetchAuthed(
+            `/api/clients/${cid.data}/faces/${rid.data}/sync`,
+            { method: 'POST' },
+        );
+        const data = (await parseResponseJson(res)) as {
+            deviceSyncStatus?: string;
+            deviceSyncError?: string | null;
+        };
+        if (!res.ok) return { error: nestErrorMessage(data) };
+        revalidatePath(`/company/clientes/${cid.data}/usuarios`);
+        return {
+            success: true,
+            deviceSyncStatus: String(data.deviceSyncStatus ?? ''),
+            deviceSyncError: data.deviceSyncError ?? null,
+        };
+    } catch {
+        return { error: 'Sem permissão.' };
+    }
+}
+
+export async function getCompanyFaceSyncProgressSseUrlAction(
+    clientId: string,
+): Promise<{ url: string } | { error: string }> {
+    const cid = z.string().uuid().safeParse(clientId);
+    if (!cid.success) return { error: 'Cliente inválido.' };
+    try {
+        const session = await auth();
+        const token = session?.accessToken;
+        if (!token) return { error: 'Não autenticado.' };
+        const base = getApiBaseUrl();
+        const url = `${base}/api/clients/${cid.data}/faces/sync-all/progress?token=${encodeURIComponent(token)}`;
+        return { url };
+    } catch {
+        return { error: 'Não autenticado.' };
     }
 }

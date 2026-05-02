@@ -26,7 +26,7 @@ export function getDashboardPathForRole(role: string | undefined): string {
 }
 
 /** Usuário retornado pelo provider Credentials (campos extras no JWT). */
-export type FaciemCredentialsUser = User & {
+export type Face2goCredentialsUser = User & {
     role: SessionRole;
     companyId?: string;
     clientId?: string;

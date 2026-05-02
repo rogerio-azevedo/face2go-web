@@ -3,8 +3,11 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
+import { auth } from '@/auth';
+
 import {
     apiFetchAuthed,
+    getApiBaseUrl,
     nestErrorMessage,
     parseResponseJson,
 } from '@/lib/api-fetch';
@@ -129,5 +132,52 @@ export async function rejectClientRegistrationAction(
         return { success: true };
     } catch {
         return { error: 'Sem permissão.' };
+    }
+}
+
+export async function syncClientRegistrationFaceAction(
+    registrationId: string,
+): Promise<
+    | {
+          success: true;
+          deviceSyncStatus: string;
+          deviceSyncError: string | null;
+      }
+    | { error: string }
+> {
+    const id = z.string().uuid().safeParse(registrationId);
+    if (!id.success) return { error: 'ID inválido.' };
+    try {
+        const res = await apiFetchAuthed(`/api/client/faces/${id.data}/sync`, {
+            method: 'POST',
+        });
+        const data = (await parseResponseJson(res)) as {
+            deviceSyncStatus?: string;
+            deviceSyncError?: string | null;
+        };
+        if (!res.ok) return { error: nestErrorMessage(data) };
+        revalidatePath('/client/usuarios');
+        return {
+            success: true,
+            deviceSyncStatus: String(data.deviceSyncStatus ?? ''),
+            deviceSyncError: data.deviceSyncError ?? null,
+        };
+    } catch {
+        return { error: 'Sem permissão.' };
+    }
+}
+
+export async function getClientFaceSyncProgressSseUrlAction(): Promise<
+    { url: string } | { error: string }
+> {
+    try {
+        const session = await auth();
+        const token = session?.accessToken;
+        if (!token) return { error: 'Não autenticado.' };
+        const base = getApiBaseUrl();
+        const url = `${base}/api/client/faces/sync-all/progress?token=${encodeURIComponent(token)}`;
+        return { url };
+    } catch {
+        return { error: 'Não autenticado.' };
     }
 }

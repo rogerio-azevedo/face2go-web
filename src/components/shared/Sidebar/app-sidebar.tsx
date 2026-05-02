@@ -147,7 +147,7 @@ function subtitleForRole(
 
 export function AppSidebar({
     user,
-    productName = "Faciem",
+    productName = "Face2go",
     mainPaths,
     ...props
 }: ComponentProps<typeof Sidebar> & {

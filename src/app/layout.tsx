@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-    title: "Faciem",
+    title: "Face2go",
     description: "Cadastro de faces em leitores faciais",
 };
 

@@ -8,11 +8,13 @@ import {
     approveClientRegistrationAction,
     getClientRegistrationFaceUrlAction,
     rejectClientRegistrationAction,
+    syncClientRegistrationFaceAction,
 } from "@/app/client/usuarios/actions";
 import {
     approveCompanyRegistrationAction,
     getCompanyRegistrationFaceUrlAction,
     rejectCompanyRegistrationAction,
+    syncCompanyRegistrationFaceAction,
 } from "@/app/company/clientes/[clientId]/usuarios/actions";
 import type { ClientRegistrationListRow } from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
@@ -64,6 +66,22 @@ function extraSummary(row: ClientRegistrationListRow): string {
     if ("room" in d) {
         return `Sala ${String(d.room)}`;
     }
+    return "—";
+}
+
+function syncStatusBadgeVariant(
+    s: ClientRegistrationListRow["deviceSyncStatus"],
+): "default" | "secondary" | "destructive" | "outline" {
+    if (s === "synced") return "default";
+    if (s === "pending_sync") return "secondary";
+    if (s === "sync_failed") return "destructive";
+    return "outline";
+}
+
+function syncStatusLabel(s: ClientRegistrationListRow["deviceSyncStatus"]) {
+    if (s === "synced") return "Sincronizado";
+    if (s === "pending_sync") return "Pendente";
+    if (s === "sync_failed") return "Erro sync";
     return "—";
 }
 
@@ -155,6 +173,39 @@ export function RegistrationsReviewBoard({
         });
     }
 
+    function runSyncFace(registrationId: string) {
+        if (variant === "company" && !companyClientId) {
+            toast.error("Cliente inválido.");
+            return;
+        }
+        startTransition(async () => {
+            const res =
+                variant === "client"
+                    ? await syncClientRegistrationFaceAction(registrationId)
+                    : await syncCompanyRegistrationFaceAction(
+                          companyClientId!,
+                          registrationId,
+                      );
+            if ("error" in res) {
+                toast.error(res.error);
+                return;
+            }
+            if (res.deviceSyncStatus === "synced") {
+                toast.success("Face sincronizada com o(s) leitor(es).");
+            } else {
+                toast.warning(
+                    res.deviceSyncError ?? "Sync incompleta ou com avisos.",
+                );
+            }
+            router.refresh();
+        });
+    }
+
+    function doSyncActiveFace() {
+        if (!activeRow) return;
+        runSyncFace(activeRow.id);
+    }
+
     return (
         <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
@@ -205,7 +256,38 @@ export function RegistrationsReviewBoard({
                             filtered.map((row) => (
                                 <TableRow key={row.id}>
                                     <TableCell className="font-medium">
-                                        {row.name ?? "—"}
+                                        <div className="flex flex-col gap-1">
+                                            <span>{row.name ?? "—"}</span>
+                                            {tab === "approved" &&
+                                                row.faceId != null ? (
+                                                <div className="flex flex-wrap items-center gap-1">
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="text-[10px]"
+                                                    >
+                                                        ID leitor {row.faceId}
+                                                    </Badge>
+                                                    <Badge
+                                                        variant={syncStatusBadgeVariant(
+                                                            row.deviceSyncStatus,
+                                                        )}
+                                                        className="text-[10px]"
+                                                    >
+                                                        {syncStatusLabel(
+                                                            row.deviceSyncStatus,
+                                                        )}
+                                                    </Badge>
+                                                </div>
+                                            ) : null}
+                                            {tab === "approved" &&
+                                                row.faceId == null &&
+                                                !row.hasFacePhoto ? (
+                                                <span className="text-muted-foreground text-[10px]">
+                                                    Sem foto (não há envio ao
+                                                    leitor)
+                                                </span>
+                                            ) : null}
+                                        </div>
                                     </TableCell>
                                     <TableCell className="hidden max-w-[200px] truncate text-xs sm:table-cell">
                                         {row.email ?? "—"}
@@ -217,14 +299,30 @@ export function RegistrationsReviewBoard({
                                         {formatWhen(row.submittedAt)}
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => openDetail(row)}
-                                        >
-                                            Ver
-                                        </Button>
+                                        <div className="flex flex-col items-end gap-1">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => openDetail(row)}
+                                            >
+                                                Ver
+                                            </Button>
+                                            {tab === "approved" &&
+                                            row.faceId != null ? (
+                                                <Button
+                                                    type="button"
+                                                    variant="secondary"
+                                                    size="sm"
+                                                    disabled={pending}
+                                                    onClick={() =>
+                                                        runSyncFace(row.id)
+                                                    }
+                                                >
+                                                    Sync leitor
+                                                </Button>
+                                            ) : null}
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -269,6 +367,38 @@ export function RegistrationsReviewBoard({
                                               : "Rejeitado"}
                                     </Badge>
                                 </div>
+                                {activeRow.status === "approved" ? (
+                                    <div className="flex flex-col gap-2">
+                                        <p className="text-xs text-muted-foreground">
+                                            Face ID no leitor:{" "}
+                                            {activeRow.faceId != null
+                                                ? String(activeRow.faceId)
+                                                : "—"}
+                                        </p>
+                                        {activeRow.faceId != null ? (
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <span className="text-xs text-muted-foreground">
+                                                    Sincronização:
+                                                </span>
+                                                <Badge
+                                                    variant={syncStatusBadgeVariant(
+                                                        activeRow.deviceSyncStatus,
+                                                    )}
+                                                    className="text-[10px]"
+                                                >
+                                                    {syncStatusLabel(
+                                                        activeRow.deviceSyncStatus,
+                                                    )}
+                                                </Badge>
+                                            </div>
+                                        ) : null}
+                                        {activeRow.deviceSyncError ? (
+                                            <p className="text-destructive text-xs">
+                                                {activeRow.deviceSyncError}
+                                            </p>
+                                        ) : null}
+                                    </div>
+                                ) : null}
                                 {faceUrl ? (
                                     // eslint-disable-next-line @next/next/no-img-element -- URL assinada temporária do R2
                                     <img
@@ -320,6 +450,18 @@ export function RegistrationsReviewBoard({
                                 onClick={doApprove}
                             >
                                 Aprovar
+                            </Button>
+                        </SheetFooter>
+                    ) : activeRow?.status === "approved" &&
+                      activeRow.faceId != null ? (
+                        <SheetFooter className="sm:justify-end">
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                disabled={pending}
+                                onClick={doSyncActiveFace}
+                            >
+                                Sincronizar leitor
                             </Button>
                         </SheetFooter>
                     ) : null}

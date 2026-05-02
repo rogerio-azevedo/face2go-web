@@ -99,6 +99,9 @@ export type RegistrationLinkListRow = {
     registrationUrl: string;
 };
 
+/** Estado de sincronização com os leitores faciais Intelbras cadastrados. */
+export type DeviceSyncStatus = "pending_sync" | "synced" | "sync_failed";
+
 /** Item de `GET /api/client/registrations` (datas ISO). */
 export type ClientRegistrationListRow = {
     id: string;
@@ -115,4 +118,8 @@ export type ClientRegistrationListRow = {
     rejectionNotes: string | null;
     createdAt: string;
     hasFacePhoto: boolean;
+    faceId: number | null;
+    deviceSyncStatus: DeviceSyncStatus | null;
+    deviceSyncedAt: string | null;
+    deviceSyncError: string | null;
 };

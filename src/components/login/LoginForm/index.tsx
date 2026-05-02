@@ -68,7 +68,7 @@ export function LoginForm() {
     return (
         <Card className="w-full max-w-md shadow-md">
             <CardHeader>
-                <CardTitle>Faciem</CardTitle>
+                <CardTitle>Face2go</CardTitle>
                 <CardDescription>
                     Entre com sua conta para continuar.
                 </CardDescription>

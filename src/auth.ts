@@ -3,7 +3,7 @@ import Credentials from 'next-auth/providers/credentials';
 import { z } from 'zod';
 
 import { authConfig } from '@/auth.config';
-import type { FaciemCredentialsUser } from '@/lib/dashboard-path';
+import type { Face2goCredentialsUser } from '@/lib/dashboard-path';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
     pages: authConfig.pages,
@@ -12,7 +12,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         ...authConfig.callbacks,
         async jwt({ token, user }) {
             if (user) {
-                const u = user as FaciemCredentialsUser & {
+                const u = user as Face2goCredentialsUser & {
                     accessToken?: string;
                 };
                 token.role = u.role;
@@ -29,7 +29,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 session.user.id = token.sub;
             }
             if (session.user) {
-                session.user.role = token.role as FaciemCredentialsUser['role'];
+                session.user.role = token.role as Face2goCredentialsUser['role'];
                 session.user.companyId =
                     (token.companyId as string | null) ?? undefined;
                 session.user.clientId =
@@ -46,7 +46,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     providers: [
         Credentials({
             async authorize(credentials): Promise<
-                | (FaciemCredentialsUser & { accessToken?: string })
+                | (Face2goCredentialsUser & { accessToken?: string })
                 | null
             > {
                 const parsed = z
@@ -95,7 +95,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     id: u.id,
                     email: u.email,
                     name: u.name ?? undefined,
-                    role: u.role as FaciemCredentialsUser['role'],
+                    role: u.role as Face2goCredentialsUser['role'],
                     companyId: u.companyId,
                     clientId: u.clientId,
                     companyUserId: u.companyUserId,
