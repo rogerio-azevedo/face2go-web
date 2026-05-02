@@ -11,23 +11,39 @@ const optionalTrimmed = z
         return t === "" ? undefined : t;
     });
 
-export const CLIENT_TYPES = ["office", "clinic", "condominium", "other"] as const;
-export type ClientType = (typeof CLIENT_TYPES)[number];
+/** Igual ao backend: UTC± em minutos; |inteiro| ≤ 14 conta como horas (ex.: -4 → −240). */
+export const TZ_OFFSET_ABS_MAX = 14 * 60;
 
-export const CLIENT_TYPE_LABELS: Record<ClientType, string> = {
-    office: "Escritório",
-    clinic: "Clínica",
-    condominium: "Condomínio",
-    other: "Outro",
-};
+export function normalizeClientTimezoneOffset(raw: unknown): number {
+    if (raw === undefined || raw === null || raw === "")
+        throw new Error("INVALID_TZ_OFFSET");
+    const n =
+        typeof raw === "number"
+            ? raw
+            : Number(String(raw).trim().replace(",", "."));
+    if (!Number.isFinite(n) || !Number.isInteger(n))
+        throw new Error("INVALID_TZ_OFFSET");
+    let m = n;
+    if (Math.abs(m) <= 14) {
+        m *= 60;
+    }
+    if (
+        !Number.isInteger(m) ||
+        m < -TZ_OFFSET_ABS_MAX ||
+        m > TZ_OFFSET_ABS_MAX
+    ) {
+        throw new Error("INVALID_TZ_OFFSET");
+    }
+    return m;
+}
 
-export const clientSchema = z.object({
+const baseClientShape = {
     name: z
         .string()
         .trim()
         .min(2, "Nome deve ter pelo menos 2 caracteres")
         .max(255, "Nome muito longo"),
-    type: z.enum(CLIENT_TYPES, {
+    type: z.enum(["office", "clinic", "condominium", "other"], {
         message: "Selecione um tipo válido.",
     }),
     cnpj: optionalTrimmed.refine((val) => val === undefined || CNPJ_REGEX.test(val), {
@@ -47,11 +63,49 @@ export const clientSchema = z.object({
         },
     ),
     isActive: z.boolean(),
+};
+
+const timezoneOffsetCreate = z.preprocess((raw: unknown) => {
+    try {
+        if (raw === undefined || raw === null || raw === "") return 0;
+        return normalizeClientTimezoneOffset(raw);
+    } catch {
+        return Number.NaN;
+    }
+}, z.number().int().min(-TZ_OFFSET_ABS_MAX).max(TZ_OFFSET_ABS_MAX));
+
+const timezoneOffsetUpdate = z.preprocess((raw: unknown) => {
+    if (raw === undefined) return undefined;
+    try {
+        return normalizeClientTimezoneOffset(raw);
+    } catch {
+        return Number.NaN;
+    }
+}, z.number().int().min(-TZ_OFFSET_ABS_MAX).max(TZ_OFFSET_ABS_MAX).optional());
+
+export const CLIENT_TYPES = ["office", "clinic", "condominium", "other"] as const;
+export type ClientType = (typeof CLIENT_TYPES)[number];
+
+export const CLIENT_TYPE_LABELS: Record<ClientType, string> = {
+    office: "Escritório",
+    clinic: "Clínica",
+    condominium: "Condomínio",
+    other: "Outro",
+};
+
+export const clientSchema = z.object({
+    ...baseClientShape,
+    timezoneOffsetMinutes: timezoneOffsetCreate,
 });
 
 export const createClientSchema = clientSchema;
 
-export const updateClientSchema = clientSchema.partial();
+export const updateClientSchema = z
+    .object({
+        ...baseClientShape,
+        timezoneOffsetMinutes: timezoneOffsetUpdate,
+    })
+    .partial();
 
 export type ClientFormPayload = z.input<typeof createClientSchema>;
 export type ClientUpdatePayload = z.input<typeof updateClientSchema>;

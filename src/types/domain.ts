@@ -23,6 +23,8 @@ export type ClientListRow = {
     phone: string | null;
     email: string | null;
     logoUrl: string | null;
+    /** Minutos em relação ao UTC (ex.: −180 = UTC−3). Aceita também horas inteiras curtas na API quando |valor|≤14. */
+    timezoneOffsetMinutes: number;
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
@@ -122,4 +124,28 @@ export type ClientRegistrationListRow = {
     deviceSyncStatus: DeviceSyncStatus | null;
     deviceSyncedAt: string | null;
     deviceSyncError: string | null;
+};
+
+/** Item de `GET /api/accesses` (datas ISO). */
+export type AccessRow = {
+    id: string;
+    companyId: string;
+    readerId: string;
+    readerName: string;
+    clientId: string;
+    clientName: string;
+    userId: number;
+    personName: string | null;
+    eventCode: string;
+    eventAction: string;
+    similarity: number | null;
+    eventDate: string | null;
+    createdAt: string;
+};
+
+export type AccessesListResponse = {
+    items: AccessRow[];
+    page: number;
+    pageSize: number;
+    total: number;
 };

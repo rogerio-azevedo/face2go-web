@@ -57,6 +57,7 @@ const emptyDefaults: ClientFormInput = {
     phone: undefined,
     email: undefined,
     logoUrl: undefined,
+    timezoneOffsetMinutes: 0,
     isActive: true,
 };
 
@@ -107,6 +108,10 @@ export function ClientForm({
                 phone: client.phone ?? undefined,
                 email: client.email ?? undefined,
                 logoUrl: client.logoUrl ?? undefined,
+                timezoneOffsetMinutes:
+                    typeof client.timezoneOffsetMinutes === "number"
+                        ? client.timezoneOffsetMinutes
+                        : 0,
                 isActive: client.isActive,
             };
         }
@@ -320,6 +325,59 @@ export function ClientForm({
                                     {errors.logoUrl ? (
                                         <p className="text-destructive text-xs">
                                             {errors.logoUrl.message}
+                                        </p>
+                                    ) : null}
+                                </div>
+
+                                <div className="min-w-0 space-y-2 sm:col-span-2">
+                                    <Label
+                                        htmlFor="client-tz-offset"
+                                        className={fieldLabel}
+                                    >
+                                        Offset UTC (minutos){" "}
+                                        <span className={hintClass}>(opcional)</span>
+                                    </Label>
+                                    <Input
+                                        id="client-tz-offset"
+                                        type="number"
+                                        step={1}
+                                        inputMode="numeric"
+                                        className={cn(
+                                            "bg-card h-10 px-3 tabular-nums",
+                                            controlClass,
+                                        )}
+                                        aria-invalid={!!errors.timezoneOffsetMinutes}
+                                        {...register("timezoneOffsetMinutes", {
+                                            setValueAs: (v) => {
+                                                if (
+                                                    v === "" ||
+                                                    v === null ||
+                                                    v === undefined
+                                                ) {
+                                                    return 0;
+                                                }
+                                                const n =
+                                                    typeof v === "number"
+                                                        ? v
+                                                        : Number(v);
+                                                if (!Number.isFinite(n))
+                                                    return NaN;
+                                                return Math.trunc(n);
+                                            },
+                                        })}
+                                        placeholder="-180"
+                                    />
+                                    <p className="text-muted-foreground text-xs">
+                                        UTC−4 = −240 min; UTC−3 = −180. Também vale
+                                        atalho de horas inteiras no backend (JSON):
+                                        −4 ⇒ −240; +3 ⇒ +180. Deixar 0 = UTC.
+                                    </p>
+                                    {errors.timezoneOffsetMinutes ? (
+                                        <p className="text-destructive text-xs">
+                                            {
+                                                errors.timezoneOffsetMinutes
+                                                    .message
+                                            }
                                         </p>
                                     ) : null}
                                 </div>

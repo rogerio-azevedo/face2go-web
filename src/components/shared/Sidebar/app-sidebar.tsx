@@ -5,6 +5,7 @@ import type { ComponentProps } from "react";
 import {
     BriefcaseBusiness,
     Building2,
+    History,
     LayoutDashboard,
     ScanFace,
     ScanLine,
@@ -64,6 +65,11 @@ function navItemsForRole(
                     icon: ScanLine,
                 },
                 {
+                    title: "Acessos",
+                    url: "/company/acessos",
+                    icon: History,
+                },
+                {
                     title: "Usuários",
                     url: "/company/usuarios",
                     icon: Users,
@@ -89,6 +95,13 @@ function navItemsForRole(
                     title: "Leitores",
                     url: "/company/leitores",
                     icon: ScanLine,
+                });
+            }
+            if (pathSet?.has("/company/acessos") === true) {
+                items.push({
+                    title: "Acessos",
+                    url: "/company/acessos",
+                    icon: History,
                 });
             }
             if (pathSet?.has("/company/usuarios") === true) {
