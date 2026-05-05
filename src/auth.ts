@@ -73,7 +73,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     body: JSON.stringify(parsed.data),
                 });
 
-                if (!res.ok) return null;
+                if (!res.ok) {
+                    const errorText = await res.text().catch(() => 'No response body');
+                    console.error('Erro na autenticação remota:', res.status, res.statusText, errorText);
+                    return null;
+                }
 
                 const data = (await res.json()) as {
                     accessToken: string;
