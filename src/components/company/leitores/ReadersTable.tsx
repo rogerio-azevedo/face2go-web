@@ -3,6 +3,7 @@
 import { RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { toast } from "sonner";
 
 import {
@@ -16,7 +17,7 @@ import type {
 } from "@/types/domain";
 import { ReaderForm } from "@/components/company/leitores/ReaderForm";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import {
     Table,
@@ -323,15 +324,25 @@ export function ReadersTable({
                                     </TableCell>
                                     {canManage ? (
                                         <TableCell className="text-right">
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                disabled={pending}
-                                                onClick={() => openEdit(row)}
-                                            >
-                                                Editar
-                                            </Button>
+                                            <div className="flex items-center justify-end gap-2">
+                                                {row.brand === "intelbras" ? (
+                                                    <Link
+                                                        href={`/company/leitores/${row.id}/device-users`}
+                                                        className={buttonVariants({ variant: "outline", size: "sm" })}
+                                                    >
+                                                        Usuários
+                                                    </Link>
+                                                ) : null}
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    disabled={pending}
+                                                    onClick={() => openEdit(row)}
+                                                >
+                                                    Editar
+                                                </Button>
+                                            </div>
                                         </TableCell>
                                     ) : null}
                                 </TableRow>

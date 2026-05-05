@@ -154,3 +154,76 @@ export async function toggleReaderActiveAction(
         return { error: 'Sem permissão.' };
     }
 }
+
+export type DeviceUser = {
+    UserID: string;
+    CardName: string;
+    CardNo: string;
+    ValidDateStart?: string;
+    ValidDateEnd?: string;
+};
+
+export type DeviceUsersListResult = {
+    found: number;
+    records: DeviceUser[];
+};
+
+export async function getDeviceUsersAction(
+    readerId: string,
+    limit: number,
+    offset: number,
+): Promise<{ ok: true; data: DeviceUsersListResult } | { ok: false; error: string }> {
+    try {
+        const res = await apiFetchAuthed(
+            `/api/readers/${readerId}/device-users?limit=${limit}&offset=${offset}`,
+        );
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { ok: false, error: nestErrorMessage(data) };
+        }
+        const data = (await res.json()) as DeviceUsersListResult;
+        return { ok: true, data };
+    } catch {
+        return { ok: false, error: 'Erro de comunicação.' };
+    }
+}
+
+export async function removeDeviceUserAction(
+    readerId: string,
+    userId: string,
+): Promise<{ success: true } | { error: string }> {
+    try {
+        const res = await apiFetchAuthed(
+            `/api/readers/${readerId}/device-users/${userId}`,
+            {
+                method: 'DELETE',
+            },
+        );
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { error: nestErrorMessage(data) };
+        }
+        return { success: true };
+    } catch {
+        return { error: 'Erro de comunicação.' };
+    }
+}
+
+export async function getDeviceUserFaceAction(
+    readerId: string,
+    userId: string,
+): Promise<{ ok: true; data: { photoBase64: string | null } } | { ok: false; error: string }> {
+    try {
+        const res = await apiFetchAuthed(
+            `/api/readers/${readerId}/device-users/${userId}/face`,
+        );
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { ok: false, error: nestErrorMessage(data) };
+        }
+        const data = (await res.json()) as { photoBase64: string | null };
+        return { ok: true, data };
+    } catch {
+        return { ok: false, error: 'Erro de comunicação.' };
+    }
+}

@@ -77,9 +77,10 @@ function isMobileTouchDevice(): boolean {
     return false;
 }
 
-/** Em contexto não seguro ou em mobile, prefere input com capture. */
+/** Em contexto não seguro, prefere input com capture. No mobile, usamos o custom UI com máscara. */
 export function preferNativeCameraInput(): boolean {
     if (typeof window === "undefined") return false;
     if (!window.isSecureContext) return true;
-    return isMobileTouchDevice();
+    // Removido o isMobileTouchDevice() para que o mobile também use a moldura oval (getUserMedia)
+    return false;
 }
