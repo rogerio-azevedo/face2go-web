@@ -7,7 +7,6 @@ import {
     Building2,
     History,
     LayoutDashboard,
-    ScanFace,
     ScanLine,
     Users,
 } from "lucide-react";
@@ -188,10 +187,17 @@ export function AppSidebar({
     return (
         <Sidebar collapsible="icon" {...props}>
             <SidebarHeader className="group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center">
-                <div className="flex items-center gap-2 py-4">
+                <div className="flex items-center gap-2 py-0">
                     {/* Ícone visível apenas no estado colapsado */}
-                    <div className="hidden aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground group-data-[collapsible=icon]:flex">
-                        <ScanFace className="size-4 shrink-0" />
+                    <div className="hidden group-data-[collapsible=icon]:flex">
+                        <Image
+                            src="/icone.png"
+                            alt={productName}
+                            width={32}
+                            height={32}
+                            priority
+                            className="h-auto w-8"
+                        />
                     </div>
                     {/* Logo completo visível no estado expandido */}
                     <div className="group-data-[collapsible=icon]:hidden">
