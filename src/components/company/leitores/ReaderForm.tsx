@@ -322,14 +322,14 @@ export function ReaderForm({
 
                             <div className="min-w-0 space-y-2">
                                 <Label htmlFor="reader-ip" className={fieldLabel}>
-                                    IP *
+                                    IP ou hostname (DNS) *
                                 </Label>
                                 <Input
                                     id="reader-ip"
                                     className={cn("bg-card h-10 px-3", controlClass)}
                                     aria-invalid={!!errors.ip}
                                     {...register("ip")}
-                                    placeholder="192.168.0.10"
+                                    placeholder="192.168.0.10 ou camera.ddns.net"
                                 />
                                 {errors.ip ? (
                                     <p className="text-destructive text-xs">

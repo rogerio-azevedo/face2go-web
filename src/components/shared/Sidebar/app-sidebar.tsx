@@ -11,6 +11,7 @@ import {
     ScanLine,
     Users,
 } from "lucide-react";
+import Image from "next/image";
 import type { Session } from "next-auth";
 
 import {
@@ -188,13 +189,22 @@ export function AppSidebar({
         <Sidebar collapsible="icon" {...props}>
             <SidebarHeader className="group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center">
                 <div className="flex items-center gap-2 py-4">
-                    <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground group-data-[collapsible=icon]:size-8">
+                    {/* Ícone visível apenas no estado colapsado */}
+                    <div className="hidden aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground group-data-[collapsible=icon]:flex">
                         <ScanFace className="size-4 shrink-0" />
                     </div>
-                    <div className="grid min-w-0 flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-                        <span className="truncate font-semibold">{productName}</span>
+                    {/* Logo completo visível no estado expandido */}
+                    <div className="group-data-[collapsible=icon]:hidden">
+                        <Image
+                            src="/face2go_logo.svg"
+                            alt={productName}
+                            width={160}
+                            height={45}
+                            priority
+                            className="dark:invert h-auto w-[160px] max-w-full"
+                        />
                         {productSubtitle ? (
-                            <span className="truncate text-xs text-muted-foreground">
+                            <span className="block truncate text-xs text-muted-foreground">
                                 {productSubtitle}
                             </span>
                         ) : null}
