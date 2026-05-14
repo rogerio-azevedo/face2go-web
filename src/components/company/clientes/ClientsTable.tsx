@@ -9,7 +9,7 @@ import { toggleClientActiveAction } from "@/app/company/clientes/actions";
 import type { ClientListRow } from "@/types/domain";
 import { ClientForm } from "@/components/company/clientes/ClientForm";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import {
     Table,
@@ -23,6 +23,7 @@ import {
     CLIENT_TYPE_LABELS,
     type ClientType,
 } from "@/lib/validations/clients";
+import { cn } from "@/lib/utils";
 
 export function ClientsTable({
     clients,
@@ -80,7 +81,7 @@ export function ClientsTable({
                             <TableHead>Telefone</TableHead>
                             <TableHead>E-mail</TableHead>
                             <TableHead>Status</TableHead>
-                            <TableHead>Cadastro via link</TableHead>
+                            <TableHead>Gerenciar</TableHead>
                             {canManage ? (
                                 <TableHead className="text-right">
                                     Ações
@@ -137,7 +138,16 @@ export function ClientsTable({
                                     <TableCell>
                                         <Link
                                             href={`/company/clientes/${row.id}/usuarios`}
-                                            className="text-primary text-sm font-medium underline-offset-4 hover:underline"
+                                            aria-disabled={pending}
+                                            tabIndex={pending ? -1 : 0}
+                                            className={cn(
+                                                buttonVariants({
+                                                    variant: "outline",
+                                                    size: "sm",
+                                                }),
+                                                pending &&
+                                                    "pointer-events-none opacity-50",
+                                            )}
                                         >
                                             Abrir
                                         </Link>

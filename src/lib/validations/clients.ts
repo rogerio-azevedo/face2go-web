@@ -37,13 +37,22 @@ export function normalizeClientTimezoneOffset(raw: unknown): number {
     return m;
 }
 
+export const CLIENT_TYPES = [
+    "office",
+    "clinic",
+    "condominium",
+    "school",
+    "other",
+] as const;
+export type ClientType = (typeof CLIENT_TYPES)[number];
+
 const baseClientShape = {
     name: z
         .string()
         .trim()
         .min(2, "Nome deve ter pelo menos 2 caracteres")
         .max(255, "Nome muito longo"),
-    type: z.enum(["office", "clinic", "condominium", "other"], {
+    type: z.enum(CLIENT_TYPES, {
         message: "Selecione um tipo válido.",
     }),
     cnpj: optionalTrimmed.refine((val) => val === undefined || CNPJ_REGEX.test(val), {
@@ -83,13 +92,11 @@ const timezoneOffsetUpdate = z.preprocess((raw: unknown) => {
     }
 }, z.number().int().min(-TZ_OFFSET_ABS_MAX).max(TZ_OFFSET_ABS_MAX).optional());
 
-export const CLIENT_TYPES = ["office", "clinic", "condominium", "other"] as const;
-export type ClientType = (typeof CLIENT_TYPES)[number];
-
 export const CLIENT_TYPE_LABELS: Record<ClientType, string> = {
     office: "Escritório",
     clinic: "Clínica",
     condominium: "Condomínio",
+    school: "Escola",
     other: "Outro",
 };
 

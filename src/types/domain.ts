@@ -149,3 +149,114 @@ export type AccessesListResponse = {
     pageSize: number;
     total: number;
 };
+
+/** Turno de turma (enum `class_shift` no Postgres). */
+export type ClassShift =
+    | "morning"
+    | "afternoon"
+    | "evening"
+    | "fulltime";
+
+export type SchoolClassRow = {
+    id: string;
+    clientId: string;
+    name: string;
+    /** FK para cadastro em Turnos; quando definido, a lista usa `linkedShiftName`. */
+    shiftId: string | null;
+    linkedShiftName: string | null;
+    /** Enum legado (turmas antigas ou sem vínculo). */
+    shift: ClassShift | null;
+    year: number;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+};
+
+/** Dias da semana em `shifts.schedule` (JSON no Postgres). */
+export type ShiftWeekday =
+    | "sunday"
+    | "monday"
+    | "tuesday"
+    | "wednesday"
+    | "thursday"
+    | "friday"
+    | "saturday";
+
+export type ShiftTimeWindow = {
+    start: string;
+    end: string;
+};
+
+/** Até 4 janelas por dia (limite Intelbras). */
+export type ShiftSchedule = Partial<
+    Record<ShiftWeekday, ShiftTimeWindow[]>
+>;
+
+export type ShiftRow = {
+    id: string;
+    clientId: string;
+    name: string;
+    schedule: ShiftSchedule;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type ParentRelationshipType =
+    | "father"
+    | "mother"
+    | "grandfather"
+    | "grandmother"
+    | "guardian"
+    | "other";
+
+export type StudentAccessScheduleJson = {
+    shifts?: ClassShift[];
+    entryTime?: string;
+    exitTime?: string;
+    notes?: string;
+} | null;
+
+export type StudentRow = {
+    id: string;
+    clientId: string;
+    classId: string | null;
+    name: string;
+    enrollment: string;
+    document: string | null;
+    birthDate: string | null;
+    photoKey: string | null;
+    faceId: number | null;
+    deviceSyncStatus: DeviceSyncStatus | null;
+    deviceSyncedAt: string | null;
+    deviceSyncError: string | null;
+    accessSchedule: StudentAccessScheduleJson;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type ParentRow = {
+    id: string;
+    clientId: string;
+    userId: string | null;
+    name: string;
+    phone: string | null;
+    document: string | null;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+};
+
+/** Item de `GET /api/clients/:clientId/parents/:parentId/students`. */
+export type ParentStudentLinkWithStudent = {
+    link: {
+        id: string;
+        parentId: string;
+        studentId: string;
+        relationshipType: ParentRelationshipType;
+        isAuthorizedPickup: boolean;
+        createdAt: string;
+    };
+    student: StudentRow;
+};
