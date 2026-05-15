@@ -8,6 +8,7 @@ import { apiFetchAuthed, parseResponseJson } from "@/lib/api-fetch";
 import type {
     ClientRegistrationListRow,
     ClientListRow,
+    PickupAuthorizationRow,
     RegistrationLinkListRow,
     ResponsibleRow,
     SchoolClassRow,
@@ -44,6 +45,7 @@ export default async function CompanyClientUsuariosPage({
     let schoolStudents: StudentRow[] = [];
     let schoolResponsibles: ResponsibleRow[] = [];
     let schoolShifts: ShiftRow[] = [];
+    let schoolPickupAuthorizations: PickupAuthorizationRow[] = [];
 
     try {
         const clientRes = await apiFetchAuthed(`/api/clients/${clientId}`);
@@ -67,11 +69,12 @@ export default async function CompanyClientUsuariosPage({
         }
 
         if (clientMeta?.type === "school") {
-            const [clsRes, stRes, prRes, shRes] = await Promise.all([
+            const [clsRes, stRes, prRes, shRes, pkRes] = await Promise.all([
                 apiFetchAuthed(`/api/clients/${clientId}/school-classes`),
                 apiFetchAuthed(`/api/clients/${clientId}/students`),
                 apiFetchAuthed(`/api/clients/${clientId}/responsibles`),
                 apiFetchAuthed(`/api/clients/${clientId}/shifts`),
+                apiFetchAuthed(`/api/clients/${clientId}/pickup-authorizations`),
             ]);
             if (clsRes.ok) {
                 schoolClasses = (await parseResponseJson(
@@ -89,9 +92,16 @@ export default async function CompanyClientUsuariosPage({
                 )) as ResponsibleRow[];
             }
             if (shRes.ok) {
-                schoolShifts = (await parseResponseJson(
-                    shRes,
-                )) as ShiftRow[];
+                schoolShifts = (await parseResponseJson(shRes)) as ShiftRow[];
+            }
+            if (pkRes.ok) {
+                schoolPickupAuthorizations =
+                    ((await parseResponseJson(
+                        pkRes,
+                    )) as PickupAuthorizationRow[]) ?? [];
+                if (!Array.isArray(schoolPickupAuthorizations)) {
+                    schoolPickupAuthorizations = [];
+                }
             }
         }
     } catch {
@@ -101,6 +111,7 @@ export default async function CompanyClientUsuariosPage({
         schoolStudents = [];
         schoolResponsibles = [];
         schoolShifts = [];
+        schoolPickupAuthorizations = [];
     }
 
     const clientName = clientMeta?.name ?? null;
@@ -124,6 +135,7 @@ export default async function CompanyClientUsuariosPage({
                 initialSchoolStudents={schoolStudents}
                 initialSchoolResponsibles={schoolResponsibles}
                 initialSchoolShifts={schoolShifts}
+                initialSchoolPickupAuthorizations={schoolPickupAuthorizations}
             />
         </div>
     );

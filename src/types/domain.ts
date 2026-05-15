@@ -260,3 +260,29 @@ export type ResponsibleStudentLinkWithStudent = {
     };
     student: StudentRow;
 };
+
+export type PickupAuthorizationStatus =
+    | "active"
+    | "used"
+    | "expired"
+    | "cancelled";
+
+/** Resposta da API de autorizações temporárias (inclui `effectiveStatus`). */
+export type PickupAuthorizationRow = {
+    id: string;
+    clientId: string;
+    studentId: string;
+    requestedByResponsibleId: string;
+    authorizedResponsibleId: string | null;
+    guestName: string | null;
+    guestDocument: string | null;
+    guestPhone: string | null;
+    status: PickupAuthorizationStatus;
+    effectiveStatus: PickupAuthorizationStatus;
+    validFrom: string;
+    validUntil: string;
+    notes: string | null;
+    usedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+};

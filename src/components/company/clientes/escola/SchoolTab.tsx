@@ -1,6 +1,7 @@
 "use client";
 
 import type {
+    PickupAuthorizationRow,
     ResponsibleRow,
     SchoolClassRow,
     ShiftRow,
@@ -14,6 +15,7 @@ import {
 } from "@/components/ui/tabs";
 
 import { ParentsSection } from "./ParentsSection";
+import { PickupAuthorizationsSection } from "./PickupAuthorizationsSection";
 import { SchoolClassesSection } from "./SchoolClassesSection";
 import { ShiftsSection } from "./ShiftsSection";
 import { StudentsSection } from "./StudentsSection";
@@ -24,12 +26,14 @@ export function SchoolTab({
     initialStudents,
     initialResponsibles,
     initialShifts,
+    initialPickupAuthorizations = [],
 }: {
     clientId: string;
     initialClasses: SchoolClassRow[];
     initialStudents: StudentRow[];
     initialResponsibles: ResponsibleRow[];
     initialShifts: ShiftRow[];
+    initialPickupAuthorizations?: PickupAuthorizationRow[];
 }) {
     return (
         <div className="space-y-4">
@@ -44,6 +48,9 @@ export function SchoolTab({
                     <TabsTrigger value="shifts">Turnos</TabsTrigger>
                     <TabsTrigger value="students">Alunos</TabsTrigger>
                     <TabsTrigger value="parents">Responsáveis</TabsTrigger>
+                    <TabsTrigger value="pickups">
+                        Autorizações retirada
+                    </TabsTrigger>
                 </TabsList>
                 <TabsContent value="classes" className="pt-4">
                     <SchoolClassesSection
@@ -70,6 +77,14 @@ export function SchoolTab({
                         clientId={clientId}
                         initialResponsibles={initialResponsibles}
                         students={initialStudents}
+                    />
+                </TabsContent>
+                <TabsContent value="pickups" className="pt-4">
+                    <PickupAuthorizationsSection
+                        clientId={clientId}
+                        initialAuthorizations={initialPickupAuthorizations}
+                        students={initialStudents}
+                        responsibles={initialResponsibles}
                     />
                 </TabsContent>
             </Tabs>

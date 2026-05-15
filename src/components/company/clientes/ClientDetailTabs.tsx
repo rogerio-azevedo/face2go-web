@@ -7,8 +7,9 @@ import { SyncAllProgressModal } from "@/components/registrations/SyncAllProgress
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type {
     ClientRegistrationListRow,
-    ResponsibleRow,
+    PickupAuthorizationRow,
     RegistrationLinkListRow,
+    ResponsibleRow,
     SchoolClassRow,
     ShiftRow,
     StudentRow,
@@ -24,6 +25,7 @@ export type ClientDetailTabsProps = {
     initialSchoolStudents?: StudentRow[];
     initialSchoolResponsibles?: ResponsibleRow[];
     initialSchoolShifts?: ShiftRow[];
+    initialSchoolPickupAuthorizations?: PickupAuthorizationRow[];
 };
 
 export function ClientDetailTabs({
@@ -35,6 +37,7 @@ export function ClientDetailTabs({
     initialSchoolStudents = [],
     initialSchoolResponsibles = [],
     initialSchoolShifts = [],
+    initialSchoolPickupAuthorizations = [],
 }: ClientDetailTabsProps) {
     const isSchool = clientType === "school";
 
@@ -83,6 +86,9 @@ export function ClientDetailTabs({
                         initialStudents={initialSchoolStudents}
                         initialResponsibles={initialSchoolResponsibles}
                         initialShifts={initialSchoolShifts}
+                        initialPickupAuthorizations={
+                            initialSchoolPickupAuthorizations
+                        }
                     />
                 </TabsContent>
             ) : null}

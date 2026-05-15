@@ -192,3 +192,46 @@ export const linkResponsibleStudentSchema = z.object({
     relationshipType: responsibleRelationshipSchema,
     isAuthorizedPickup: z.boolean().optional().default(true),
 });
+
+/** Alinhado a `createPickupAuthorizationSchema` no servidor (app do responsável). */
+export const createPickupAuthorizationSchema = z
+    .object({
+        studentId: z.string().uuid(),
+        authorizedResponsibleId: z.string().uuid().nullable().optional(),
+        guestName: z.string().trim().min(1).max(255).nullable().optional(),
+        guestDocument: z.string().trim().min(1).max(64).nullable().optional(),
+        guestPhone: z
+            .union([z.string().trim().max(32), z.literal(""), z.null()])
+            .optional(),
+        validFrom: z.coerce.date(),
+        validUntil: z.coerce.date(),
+        notes: z.string().trim().max(2000).nullable().optional(),
+    })
+    .transform((d) => ({
+        studentId: d.studentId,
+        authorizedResponsibleId: d.authorizedResponsibleId ?? null,
+        guestName: d.guestName?.trim() ? d.guestName.trim() : null,
+        guestDocument: d.guestDocument?.trim() ? d.guestDocument.trim() : null,
+        guestPhone:
+            d.guestPhone && typeof d.guestPhone === "string" && d.guestPhone.trim()
+                ? d.guestPhone.trim()
+                : null,
+        validFrom: d.validFrom,
+        validUntil: d.validUntil,
+        notes: d.notes?.trim() ? d.notes.trim() : null,
+    }))
+    .refine((data) => data.validUntil.getTime() > data.validFrom.getTime(), {
+        message: "validUntil deve ser posterior a validFrom.",
+        path: ["validUntil"],
+    })
+    .refine(
+        (data) => {
+            const hasAuthorized = !!data.authorizedResponsibleId;
+            const hasGuest = !!data.guestName && !!data.guestDocument;
+            return hasAuthorized !== hasGuest;
+        },
+        {
+            message:
+                "Informe um responsável cadastrado ou nome e documento do convidado.",
+        },
+    );
