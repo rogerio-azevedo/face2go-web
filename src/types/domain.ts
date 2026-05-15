@@ -202,7 +202,7 @@ export type ShiftRow = {
     updatedAt: string;
 };
 
-export type ParentRelationshipType =
+export type ResponsibleRelationshipType =
     | "father"
     | "mother"
     | "grandfather"
@@ -236,7 +236,7 @@ export type StudentRow = {
     updatedAt: string;
 };
 
-export type ParentRow = {
+export type ResponsibleRow = {
     id: string;
     clientId: string;
     userId: string | null;
@@ -248,13 +248,13 @@ export type ParentRow = {
     updatedAt: string;
 };
 
-/** Item de `GET /api/clients/:clientId/parents/:parentId/students`. */
-export type ParentStudentLinkWithStudent = {
+/** Item de `GET /api/clients/:clientId/responsibles/:responsibleId/students`. */
+export type ResponsibleStudentLinkWithStudent = {
     link: {
         id: string;
-        parentId: string;
+        responsibleId: string;
         studentId: string;
-        relationshipType: ParentRelationshipType;
+        relationshipType: ResponsibleRelationshipType;
         isAuthorizedPickup: boolean;
         createdAt: string;
     };

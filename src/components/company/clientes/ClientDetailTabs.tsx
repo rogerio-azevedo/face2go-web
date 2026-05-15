@@ -7,7 +7,7 @@ import { SyncAllProgressModal } from "@/components/registrations/SyncAllProgress
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type {
     ClientRegistrationListRow,
-    ParentRow,
+    ResponsibleRow,
     RegistrationLinkListRow,
     SchoolClassRow,
     ShiftRow,
@@ -22,7 +22,7 @@ export type ClientDetailTabsProps = {
     /** Só quando `clientType === "school"`: dados carregados no servidor */
     initialSchoolClasses?: SchoolClassRow[];
     initialSchoolStudents?: StudentRow[];
-    initialSchoolParents?: ParentRow[];
+    initialSchoolResponsibles?: ResponsibleRow[];
     initialSchoolShifts?: ShiftRow[];
 };
 
@@ -33,7 +33,7 @@ export function ClientDetailTabs({
     initialRows,
     initialSchoolClasses = [],
     initialSchoolStudents = [],
-    initialSchoolParents = [],
+    initialSchoolResponsibles = [],
     initialSchoolShifts = [],
 }: ClientDetailTabsProps) {
     const isSchool = clientType === "school";
@@ -81,7 +81,7 @@ export function ClientDetailTabs({
                         clientId={clientId}
                         initialClasses={initialSchoolClasses}
                         initialStudents={initialSchoolStudents}
-                        initialParents={initialSchoolParents}
+                        initialResponsibles={initialSchoolResponsibles}
                         initialShifts={initialSchoolShifts}
                     />
                 </TabsContent>

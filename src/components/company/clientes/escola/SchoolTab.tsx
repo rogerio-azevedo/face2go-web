@@ -1,7 +1,7 @@
 "use client";
 
 import type {
-    ParentRow,
+    ResponsibleRow,
     SchoolClassRow,
     ShiftRow,
     StudentRow,
@@ -22,13 +22,13 @@ export function SchoolTab({
     clientId,
     initialClasses,
     initialStudents,
-    initialParents,
+    initialResponsibles,
     initialShifts,
 }: {
     clientId: string;
     initialClasses: SchoolClassRow[];
     initialStudents: StudentRow[];
-    initialParents: ParentRow[];
+    initialResponsibles: ResponsibleRow[];
     initialShifts: ShiftRow[];
 }) {
     return (
@@ -68,7 +68,7 @@ export function SchoolTab({
                 <TabsContent value="parents" className="pt-4">
                     <ParentsSection
                         clientId={clientId}
-                        initialParents={initialParents}
+                        initialResponsibles={initialResponsibles}
                         students={initialStudents}
                     />
                 </TabsContent>

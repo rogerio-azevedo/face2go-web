@@ -9,7 +9,7 @@ import type {
     ClientRegistrationListRow,
     ClientListRow,
     RegistrationLinkListRow,
-    ParentRow,
+    ResponsibleRow,
     SchoolClassRow,
     ShiftRow,
     StudentRow,
@@ -42,7 +42,7 @@ export default async function CompanyClientUsuariosPage({
     let rows: ClientRegistrationListRow[] = [];
     let schoolClasses: SchoolClassRow[] = [];
     let schoolStudents: StudentRow[] = [];
-    let schoolParents: ParentRow[] = [];
+    let schoolResponsibles: ResponsibleRow[] = [];
     let schoolShifts: ShiftRow[] = [];
 
     try {
@@ -70,7 +70,7 @@ export default async function CompanyClientUsuariosPage({
             const [clsRes, stRes, prRes, shRes] = await Promise.all([
                 apiFetchAuthed(`/api/clients/${clientId}/school-classes`),
                 apiFetchAuthed(`/api/clients/${clientId}/students`),
-                apiFetchAuthed(`/api/clients/${clientId}/parents`),
+                apiFetchAuthed(`/api/clients/${clientId}/responsibles`),
                 apiFetchAuthed(`/api/clients/${clientId}/shifts`),
             ]);
             if (clsRes.ok) {
@@ -84,9 +84,9 @@ export default async function CompanyClientUsuariosPage({
                 )) as StudentRow[];
             }
             if (prRes.ok) {
-                schoolParents = (await parseResponseJson(
+                schoolResponsibles = (await parseResponseJson(
                     prRes,
-                )) as ParentRow[];
+                )) as ResponsibleRow[];
             }
             if (shRes.ok) {
                 schoolShifts = (await parseResponseJson(
@@ -99,7 +99,7 @@ export default async function CompanyClientUsuariosPage({
         rows = [];
         schoolClasses = [];
         schoolStudents = [];
-        schoolParents = [];
+        schoolResponsibles = [];
         schoolShifts = [];
     }
 
@@ -122,7 +122,7 @@ export default async function CompanyClientUsuariosPage({
                 initialRows={rows}
                 initialSchoolClasses={schoolClasses}
                 initialSchoolStudents={schoolStudents}
-                initialSchoolParents={schoolParents}
+                initialSchoolResponsibles={schoolResponsibles}
                 initialSchoolShifts={schoolShifts}
             />
         </div>

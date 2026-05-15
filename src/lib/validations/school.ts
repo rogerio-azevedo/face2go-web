@@ -123,7 +123,7 @@ export const updateStudentSchema = createStudentSchema
             }),
     });
 
-export const PARENT_RELATIONSHIP_VALUES = [
+export const RESPONSIBLE_RELATIONSHIP_VALUES = [
     "father",
     "mother",
     "grandfather",
@@ -131,9 +131,9 @@ export const PARENT_RELATIONSHIP_VALUES = [
     "guardian",
     "other",
 ] as const;
-export type ParentRelationshipValue = (typeof PARENT_RELATIONSHIP_VALUES)[number];
+export type ResponsibleRelationshipValue = (typeof RESPONSIBLE_RELATIONSHIP_VALUES)[number];
 
-export const RELATIONSHIP_TYPE_LABELS: Record<ParentRelationshipValue, string> =
+export const RELATIONSHIP_TYPE_LABELS: Record<ResponsibleRelationshipValue, string> =
     {
         father: "Pai",
         mother: "Mãe",
@@ -143,11 +143,11 @@ export const RELATIONSHIP_TYPE_LABELS: Record<ParentRelationshipValue, string> =
         other: "Outro",
     };
 
-const parentRelationshipSchema = z.enum(PARENT_RELATIONSHIP_VALUES, {
+const responsibleRelationshipSchema = z.enum(RESPONSIBLE_RELATIONSHIP_VALUES, {
     message: "Selecione o parentesco.",
 });
 
-export const createParentSchema = z.object({
+export const createResponsibleSchema = z.object({
     email: z.email("E-mail inválido."),
     password: z
         .string()
@@ -159,7 +159,7 @@ export const createParentSchema = z.object({
     isActive: z.boolean().optional().default(true),
 });
 
-export const updateParentSchema = z.object({
+export const updateResponsibleSchema = z.object({
     name: z.string().trim().min(1).max(255).optional(),
     phone: z.preprocess(
         (val: unknown) =>
@@ -187,8 +187,8 @@ export const updateParentSchema = z.object({
     isActive: z.boolean().optional(),
 });
 
-export const linkParentStudentSchema = z.object({
+export const linkResponsibleStudentSchema = z.object({
     studentId: z.string().uuid(),
-    relationshipType: parentRelationshipSchema,
+    relationshipType: responsibleRelationshipSchema,
     isAuthorizedPickup: z.boolean().optional().default(true),
 });

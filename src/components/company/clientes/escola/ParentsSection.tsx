@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import type { ParentRow, StudentRow } from "@/types/domain";
+import type { ResponsibleRow, StudentRow } from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,19 +21,19 @@ import { ParentStudentsSheet } from "./ParentStudentsSheet";
 
 export function ParentsSection({
     clientId,
-    initialParents,
+    initialResponsibles,
     students,
 }: {
     clientId: string;
-    initialParents: ParentRow[];
+    initialResponsibles: ResponsibleRow[];
     students: StudentRow[];
 }) {
     const router = useRouter();
     const [, startTransition] = useTransition();
     const [sheetOpen, setSheetOpen] = useState(false);
-    const [editRow, setEditRow] = useState<ParentRow | null>(null);
+    const [editRow, setEditRow] = useState<ResponsibleRow | null>(null);
     const [linksOpen, setLinksOpen] = useState(false);
-    const [linkParentId, setLinkParentId] = useState<ParentRow | null>(null);
+    const [linkParentId, setLinkParentId] = useState<ResponsibleRow | null>(null);
 
     function refresh() {
         startTransition(() => router.refresh());
@@ -69,7 +69,7 @@ export function ParentsSection({
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {initialParents.length === 0 ? (
+                        {initialResponsibles.length === 0 ? (
                             <TableRow>
                                 <TableCell
                                     colSpan={6}
@@ -79,7 +79,7 @@ export function ParentsSection({
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            initialParents.map((row) => (
+                            initialResponsibles.map((row) => (
                                 <TableRow key={row.id}>
                                     <TableCell className="font-medium">
                                         {row.name}

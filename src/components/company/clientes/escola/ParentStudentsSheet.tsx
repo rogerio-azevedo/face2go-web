@@ -5,14 +5,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import {
-    linkParentStudentAction,
-    listParentStudentLinksAction,
-    unlinkParentStudentAction,
+    linkResponsibleStudentAction,
+    listResponsibleStudentLinksAction,
+    unlinkResponsibleStudentAction,
 } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
 import type {
-    ParentRow,
-    ParentStudentLinkWithStudent,
-    ParentRelationshipType,
+    ResponsibleRow,
+    ResponsibleStudentLinkWithStudent,
+    ResponsibleRelationshipType,
     StudentRow,
 } from "@/types/domain";
 import { Button } from "@/components/ui/button";
@@ -33,7 +33,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import {
-    PARENT_RELATIONSHIP_VALUES,
+    RESPONSIBLE_RELATIONSHIP_VALUES,
     RELATIONSHIP_TYPE_LABELS,
 } from "@/lib/validations/school";
 
@@ -48,16 +48,16 @@ export function ParentStudentsSheet({
     open: boolean;
     onOpenChange: (open: boolean) => void;
     clientId: string;
-    parent: ParentRow | null;
+    parent: ResponsibleRow | null;
     students: StudentRow[];
     onChanged?: () => void;
 }) {
     const [loading, setLoading] = useState(false);
     const [busy, setBusy] = useState(false);
-    const [items, setItems] = useState<ParentStudentLinkWithStudent[]>([]);
+    const [items, setItems] = useState<ResponsibleStudentLinkWithStudent[]>([]);
 
     const [pickStudentId, setPickStudentId] = useState("");
-    const [relType, setRelType] = useState<ParentRelationshipType>("other");
+    const [relType, setRelType] = useState<ResponsibleRelationshipType>("other");
     const [authorizedPickup, setAuthorizedPickup] = useState(true);
 
     const load = useCallback(async () => {
@@ -65,7 +65,7 @@ export function ParentStudentsSheet({
         await Promise.resolve();
         setLoading(true);
         try {
-            const r = await listParentStudentLinksAction(clientId, parent.id);
+            const r = await listResponsibleStudentLinksAction(clientId, parent.id);
             if ("error" in r) {
                 toast.error(r.error);
                 setItems([]);
@@ -99,7 +99,7 @@ export function ParentStudentsSheet({
         if (!parent) return;
         setBusy(true);
         try {
-            const r = await unlinkParentStudentAction(
+            const r = await unlinkResponsibleStudentAction(
                 clientId,
                 parent.id,
                 studentId,
@@ -123,7 +123,7 @@ export function ParentStudentsSheet({
         }
         setBusy(true);
         try {
-            const r = await linkParentStudentAction(clientId, parent.id, {
+            const r = await linkResponsibleStudentAction(clientId, parent.id, {
                 studentId: pickStudentId,
                 relationshipType: relType,
                 isAuthorizedPickup: authorizedPickup,
@@ -191,7 +191,7 @@ export function ParentStudentsSheet({
                                                     {
                                                         RELATIONSHIP_TYPE_LABELS[
                                                             row.link
-                                                                .relationshipType as ParentRelationshipType
+                                                                .relationshipType as ResponsibleRelationshipType
                                                         ]
                                                     }
                                                 </TableCell>
@@ -263,12 +263,12 @@ export function ParentStudentsSheet({
                                         onChange={(e) =>
                                             setRelType(
                                                 e.target
-                                                    .value as ParentRelationshipType,
+                                                    .value as ResponsibleRelationshipType,
                                             )
                                         }
                                         disabled={busy}
                                     >
-                                        {PARENT_RELATIONSHIP_VALUES.map((v) => (
+                                        {RESPONSIBLE_RELATIONSHIP_VALUES.map((v) => (
                                             <option key={v} value={v}>
                                                 {RELATIONSHIP_TYPE_LABELS[v]}
                                             </option>

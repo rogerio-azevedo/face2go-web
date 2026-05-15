@@ -8,10 +8,10 @@ import { toast } from "sonner";
 import type { z } from "zod";
 
 import {
-    createParentAction,
-    updateParentAction,
+    createResponsibleAction,
+    updateResponsibleAction,
 } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
-import type { ParentRow } from "@/types/domain";
+import type { ResponsibleRow } from "@/types/domain";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,12 +24,12 @@ import {
 } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import {
-    createParentSchema,
-    updateParentSchema,
+    createResponsibleSchema,
+    updateResponsibleSchema,
 } from "@/lib/validations/school";
 
-type CreateVals = z.infer<typeof createParentSchema>;
-type EditVals = z.infer<typeof updateParentSchema>;
+type CreateVals = z.infer<typeof createResponsibleSchema>;
+type EditVals = z.infer<typeof updateResponsibleSchema>;
 
 export function ParentForm({
     open,
@@ -43,7 +43,7 @@ export function ParentForm({
     onOpenChange: (open: boolean) => void;
     clientId: string;
     mode: "create" | "edit";
-    parent: ParentRow | null;
+    parent: ResponsibleRow | null;
     onSuccess?: () => void;
 }) {
     const [busy, setBusy] = useState(false);
@@ -81,14 +81,14 @@ export function ParentForm({
 
     const createForm = useForm<CreateVals>({
         resolver: zodResolver(
-            createParentSchema,
+            createResponsibleSchema,
         ) as Resolver<CreateVals>,
         defaultValues: createDefaults,
     });
 
     const editForm = useForm<EditVals>({
         resolver: zodResolver(
-            updateParentSchema,
+            updateResponsibleSchema,
         ) as Resolver<EditVals>,
         defaultValues: editFormDefaults,
     });
@@ -120,7 +120,7 @@ export function ParentForm({
     async function submitCreate(vals: CreateVals) {
         setBusy(true);
         try {
-            const r = await createParentAction(clientId, vals);
+            const r = await createResponsibleAction(clientId, vals);
             if ("error" in r) {
                 toast.error(r.error);
                 return;
@@ -140,7 +140,7 @@ export function ParentForm({
             if (body.password === "" || body.password === undefined) {
                 delete body.password;
             }
-            const r = await updateParentAction(clientId, parent.id, body);
+            const r = await updateResponsibleAction(clientId, parent.id, body);
             if ("error" in r) {
                 toast.error(r.error);
                 return;

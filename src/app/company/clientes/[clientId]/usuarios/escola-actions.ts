@@ -10,15 +10,15 @@ import {
     parseResponseJson,
 } from "@/lib/api-fetch";
 import {
-    createParentSchema,
+    createResponsibleSchema,
     createSchoolClassSchema,
     createStudentSchema,
-    linkParentStudentSchema,
-    updateParentSchema,
+    linkResponsibleStudentSchema,
+    updateResponsibleSchema,
     updateSchoolClassSchema,
     updateStudentSchema,
 } from "@/lib/validations/school";
-import type { ParentStudentLinkWithStudent } from "@/types/domain";
+import type { ResponsibleStudentLinkWithStudent } from "@/types/domain";
 
 function zodFirstMessage(error: unknown): string {
     if (error instanceof ZodError && error.issues[0]?.message) {
@@ -36,28 +36,28 @@ const ids = z.object({
     clientId: z.string().uuid(),
 });
 
-export async function listParentStudentLinksAction(
+export async function listResponsibleStudentLinksAction(
     clientId: string,
-    parentId: string,
+    responsibleId: string,
 ): Promise<
-    | { success: true; items: ParentStudentLinkWithStudent[] }
+    | { success: true; items: ResponsibleStudentLinkWithStudent[] }
     | { error: string }
 > {
     try {
         const c = ids.safeParse({ clientId });
-        const p = z.string().uuid().safeParse(parentId);
+        const p = z.string().uuid().safeParse(responsibleId);
         if (!c.success || !p.success) {
             return { error: "Dados inválidos." };
         }
         const res = await apiFetchAuthed(
-            `/api/clients/${c.data.clientId}/parents/${p.data}/students`,
+            `/api/clients/${c.data.clientId}/responsibles/${p.data}/students`,
         );
         if (!res.ok) {
             const data = await parseResponseJson(res);
             return { error: nestErrorMessage(data) };
         }
         const items =
-            (await parseResponseJson(res)) as ParentStudentLinkWithStudent[];
+            (await parseResponseJson(res)) as ResponsibleStudentLinkWithStudent[];
         return { success: true, items: Array.isArray(items) ? items : [] };
     } catch {
         return { error: "Sem permissão." };
@@ -198,7 +198,7 @@ export async function updateStudentAction(
     }
 }
 
-export async function createParentAction(
+export async function createResponsibleAction(
     clientId: string,
     input: unknown,
 ): Promise<{ success: true } | { error: string }> {
@@ -206,12 +206,12 @@ export async function createParentAction(
         const c = ids.safeParse({ clientId });
         if (!c.success) return { error: "Cliente inválido." };
 
-        const parsed = createParentSchema.safeParse(input);
+        const parsed = createResponsibleSchema.safeParse(input);
         if (!parsed.success)
             return { error: zodFirstMessage(parsed.error) };
 
         const body = stripUndefined(parsed.data);
-        const res = await apiFetchAuthed(`/api/clients/${clientId}/parents`, {
+        const res = await apiFetchAuthed(`/api/clients/${clientId}/responsibles`, {
             method: "POST",
             body: JSON.stringify(body),
         });
@@ -227,18 +227,18 @@ export async function createParentAction(
     }
 }
 
-export async function updateParentAction(
+export async function updateResponsibleAction(
     clientId: string,
-    parentId: string,
+    responsibleId: string,
     input: unknown,
 ): Promise<{ success: true } | { error: string }> {
     try {
         const cid = ids.safeParse({ clientId });
-        const pid = z.string().uuid().safeParse(parentId);
+        const pid = z.string().uuid().safeParse(responsibleId);
         if (!cid.success || !pid.success)
             return { error: "Dados inválidos." };
 
-        const parsed = updateParentSchema.safeParse(input);
+        const parsed = updateResponsibleSchema.safeParse(input);
         if (!parsed.success)
             return { error: zodFirstMessage(parsed.error) };
 
@@ -260,7 +260,7 @@ export async function updateParentAction(
         const body = stripUndefined(d);
 
         const res = await apiFetchAuthed(
-            `/api/clients/${clientId}/parents/${parentId}`,
+            `/api/clients/${clientId}/responsibles/${responsibleId}`,
             { method: "PATCH", body: JSON.stringify(body) },
         );
         if (!res.ok) {
@@ -275,23 +275,23 @@ export async function updateParentAction(
     }
 }
 
-export async function linkParentStudentAction(
+export async function linkResponsibleStudentAction(
     clientId: string,
-    parentId: string,
+    responsibleId: string,
     input: unknown,
 ): Promise<{ success: true } | { error: string }> {
     try {
         const cid = ids.safeParse({ clientId });
-        const pid = z.string().uuid().safeParse(parentId);
+        const pid = z.string().uuid().safeParse(responsibleId);
         if (!cid.success || !pid.success)
             return { error: "Dados inválidos." };
 
-        const parsed = linkParentStudentSchema.safeParse(input);
+        const parsed = linkResponsibleStudentSchema.safeParse(input);
         if (!parsed.success)
             return { error: zodFirstMessage(parsed.error) };
 
         const res = await apiFetchAuthed(
-            `/api/clients/${clientId}/parents/${parentId}/students`,
+            `/api/clients/${clientId}/responsibles/${responsibleId}/students`,
             { method: "POST", body: JSON.stringify(parsed.data) },
         );
         if (!res.ok) {
@@ -306,20 +306,20 @@ export async function linkParentStudentAction(
     }
 }
 
-export async function unlinkParentStudentAction(
+export async function unlinkResponsibleStudentAction(
     clientId: string,
-    parentId: string,
+    responsibleId: string,
     studentId: string,
 ): Promise<{ success: true } | { error: string }> {
     try {
         const cid = ids.safeParse({ clientId });
-        const pid = z.string().uuid().safeParse(parentId);
+        const pid = z.string().uuid().safeParse(responsibleId);
         const sid = z.string().uuid().safeParse(studentId);
         if (!cid.success || !pid.success || !sid.success)
             return { error: "Dados inválidos." };
 
         const res = await apiFetchAuthed(
-            `/api/clients/${clientId}/parents/${parentId}/students/${studentId}`,
+            `/api/clients/${clientId}/responsibles/${responsibleId}/students/${studentId}`,
             { method: "DELETE" },
         );
         if (!res.ok) {
