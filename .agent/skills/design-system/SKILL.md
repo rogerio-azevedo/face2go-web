@@ -19,15 +19,15 @@ A fonte técnica de verdade são os tokens CSS em [`src/app/globals.css`](src/ap
 
 ## 1. Paleta de marca (tokens `--color-brand-*`)
 
-| Token Tailwind (`bg-brand-*`, `text-brand-*`) | Hex | Quando usar |
-|-----------------------------------------------|-----|--------------|
-| `brand-deep-navy` | `#001b3d` | Fundos profundos, ênfases escuras (badges institucionais, shells escuros quando existirem) |
-| `brand-midnight-navy` | `#061a2e` | Títulos e texto forte em superfície clara; pode alinhar com `--foreground` onde fizer sentido |
-| `brand-turquoise` | `#00c7b7` | Destaques da marca na narrativa (“Face2Go” na headline), ícones de destaque primários |
-| `brand-cyan-blue` | `#1e90ff` | Links, CTAs secundários informativos, focos suaves quando não competir com o turquoise |
-| `brand-white` | `#ffffff` | Superfícies de cards e formulários em fluxos claros |
-| `brand-off-white` | `#f7fafc` | Fundo de página em marketing/login (menos frio que branco puro) |
-| `brand-slate` | `#607083` | Texto secundário, legendas — alinhar com `muted-foreground` onde possível |
+| Token Tailwind (`bg-brand-*`, `text-brand-*`) | Hex       | Quando usar                                                                                   |
+| --------------------------------------------- | --------- | --------------------------------------------------------------------------------------------- |
+| `brand-deep-navy`                             | `#001b3d` | Fundos profundos, ênfases escuras (badges institucionais, shells escuros quando existirem)    |
+| `brand-midnight-navy`                         | `#061a2e` | Títulos e texto forte em superfície clara; pode alinhar com `--foreground` onde fizer sentido |
+| `brand-turquoise`                             | `#00c7b7` | Destaques da marca na narrativa (“Face2Go” na headline), ícones de destaque primários         |
+| `brand-cyan-blue`                             | `#1e90ff` | Links, CTAs secundários informativos, focos suaves quando não competir com o turquoise        |
+| `brand-white`                                 | `#ffffff` | Superfícies de cards e formulários em fluxos claros                                           |
+| `brand-off-white`                             | `#f7fafc` | Fundo de página em marketing/login (menos frio que branco puro)                               |
+| `brand-slate`                                 | `#607083` | Texto secundário, legendas — alinhar com `muted-foreground` onde possível                     |
 
 **Regra**: preferir **tokens semânticos** (`primary`, `background`, `muted-foreground`) em telas administrativas
 para herdar comportamento correto dos componentes shadcn. Use `brand-*` explícitos em **hero**, **marketing**
@@ -56,17 +56,17 @@ e elementos que devem soar “marca”.
 - **Heading semântico**: `font-heading` (alias para sans no tema) — já usado em `CardTitle` e pode repetir-se em páginas.
 - **Tamanhos sugeridos (telas públicas / auth)**
 
-| Contexto | Classe típica | Notas |
-|---------|----------------|-------|
-| Título hero | `text-3xl`–`text-4xl` `font-bold` `tracking-tight` | Nome produto destacado em `text-brand-turquoise` |
-| Subtítulo | `text-base`–`text-lg` `text-muted-foreground` | Máximo ~2 linhas |
-| Título card | `text-xl`/`text-2xl` `font-semibold` | Ex.: “Entrar” |
-| Label de campo | `text-sm` `font-medium` | Alinhado aos `Label` shadcn |
-| Legenda / link secundário | `text-sm` `text-muted-foreground` | Hover → `text-foreground` |
+| Contexto                  | Classe típica                                      | Notas                                            |
+| ------------------------- | -------------------------------------------------- | ------------------------------------------------ |
+| Título hero               | `text-3xl`–`text-4xl` `font-bold` `tracking-tight` | Nome produto destacado em `text-brand-turquoise` |
+| Subtítulo                 | `text-base`–`text-lg` `text-muted-foreground`      | Máximo ~2 linhas                                 |
+| Título card               | `text-xl`/`text-2xl` `font-semibold`               | Ex.: “Entrar”                                    |
+| Label de campo            | `text-sm` `font-medium`                            | Alinhado aos `Label` shadcn                      |
+| Legenda / link secundário | `text-sm` `text-muted-foreground`                  | Hover → `text-foreground`                        |
 
 ---
 
-## 4. Logo (`public/face2go_logo.svg`)
+## 4. Logo (`public/face2go_dark.svg`)
 
 - **Fundo obrigatório**: claro (`brand-off-white`, `brand-white` ou superfície de card).
 - **Espaço livre**: manter pelo menos altura equivalente ao “cap height” ao redor do logotipo.

@@ -72,7 +72,7 @@ export function LoginForm() {
         <Card className="w-full max-w-md rounded-2xl border border-border/70 bg-brand-white shadow-lg shadow-black/7 ring-1 ring-black/4">
             <CardHeader className="gap-5 space-y-0">
                 <Image
-                    src="/face2go_logo.svg"
+                    src="/face2go_dark.svg"
                     alt="Face2Go"
                     width={492}
                     height={185}

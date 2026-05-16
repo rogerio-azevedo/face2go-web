@@ -202,7 +202,7 @@ export function AppSidebar({
                     {/* Logo completo visível no estado expandido */}
                     <div className="group-data-[collapsible=icon]:hidden">
                         <Image
-                            src="/face2go_logo.svg"
+                            src="/face2go_dark.svg"
                             alt={productName}
                             width={160}
                             height={45}
