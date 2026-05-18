@@ -5,6 +5,7 @@ import type { ComponentProps } from "react";
 import {
     BriefcaseBusiness,
     Building2,
+    FlaskConical,
     History,
     LayoutDashboard,
     MonitorPlay,
@@ -80,6 +81,15 @@ function navItemsForRole(
                     url: "/company/display",
                     icon: MonitorPlay,
                 },
+                ...(process.env.NODE_ENV !== "production"
+                    ? [
+                          {
+                              title: "Dev Tools",
+                              url: "/company/dev",
+                              icon: FlaskConical,
+                          },
+                      ]
+                    : []),
             ];
         case "company_operator": {
             const items: NavMainItem[] = [

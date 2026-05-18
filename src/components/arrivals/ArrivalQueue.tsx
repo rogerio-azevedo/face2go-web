@@ -1,40 +1,59 @@
 'use client';
 
 import type { ArrivalSseArrivalPayload } from '@/components/arrivals/arrival-types';
-import { ArrivalCardMini } from '@/components/arrivals/ArrivalCard';
+import { ArrivalCardGrid } from '@/components/arrivals/ArrivalCard';
 import { MAX_ARRIVALS } from '@/hooks/use-arrival-stream';
 
-export function ArrivalQueue(props: {
+export function ArrivalGrid(props: {
     items: ArrivalSseArrivalPayload[];
-    className?: string;
+    highlightedIds: Set<string>;
 }) {
-    if (props.items.length === 0) {
+    const { items, highlightedIds } = props;
+
+    if (items.length === 0) {
         return (
-            <p className={`text-sm text-white/48 ${props.className ?? ''}`}>
-                Ninguém na fila — os registros mais antigos aparecem aqui.
+            <p className="text-sm text-slate-400">
+                Nenhum registro na lista — apenas a última chegada está no banner
+                acima.
             </p>
         );
     }
 
     return (
-        <ul className={`flex flex-col gap-4 pr-2 ${props.className ?? ''}`}>
-            {props.items.map((e, index) => (
-                <ArrivalCardMini key={`${e.accessId}-${e.eventDate}-${index}`} event={e} />
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {items.map((e, index) => (
+                <li key={`${e.accessId}-${e.eventDate}-${index}`}>
+                    <ArrivalCardGrid
+                        event={e}
+                        isNew={highlightedIds.has(e.accessId)}
+                    />
+                </li>
             ))}
         </ul>
     );
 }
 
-export function QueuePanel(props: { queue: ArrivalSseArrivalPayload[] }) {
+export function ArrivalGridPanel(props: {
+    queue: ArrivalSseArrivalPayload[];
+    highlightedIds: Set<string>;
+}) {
+    const count = props.queue.length;
+
     return (
-        <div className="flex h-full min-h-[12rem] flex-col rounded-2xl border border-white/10 bg-black/30 p-5 backdrop-blur-md md:max-h-[min(70vh,calc(100vh-14rem))]">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-white/65">
-                Fila recente
+        <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">
+                Fila de chegadas
             </h2>
-            <p className="text-xs text-white/45">
-                Até {MAX_ARRIVALS} chegadas
+            <p className="text-xs text-slate-400">
+                {count} registro{count === 1 ? '' : 's'} · até {MAX_ARRIVALS}{' '}
+                mais recentes
             </p>
-            <ArrivalQueue className="mt-4 overflow-y-auto" items={props.queue} />
+            <div className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
+                <ArrivalGrid
+                    highlightedIds={props.highlightedIds}
+                    items={props.queue}
+                />
+            </div>
         </div>
     );
 }

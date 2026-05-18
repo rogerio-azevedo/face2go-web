@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import type { ArrivalSseArrivalPayload } from '@/components/arrivals/arrival-types';
 import { getApiBaseUrl } from '@/lib/api-fetch';
 
-export const MAX_ARRIVALS = 20;
+export const MAX_ARRIVALS = 100;
 export const DEFAULT_RECONNECT_DELAY_MS = 3500;
 
 function buildStreamUrl(clientId: string, token: string): string {
@@ -61,6 +61,10 @@ export function useArrivalStream(params: { clientId: string; token: string }) {
                     };
                     if (data?.type === 'arrival') {
                         const evt = data as ArrivalSseArrivalPayload;
+                        /** Display só lista responsáveis — acesso facial do aluno não entra na fila. */
+                        if (evt.kind !== 'responsible') {
+                            return;
+                        }
                         setArrivals((prev) => {
                             const next = [
                                 evt,

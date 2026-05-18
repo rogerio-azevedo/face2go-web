@@ -24,12 +24,12 @@ export function DisplayClock({ className }: { className?: string }) {
 
     return (
         <div
-            className={`rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-center backdrop-blur-sm md:text-left ${className ?? ''}`}
+            className={`rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center shadow-sm md:text-left ${className ?? ''}`}
         >
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-teal-300/90">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-teal-600">
                 Hoje
             </p>
-            <p className="text-sm font-semibold leading-snug text-white/92 md:text-base">
+            <p className="text-sm font-semibold leading-snug text-slate-800 md:text-base">
                 {titleCase(d)}
             </p>
         </div>
