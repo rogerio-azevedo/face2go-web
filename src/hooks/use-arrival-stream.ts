@@ -60,11 +60,20 @@ export function useArrivalStream(params: { clientId: string; token: string }) {
                         type?: string;
                     };
                     if (data?.type === 'arrival') {
-                        const evt = data as ArrivalSseArrivalPayload;
+                        const raw = data as ArrivalSseArrivalPayload;
                         /** Display só lista responsáveis — acesso facial do aluno não entra na fila. */
-                        if (evt.kind !== 'responsible') {
+                        if (raw.kind !== 'responsible') {
                             return;
                         }
+                        const evt: ArrivalSseArrivalPayload = {
+                            ...raw,
+                            vehiclePlate: raw.vehiclePlate ?? null,
+                            students: (raw.students ?? []).map((s) => ({
+                                name: s.name,
+                                photoUrl: s.photoUrl,
+                                className: s.className ?? null,
+                            })),
+                        };
                         setArrivals((prev) => {
                             const next = [
                                 evt,

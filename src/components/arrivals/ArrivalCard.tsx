@@ -64,8 +64,8 @@ export function ArrivalCardGrid(props: {
             className={cn(
                 'flex flex-col rounded-xl border bg-white shadow-sm transition-shadow',
                 vertical
-                    ? 'gap-3.5 p-3.5 md:gap-4 md:p-4'
-                    : 'gap-3 p-3 md:gap-3.5 md:p-4',
+                    ? 'gap-3 p-3 md:gap-3.5 md:p-3.5'
+                    : 'gap-2.5 p-2.5 md:gap-3 md:p-3.5',
                 isNew
                     ? 'border-teal-400 ring-2 ring-teal-500 ring-offset-2 ring-offset-white animate-pulse'
                     : 'border-slate-100',
@@ -87,14 +87,27 @@ export function ArrivalCardGrid(props: {
                     />
                 </div>
                 <div className="min-w-0 flex-1">
-                    <p
-                        className={cn(
-                            'line-clamp-2 font-bold leading-snug text-slate-900',
-                            vertical ? 'text-2xl' : 'text-lg',
-                        )}
-                    >
-                        {e.personName?.trim() || 'Sem nome'}
-                    </p>
+                    <div className="flex items-start justify-between gap-2">
+                        <p
+                            className={cn(
+                                'min-w-0 flex-1 line-clamp-2 font-bold leading-snug text-slate-900',
+                                vertical ? 'text-2xl' : 'text-lg',
+                            )}
+                        >
+                            {e.personName?.trim() || 'Sem nome'}
+                        </p>
+                        {e.vehiclePlate ? (
+                            <p
+                                className={cn(
+                                    'shrink-0 max-w-[45%] truncate text-right font-semibold tabular-nums tracking-wide text-slate-700',
+                                    vertical ? 'text-base md:text-lg' : 'text-sm md:text-base',
+                                )}
+                                title={e.vehiclePlate}
+                            >
+                                🚗 {e.vehiclePlate}
+                            </p>
+                        ) : null}
+                    </div>
                     <p
                         className={cn(
                             'truncate text-slate-500',
@@ -115,9 +128,9 @@ export function ArrivalCardGrid(props: {
             </div>
 
             {e.students.length > 0 ? (
-                <div className="border-t border-slate-100 pt-3">
-                    <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-teal-700">
-                        Filhos
+                <div className="border-t border-slate-100 pt-2.5">
+                    <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-teal-700">
+                        Alunos
                     </p>
                     <ul
                         className={cn(
@@ -130,12 +143,12 @@ export function ArrivalCardGrid(props: {
                         {e.students.map((s, index) => (
                             <li
                                 key={`${e.accessId}-st-${index}-${s.name}`}
-                                className="flex min-w-0 items-center gap-2"
+                                className="flex min-w-0 items-center gap-3"
                             >
                                 <div
                                     className={cn(
                                         'shrink-0 overflow-hidden rounded-full bg-slate-200 ring-2 ring-teal-100',
-                                        vertical ? 'size-12 md:size-[3.35rem]' : 'size-10 md:size-11',
+                                        vertical ? 'size-20' : 'size-16 md:size-[4.25rem]',
                                     )}
                                 >
                                     <FaceCirclePhoto
@@ -144,14 +157,23 @@ export function ArrivalCardGrid(props: {
                                         nameHint={s.name}
                                     />
                                 </div>
-                                <span
-                                    className={cn(
-                                        'min-w-0 flex-1 font-semibold leading-snug text-slate-800 line-clamp-2',
-                                        vertical ? 'text-sm md:text-base' : 'text-xs md:text-sm',
-                                    )}
-                                >
-                                    {s.name}
-                                </span>
+                                <div className="min-w-0 flex-1">
+                                    <span
+                                        className={cn(
+                                            'block font-semibold leading-snug text-slate-800 line-clamp-2',
+                                            vertical
+                                                ? 'text-base md:text-lg'
+                                                : 'text-sm md:text-base',
+                                        )}
+                                    >
+                                        {s.name}
+                                    </span>
+                                    {s.className ? (
+                                        <span className="mt-0.5 block line-clamp-2 text-[11px] leading-snug text-slate-400 md:text-xs">
+                                            {s.className}
+                                        </span>
+                                    ) : null}
+                                </div>
                             </li>
                         ))}
                     </ul>
@@ -182,7 +204,13 @@ export function ArrivalCardMini(props: { event: ArrivalSseArrivalPayload }) {
                 <p className="mt-0.5 text-xs text-teal-600">{t}</p>
                 {e.students.length ? (
                     <p className="mt-2 line-clamp-2 text-[11px] leading-snug text-slate-400">
-                        {e.students.map((s) => s.name).join(' · ')}
+                        {e.students
+                            .map((s) =>
+                                s.className
+                                    ? `${s.name} (${s.className})`
+                                    : s.name,
+                            )
+                            .join(' · ')}
                     </p>
                 ) : null}
             </div>

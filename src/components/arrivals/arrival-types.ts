@@ -10,7 +10,12 @@ export type ArrivalSseArrivalPayload = {
     personPhotoUrl: string | null;
     readerName: string;
     eventDate: string | null;
-    students: { name: string; photoUrl: string | null }[];
+    vehiclePlate: string | null;
+    students: {
+        name: string;
+        photoUrl: string | null;
+        className: string | null;
+    }[];
 };
 
 export type ArrivalSseConnectedPayload = {

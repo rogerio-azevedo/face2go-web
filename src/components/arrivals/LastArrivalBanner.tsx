@@ -25,8 +25,8 @@ export function LastArrivalBanner(props: {
             className={cn(
                 'relative z-10 mb-4 flex shrink-0 flex-col gap-3 rounded-2xl border border-teal-200 bg-gradient-to-r from-white to-teal-50/80 shadow-sm',
                 vertical
-                    ? 'mx-3 px-4 py-4 md:mx-4 md:px-5 md:py-5'
-                    : 'mx-6 min-h-[5rem] px-4 py-3 md:mx-10 md:flex-row md:items-center md:gap-6 md:px-6',
+                    ? 'mx-3 px-4 py-3 md:mx-4 md:px-5 md:py-4'
+                    : 'mx-6 min-h-[5rem] px-4 py-2.5 md:mx-10 md:flex-row md:items-center md:gap-6 md:px-5',
             )}
         >
             <div className="flex min-w-0 flex-1 items-start gap-4">
@@ -66,7 +66,7 @@ export function LastArrivalBanner(props: {
                     {e.kind === 'responsible' && e.students.length > 0 ? (
                         <div className="mt-2">
                             <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-600">
-                                Filhos
+                                Alunos
                             </p>
                             <ul
                                 className={cn(
@@ -77,14 +77,14 @@ export function LastArrivalBanner(props: {
                                 {e.students.map((s, index) => (
                                     <li
                                         key={`${e.accessId}-bn-st-${index}-${s.name}`}
-                                        className="flex min-w-0 items-center gap-2"
+                                        className="flex min-w-0 items-center gap-2 md:gap-3"
                                     >
                                         <div
                                             className={cn(
                                                 'shrink-0 overflow-hidden rounded-full bg-slate-200 ring-2 ring-teal-100',
                                                 vertical
-                                                    ? 'size-12 md:size-14'
-                                                    : 'size-8 md:size-9',
+                                                    ? 'size-16 md:size-20'
+                                                    : 'size-11 md:size-12',
                                             )}
                                         >
                                             <FaceCirclePhoto
@@ -93,16 +93,23 @@ export function LastArrivalBanner(props: {
                                                 nameHint={s.name}
                                             />
                                         </div>
-                                        <span
-                                            className={cn(
-                                                'min-w-0 flex-1 font-semibold leading-snug text-slate-800 line-clamp-2',
-                                                vertical
-                                                    ? 'text-sm md:text-base'
-                                                    : 'text-xs md:text-sm',
-                                            )}
-                                        >
-                                            {s.name}
-                                        </span>
+                                        <div className="min-w-0 flex-1">
+                                            <span
+                                                className={cn(
+                                                    'block font-semibold leading-snug text-slate-800 line-clamp-2',
+                                                    vertical
+                                                        ? 'text-sm md:text-base'
+                                                        : 'text-xs md:text-sm',
+                                                )}
+                                            >
+                                                {s.name}
+                                            </span>
+                                            {s.className ? (
+                                                <span className="mt-0.5 block line-clamp-2 text-[10px] leading-snug text-slate-400 md:text-[11px]">
+                                                    {s.className}
+                                                </span>
+                                            ) : null}
+                                        </div>
                                     </li>
                                 ))}
                             </ul>
@@ -113,10 +120,10 @@ export function LastArrivalBanner(props: {
 
             <div
                 className={cn(
-                    'flex shrink-0 flex-col gap-0.5 border-t border-teal-100 pt-3',
+                    'flex shrink-0 flex-col gap-0.5 border-t border-teal-100 pt-2.5',
                     vertical
                         ? 'items-center text-center'
-                        : 'items-start md:flex md:items-end md:border-l md:border-teal-100 md:pl-6 md:pt-0 md:text-right',
+                        : 'items-start md:flex md:items-end md:border-l md:border-teal-100 md:pl-5 md:pt-0 md:text-right',
                 )}
             >
                 <p
@@ -129,6 +136,18 @@ export function LastArrivalBanner(props: {
                 >
                     📍 {e.readerName}
                 </p>
+                {e.vehiclePlate ? (
+                    <p
+                        className={cn(
+                            'truncate font-semibold tabular-nums tracking-wide text-slate-700',
+                            vertical
+                                ? 'max-w-full text-sm md:text-base'
+                                : 'max-w-[12rem] text-xs md:ml-auto md:max-w-[10rem] md:text-sm',
+                        )}
+                    >
+                        🚗 {e.vehiclePlate}
+                    </p>
+                ) : null}
                 <p
                     className={cn(
                         'font-semibold tabular-nums text-teal-700',
