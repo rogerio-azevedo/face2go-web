@@ -1,14 +1,19 @@
 'use client';
 
-import type { ArrivalSseArrivalPayload } from '@/components/arrivals/arrival-types';
+import type {
+    ArrivalLayout,
+    ArrivalSseArrivalPayload,
+} from '@/components/arrivals/arrival-types';
 import { ArrivalCardGrid } from '@/components/arrivals/ArrivalCard';
 import { MAX_ARRIVALS } from '@/hooks/use-arrival-stream';
+import { cn } from '@/lib/utils';
 
 export function ArrivalGrid(props: {
     items: ArrivalSseArrivalPayload[];
     highlightedIds: Set<string>;
+    layout: ArrivalLayout;
 }) {
-    const { items, highlightedIds } = props;
+    const { items, highlightedIds, layout } = props;
 
     if (items.length === 0) {
         return (
@@ -20,12 +25,20 @@ export function ArrivalGrid(props: {
     }
 
     return (
-        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul
+            className={cn(
+                'grid gap-4',
+                layout === 'vertical'
+                    ? 'grid-cols-1'
+                    : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+            )}
+        >
             {items.map((e, index) => (
                 <li key={`${e.accessId}-${e.eventDate}-${index}`}>
                     <ArrivalCardGrid
                         event={e}
                         isNew={highlightedIds.has(e.accessId)}
+                        layout={layout}
                     />
                 </li>
             ))}
@@ -36,11 +49,19 @@ export function ArrivalGrid(props: {
 export function ArrivalGridPanel(props: {
     queue: ArrivalSseArrivalPayload[];
     highlightedIds: Set<string>;
+    layout: ArrivalLayout;
 }) {
     const count = props.queue.length;
 
     return (
-        <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
+        <div
+            className={cn(
+                'flex min-h-0 flex-1 flex-col rounded-2xl border border-slate-200 bg-white shadow-sm',
+                props.layout === 'vertical'
+                    ? 'p-3 md:p-4'
+                    : 'p-4 md:p-5',
+            )}
+        >
             <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">
                 Fila de chegadas
             </h2>
@@ -52,6 +73,7 @@ export function ArrivalGridPanel(props: {
                 <ArrivalGrid
                     highlightedIds={props.highlightedIds}
                     items={props.queue}
+                    layout={props.layout}
                 />
             </div>
         </div>

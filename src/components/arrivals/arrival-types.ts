@@ -1,3 +1,6 @@
+/** Layout do display `/display` — horizontal (TV deitada) ou vertical (TV em pé). */
+export type ArrivalLayout = 'horizontal' | 'vertical';
+
 /** Alinha com SSE do Nest (`clients/:clientId/arrivals/stream`). */
 export type ArrivalSseArrivalPayload = {
     type: 'arrival';

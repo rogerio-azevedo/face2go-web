@@ -1,6 +1,9 @@
 'use client';
 
-import type { ArrivalSseArrivalPayload } from '@/components/arrivals/arrival-types';
+import type {
+    ArrivalLayout,
+    ArrivalSseArrivalPayload,
+} from '@/components/arrivals/arrival-types';
 import { cn } from '@/lib/utils';
 
 export function formatArrivalTime(eventDateIso: string | null): string {
@@ -50,21 +53,33 @@ export function FaceCirclePhoto(props: FacePhotoProps) {
 export function ArrivalCardGrid(props: {
     event: ArrivalSseArrivalPayload;
     isNew: boolean;
+    layout: ArrivalLayout;
 }) {
-    const { event: e, isNew } = props;
+    const { event: e, isNew, layout } = props;
     const t = formatArrivalTime(e.eventDate);
+    const vertical = layout === 'vertical';
 
     return (
         <div
             className={cn(
-                'flex flex-col gap-3 rounded-xl border bg-white p-3 shadow-sm transition-shadow md:gap-3.5 md:p-4',
+                'flex flex-col rounded-xl border bg-white shadow-sm transition-shadow',
+                vertical
+                    ? 'gap-3.5 p-3.5 md:gap-4 md:p-4'
+                    : 'gap-3 p-3 md:gap-3.5 md:p-4',
                 isNew
                     ? 'border-teal-400 ring-2 ring-teal-500 ring-offset-2 ring-offset-white animate-pulse'
                     : 'border-slate-100',
             )}
         >
             <div className="flex gap-3">
-                <div className="size-16 shrink-0 overflow-hidden rounded-full bg-slate-200 ring-1 ring-slate-200 md:size-[4.25rem]">
+                <div
+                    className={cn(
+                        'shrink-0 overflow-hidden rounded-full bg-slate-200 ring-1 ring-slate-200',
+                        vertical
+                            ? 'size-20 ring-2 ring-slate-100'
+                            : 'size-16 md:size-[4.25rem]',
+                    )}
+                >
                     <FaceCirclePhoto
                         className="size-full"
                         photoUrl={e.personPhotoUrl}
@@ -72,13 +87,28 @@ export function ArrivalCardGrid(props: {
                     />
                 </div>
                 <div className="min-w-0 flex-1">
-                    <p className="line-clamp-2 text-lg font-bold leading-snug text-slate-900">
+                    <p
+                        className={cn(
+                            'line-clamp-2 font-bold leading-snug text-slate-900',
+                            vertical ? 'text-2xl' : 'text-lg',
+                        )}
+                    >
                         {e.personName?.trim() || 'Sem nome'}
                     </p>
-                    <p className="truncate text-xs text-slate-500 md:text-sm">
+                    <p
+                        className={cn(
+                            'truncate text-slate-500',
+                            vertical ? 'text-sm md:text-base' : 'text-xs md:text-sm',
+                        )}
+                    >
                         {e.readerName}
                     </p>
-                    <p className="mt-1 font-semibold tabular-nums text-base text-teal-600 md:text-lg">
+                    <p
+                        className={cn(
+                            'mt-1 font-semibold tabular-nums text-teal-600',
+                            vertical ? 'text-xl md:text-2xl' : 'text-base md:text-lg',
+                        )}
+                    >
                         {t}
                     </p>
                 </div>
@@ -89,20 +119,37 @@ export function ArrivalCardGrid(props: {
                     <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-teal-700">
                         Filhos
                     </p>
-                    <ul className="grid grid-cols-2 gap-x-2 gap-y-2 md:gap-x-3 md:gap-y-2.5">
+                    <ul
+                        className={cn(
+                            'grid grid-cols-2 gap-x-2 gap-y-2',
+                            vertical
+                                ? 'md:gap-x-3 md:gap-y-3'
+                                : 'md:gap-x-3 md:gap-y-2.5',
+                        )}
+                    >
                         {e.students.map((s, index) => (
                             <li
                                 key={`${e.accessId}-st-${index}-${s.name}`}
                                 className="flex min-w-0 items-center gap-2"
                             >
-                                <div className="size-10 shrink-0 overflow-hidden rounded-full bg-slate-200 ring-2 ring-teal-100 md:size-11">
+                                <div
+                                    className={cn(
+                                        'shrink-0 overflow-hidden rounded-full bg-slate-200 ring-2 ring-teal-100',
+                                        vertical ? 'size-12 md:size-[3.35rem]' : 'size-10 md:size-11',
+                                    )}
+                                >
                                     <FaceCirclePhoto
                                         className="size-full"
                                         photoUrl={s.photoUrl}
                                         nameHint={s.name}
                                     />
                                 </div>
-                                <span className="min-w-0 flex-1 text-xs font-semibold leading-snug text-slate-800 line-clamp-2 md:text-sm">
+                                <span
+                                    className={cn(
+                                        'min-w-0 flex-1 font-semibold leading-snug text-slate-800 line-clamp-2',
+                                        vertical ? 'text-sm md:text-base' : 'text-xs md:text-sm',
+                                    )}
+                                >
                                     {s.name}
                                 </span>
                             </li>
