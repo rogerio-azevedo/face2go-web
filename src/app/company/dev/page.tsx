@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 
 import { auth } from '@/auth';
+import { PageHeader } from '@/components/shared/PageHeader';
 import { apiFetchAuthed, parseResponseJson } from '@/lib/api-fetch';
 
 import { SimulateAccessTool } from './SimulateAccessTool';
@@ -41,16 +42,11 @@ export default async function CompanyDevSimulatePage() {
     }
 
     return (
-        <div className="space-y-8">
-            <header className="space-y-1">
-                <h1 className="text-foreground text-2xl font-semibold tracking-tight">
-                    Simulação de acessos (Dev)
-                </h1>
-                <p className="text-muted-foreground max-w-2xl text-sm">
-                    Dispara o mesmo fluxo do leitor físico no backend (registro em
-                    acessos, notificações e display em TV), sem usar o equipamento.
-                </p>
-            </header>
+        <div className="space-y-6">
+            <PageHeader
+                title="Simulação de acessos (Dev)"
+                description="Fluxo do leitor no backend, sem hardware."
+            />
 
             <SimulateAccessTool clients={clients} />
         </div>

@@ -27,18 +27,22 @@ export function ArrivalGrid(props: {
     return (
         <ul
             className={cn(
-                'grid gap-4',
+                'grid gap-3',
                 layout === 'vertical'
                     ? 'grid-cols-1'
                     : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
             )}
         >
             {items.map((e, index) => (
-                <li key={`${e.accessId}-${e.eventDate}-${index}`}>
+                <li
+                    key={`${e.accessId}-${e.eventDate}-${index}`}
+                    className="h-full min-h-0"
+                >
                     <ArrivalCardGrid
                         event={e}
                         isNew={highlightedIds.has(e.accessId)}
                         layout={layout}
+                        position={index + 2}
                     />
                 </li>
             ))}
@@ -58,8 +62,8 @@ export function ArrivalGridPanel(props: {
             className={cn(
                 'flex min-h-0 flex-1 flex-col rounded-2xl border border-slate-200 bg-white shadow-sm',
                 props.layout === 'vertical'
-                    ? 'p-3 md:p-4'
-                    : 'p-4 md:p-5',
+                    ? 'p-2.5 md:p-3'
+                    : 'p-3 md:p-4',
             )}
         >
             <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">

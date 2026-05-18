@@ -134,8 +134,8 @@ export function ArrivalDisplay(props: {
     }, []);
 
     const contentGutterClass = vertical
-        ? 'mx-3 md:mx-4'
-        : 'mx-5 md:mx-10';
+        ? 'mx-2 md:mx-3'
+        : 'mx-3 md:mx-6';
 
     return (
         <div className="relative flex min-h-[100svh] flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-white to-teal-50/40 text-slate-900">
@@ -143,8 +143,8 @@ export function ArrivalDisplay(props: {
 
             <header
                 className={cn(
-                    'relative z-10 flex shrink-0 flex-col gap-4 py-5 md:flex-row md:items-start md:justify-between md:py-6',
-                    vertical ? 'px-3 md:px-4' : 'px-5 md:px-10',
+                    'relative z-10 flex shrink-0 flex-col gap-3 py-4 md:flex-row md:items-start md:justify-between md:gap-4 md:py-5',
+                    vertical ? 'px-2 md:px-3' : 'px-3 md:px-6',
                 )}
             >
                 <div>

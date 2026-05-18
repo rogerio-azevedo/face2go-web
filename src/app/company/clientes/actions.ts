@@ -128,7 +128,10 @@ export async function toggleClientActiveAction(
 
 export async function ensureClientDisplayTokenAction(
     clientId: string,
-): Promise<{ token: string } | { error: string }> {
+): Promise<
+    | { token: string; shortCode: string }
+    | { error: string }
+> {
     try {
         const pid = z.string().uuid().safeParse(clientId);
         if (!pid.success) {
@@ -144,15 +147,20 @@ export async function ensureClientDisplayTokenAction(
             return { error: nestErrorMessage(data) };
         }
 
-        const json = (await parseResponseJson(res)) as { token?: unknown };
+        const json = (await parseResponseJson(res)) as {
+            token?: unknown;
+            shortCode?: unknown;
+        };
         const token =
             typeof json.token === 'string' ? json.token.trim() : '';
+        const shortCode =
+            typeof json.shortCode === 'string' ? json.shortCode.trim() : '';
 
         if (!token) {
             return { error: 'Token não retornado pela API.' };
         }
 
-        return { token };
+        return { token, shortCode };
     } catch {
         return { error: 'Sem permissão.' };
     }
@@ -160,7 +168,10 @@ export async function ensureClientDisplayTokenAction(
 
 export async function regenerateClientDisplayTokenAction(
     clientId: string,
-): Promise<{ token: string } | { error: string }> {
+): Promise<
+    | { token: string; shortCode: string }
+    | { error: string }
+> {
     try {
         const pid = z.string().uuid().safeParse(clientId);
         if (!pid.success) {
@@ -177,15 +188,20 @@ export async function regenerateClientDisplayTokenAction(
             return { error: nestErrorMessage(data) };
         }
 
-        const json = (await parseResponseJson(res)) as { token?: unknown };
+        const json = (await parseResponseJson(res)) as {
+            token?: unknown;
+            shortCode?: unknown;
+        };
         const token =
             typeof json.token === 'string' ? json.token.trim() : '';
+        const shortCode =
+            typeof json.shortCode === 'string' ? json.shortCode.trim() : '';
 
         if (!token) {
             return { error: 'Token não retornado pela API.' };
         }
 
-        return { token };
+        return { token, shortCode };
     } catch {
         return { error: 'Sem permissão.' };
     }
