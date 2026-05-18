@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { MonitorPlay } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -8,6 +9,7 @@ import { toast } from "sonner";
 import { toggleClientActiveAction } from "@/app/company/clientes/actions";
 import type { ClientListRow } from "@/types/domain";
 import { ClientForm } from "@/components/company/clientes/ClientForm";
+import { ClientTvDisplaySheet } from "@/components/company/clientes/ClientTvDisplaySheet";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -28,14 +30,17 @@ import { cn } from "@/lib/utils";
 export function ClientsTable({
     clients,
     canManage,
+    showDisplayPanel,
 }: {
     clients: ClientListRow[];
     canManage: boolean;
+    showDisplayPanel: boolean;
 }) {
     const router = useRouter();
     const [pending, startTransition] = useTransition();
     const [sheetOpen, setSheetOpen] = useState(false);
     const [editClient, setEditClient] = useState<ClientListRow | null>(null);
+    const [tvClient, setTvClient] = useState<ClientListRow | null>(null);
 
     function openCreate() {
         setEditClient(null);
@@ -61,6 +66,9 @@ export function ClientsTable({
         });
     }
 
+    const emptyColSpan =
+        7 + (showDisplayPanel ? 1 : 0) + (canManage ? 1 : 0);
+
     return (
         <>
             <div className="flex flex-wrap justify-end gap-2">
@@ -82,6 +90,11 @@ export function ClientsTable({
                             <TableHead>E-mail</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead>Gerenciar</TableHead>
+                            {showDisplayPanel ? (
+                                <TableHead className="w-[1%] whitespace-nowrap text-center">
+                                    TV
+                                </TableHead>
+                            ) : null}
                             {canManage ? (
                                 <TableHead className="text-right">
                                     Ações
@@ -93,7 +106,7 @@ export function ClientsTable({
                         {clients.length === 0 ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={canManage ? 8 : 7}
+                                    colSpan={emptyColSpan}
                                     className="text-muted-foreground py-10 text-center"
                                 >
                                     Nenhum cliente cadastrado.
@@ -152,6 +165,26 @@ export function ClientsTable({
                                             Abrir
                                         </Link>
                                     </TableCell>
+                                    {showDisplayPanel ? (
+                                        <TableCell className="text-center">
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                className="gap-1 text-teal-600 hover:text-teal-700"
+                                                disabled={pending}
+                                                onClick={() =>
+                                                    setTvClient(row)
+                                                }
+                                            >
+                                                <MonitorPlay
+                                                    className="size-4"
+                                                    aria-hidden
+                                                />
+                                                Display
+                                            </Button>
+                                        </TableCell>
+                                    ) : null}
                                     {canManage ? (
                                         <TableCell className="text-right">
                                             <Button
@@ -180,6 +213,20 @@ export function ClientsTable({
                     client={editClient}
                 />
             ) : null}
+
+            <ClientTvDisplaySheet
+                client={
+                    tvClient
+                        ? { id: tvClient.id, name: tvClient.name }
+                        : null
+                }
+                open={tvClient !== null}
+                onOpenChange={(o) => {
+                    if (!o) {
+                        setTvClient(null);
+                    }
+                }}
+            />
         </>
     );
 }

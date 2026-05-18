@@ -18,6 +18,14 @@ export const authConfig = {
                 return true;
             }
 
+            /** Display TV público (SSE ao backend nesta origem). */
+            if (
+                path === "/display" ||
+                path.startsWith("/display/")
+            ) {
+                return true;
+            }
+
             if (path === "/login") {
                 if (isLoggedIn) {
                     return Response.redirect(
@@ -63,6 +71,21 @@ export const authConfig = {
                 }
                 if (
                     path.startsWith("/company/clientes") &&
+                    role === 'company_operator'
+                ) {
+                    const allowed = await evaluateCompanyFeatureAction(
+                        auth?.accessToken,
+                        'clients',
+                        'can_read',
+                    );
+                    if (!allowed) {
+                        return Response.redirect(
+                            new URL('/company/dashboard', nextUrl),
+                        );
+                    }
+                }
+                if (
+                    path.startsWith("/company/display") &&
                     role === 'company_operator'
                 ) {
                     const allowed = await evaluateCompanyFeatureAction(

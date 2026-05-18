@@ -7,6 +7,7 @@ import {
     Building2,
     History,
     LayoutDashboard,
+    MonitorPlay,
     ScanLine,
     Users,
 } from "lucide-react";
@@ -74,6 +75,11 @@ function navItemsForRole(
                     url: "/company/usuarios",
                     icon: Users,
                 },
+                {
+                    title: "Display na TV",
+                    url: "/company/display",
+                    icon: MonitorPlay,
+                },
             ];
         case "company_operator": {
             const items: NavMainItem[] = [
@@ -109,6 +115,13 @@ function navItemsForRole(
                     title: "Usuários",
                     url: "/company/usuarios",
                     icon: Users,
+                });
+            }
+            if (pathSet?.has("/company/display") === true) {
+                items.push({
+                    title: "Display na TV",
+                    url: "/company/display",
+                    icon: MonitorPlay,
                 });
             }
             return items;

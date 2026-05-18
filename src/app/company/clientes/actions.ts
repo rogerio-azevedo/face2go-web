@@ -125,3 +125,68 @@ export async function toggleClientActiveAction(
         return { error: 'Sem permissão.' };
     }
 }
+
+export async function ensureClientDisplayTokenAction(
+    clientId: string,
+): Promise<{ token: string } | { error: string }> {
+    try {
+        const pid = z.string().uuid().safeParse(clientId);
+        if (!pid.success) {
+            return { error: 'Cliente inválido.' };
+        }
+
+        const res = await apiFetchAuthed(
+            `/api/clients/${pid.data}/display-token`,
+        );
+
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { error: nestErrorMessage(data) };
+        }
+
+        const json = (await parseResponseJson(res)) as { token?: unknown };
+        const token =
+            typeof json.token === 'string' ? json.token.trim() : '';
+
+        if (!token) {
+            return { error: 'Token não retornado pela API.' };
+        }
+
+        return { token };
+    } catch {
+        return { error: 'Sem permissão.' };
+    }
+}
+
+export async function regenerateClientDisplayTokenAction(
+    clientId: string,
+): Promise<{ token: string } | { error: string }> {
+    try {
+        const pid = z.string().uuid().safeParse(clientId);
+        if (!pid.success) {
+            return { error: 'Cliente inválido.' };
+        }
+
+        const res = await apiFetchAuthed(
+            `/api/clients/${pid.data}/display-token/regenerate`,
+            { method: 'POST' },
+        );
+
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { error: nestErrorMessage(data) };
+        }
+
+        const json = (await parseResponseJson(res)) as { token?: unknown };
+        const token =
+            typeof json.token === 'string' ? json.token.trim() : '';
+
+        if (!token) {
+            return { error: 'Token não retornado pela API.' };
+        }
+
+        return { token };
+    } catch {
+        return { error: 'Sem permissão.' };
+    }
+}

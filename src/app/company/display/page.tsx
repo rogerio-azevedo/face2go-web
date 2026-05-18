@@ -1,13 +1,13 @@
 import { redirect } from 'next/navigation';
 
 import { auth } from '@/auth';
-import { ClientsTable } from '@/components/company/clientes/ClientsTable';
+import { CompanyDisplayTable } from '@/components/company/display/CompanyDisplayTable';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { apiFetchAuthed } from '@/lib/api-fetch';
 import { can } from '@/lib/permissions';
 import type { ClientListRow } from '@/types/domain';
 
-export default async function CompanyClientsPage() {
+export default async function CompanyDisplayPage() {
     const session = await auth();
     const user = session?.user;
 
@@ -24,8 +24,6 @@ export default async function CompanyClientsPage() {
         redirect('/company/dashboard');
     }
 
-    const canManage = role === 'company_admin';
-
     let rows: ClientListRow[] = [];
     try {
         const res = await apiFetchAuthed('/api/clients');
@@ -39,14 +37,10 @@ export default async function CompanyClientsPage() {
     return (
         <div className="space-y-6">
             <PageHeader
-                title="Clientes"
-                description="Cadastro das unidades atendidas pela sua empresa."
+                title="Display na TV"
+                description="Gere o link com token para abrir em um navegador da TV e mostrar em tempo real quem chegou na escola (fila de chegadas)."
             />
-            <ClientsTable
-                clients={rows}
-                canManage={canManage}
-                showDisplayPanel={canAccess}
-            />
+            <CompanyDisplayTable clients={rows} />
         </div>
     );
 }

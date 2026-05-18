@@ -8,4 +8,5 @@ export const ROUTE_PERMISSIONS: Partial<Record<string, FeatureSlug>> = {
     "/company/usuarios": "users",
     "/company/clientes": "clients",
     "/company/leitores": "clients",
+    "/company/display": "clients",
 };
