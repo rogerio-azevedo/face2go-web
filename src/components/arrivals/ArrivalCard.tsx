@@ -169,7 +169,7 @@ export function ArrivalCardGrid(props: {
                                         {s.name}
                                     </span>
                                     {s.className ? (
-                                        <span className="mt-0.5 block line-clamp-2 text-[11px] leading-snug text-slate-400 md:text-xs">
+                                        <span className="mt-1 block line-clamp-2 text-xs font-medium leading-snug text-slate-600 md:text-sm">
                                             {s.className}
                                         </span>
                                     ) : null}
@@ -203,7 +203,7 @@ export function ArrivalCardMini(props: { event: ArrivalSseArrivalPayload }) {
                 <p className="truncate text-xs text-slate-500">{e.readerName}</p>
                 <p className="mt-0.5 text-xs text-teal-600">{t}</p>
                 {e.students.length ? (
-                    <p className="mt-2 line-clamp-2 text-[11px] leading-snug text-slate-400">
+                    <p className="mt-2 line-clamp-2 text-xs font-medium leading-snug text-slate-600">
                         {e.students
                             .map((s) =>
                                 s.className

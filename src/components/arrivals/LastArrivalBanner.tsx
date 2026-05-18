@@ -105,7 +105,7 @@ export function LastArrivalBanner(props: {
                                                 {s.name}
                                             </span>
                                             {s.className ? (
-                                                <span className="mt-0.5 block line-clamp-2 text-[10px] leading-snug text-slate-400 md:text-[11px]">
+                                                <span className="mt-1 block line-clamp-2 text-xs font-medium leading-snug text-slate-600 md:text-sm">
                                                     {s.className}
                                                 </span>
                                             ) : null}
