@@ -13,6 +13,7 @@ import type {
     SchoolClassRow,
     ShiftRow,
     StudentRow,
+    VehicleRow,
 } from "@/types/domain";
 
 export type ClientDetailTabsProps = {
@@ -26,6 +27,7 @@ export type ClientDetailTabsProps = {
     initialSchoolResponsibles?: ResponsibleRow[];
     initialSchoolShifts?: ShiftRow[];
     initialSchoolPickupAuthorizations?: PickupAuthorizationRow[];
+    initialSchoolVehicles?: VehicleRow[];
 };
 
 export function ClientDetailTabs({
@@ -38,6 +40,7 @@ export function ClientDetailTabs({
     initialSchoolResponsibles = [],
     initialSchoolShifts = [],
     initialSchoolPickupAuthorizations = [],
+    initialSchoolVehicles = [],
 }: ClientDetailTabsProps) {
     const isSchool = clientType === "school";
 
@@ -89,6 +92,7 @@ export function ClientDetailTabs({
                         initialPickupAuthorizations={
                             initialSchoolPickupAuthorizations
                         }
+                        initialVehicles={initialSchoolVehicles}
                     />
                 </TabsContent>
             ) : null}

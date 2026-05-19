@@ -14,6 +14,7 @@ import type {
     SchoolClassRow,
     ShiftRow,
     StudentRow,
+    VehicleRow,
 } from "@/types/domain";
 
 export default async function CompanyClientUsuariosPage({
@@ -46,6 +47,7 @@ export default async function CompanyClientUsuariosPage({
     let schoolResponsibles: ResponsibleRow[] = [];
     let schoolShifts: ShiftRow[] = [];
     let schoolPickupAuthorizations: PickupAuthorizationRow[] = [];
+    let schoolVehicles: VehicleRow[] = [];
 
     try {
         const clientRes = await apiFetchAuthed(`/api/clients/${clientId}`);
@@ -69,13 +71,17 @@ export default async function CompanyClientUsuariosPage({
         }
 
         if (clientMeta?.type === "school") {
-            const [clsRes, stRes, prRes, shRes, pkRes] = await Promise.all([
-                apiFetchAuthed(`/api/clients/${clientId}/school-classes`),
-                apiFetchAuthed(`/api/clients/${clientId}/students`),
-                apiFetchAuthed(`/api/clients/${clientId}/responsibles`),
-                apiFetchAuthed(`/api/clients/${clientId}/shifts`),
-                apiFetchAuthed(`/api/clients/${clientId}/pickup-authorizations`),
-            ]);
+            const [clsRes, stRes, prRes, shRes, pkRes, vhRes] =
+                await Promise.all([
+                    apiFetchAuthed(`/api/clients/${clientId}/school-classes`),
+                    apiFetchAuthed(`/api/clients/${clientId}/students`),
+                    apiFetchAuthed(`/api/clients/${clientId}/responsibles`),
+                    apiFetchAuthed(`/api/clients/${clientId}/shifts`),
+                    apiFetchAuthed(
+                        `/api/clients/${clientId}/pickup-authorizations`,
+                    ),
+                    apiFetchAuthed(`/api/clients/${clientId}/vehicles`),
+                ]);
             if (clsRes.ok) {
                 schoolClasses = (await parseResponseJson(
                     clsRes,
@@ -103,6 +109,13 @@ export default async function CompanyClientUsuariosPage({
                     schoolPickupAuthorizations = [];
                 }
             }
+            if (vhRes.ok) {
+                const parsed = (await parseResponseJson(vhRes)) as
+                    | VehicleRow[]
+                    | null;
+                schoolVehicles =
+                    parsed && Array.isArray(parsed) ? parsed : [];
+            }
         }
     } catch {
         links = [];
@@ -112,6 +125,7 @@ export default async function CompanyClientUsuariosPage({
         schoolResponsibles = [];
         schoolShifts = [];
         schoolPickupAuthorizations = [];
+        schoolVehicles = [];
     }
 
     const clientName = clientMeta?.name ?? null;
@@ -124,7 +138,7 @@ export default async function CompanyClientUsuariosPage({
                         ? `${clientName} — Gerenciar`
                         : "Gerenciar cliente"
                 }
-                description="Cadastro via link e solicitações. Escolas: turmas, turnos, alunos e responsáveis na aba Escola."
+                description="Cadastro via link e solicitações. Escolas: turmas, turnos, alunos, responsáveis, veículos (LPR) e mais na aba Escola."
             />
             <ClientDetailTabs
                 clientId={clientId}
@@ -136,6 +150,7 @@ export default async function CompanyClientUsuariosPage({
                 initialSchoolResponsibles={schoolResponsibles}
                 initialSchoolShifts={schoolShifts}
                 initialSchoolPickupAuthorizations={schoolPickupAuthorizations}
+                initialSchoolVehicles={schoolVehicles}
             />
         </div>
     );

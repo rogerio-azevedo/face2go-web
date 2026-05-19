@@ -248,6 +248,28 @@ export type ResponsibleRow = {
     updatedAt: string;
 };
 
+/** Item de `GET /api/clients/:clientId/vehicles` (datas ISO). */
+export type VehicleRow = {
+    id: string;
+    clientId: string;
+    responsibleId: string;
+    plate: string;
+    brand: string;
+    model: string;
+    color: string;
+    driverName: string;
+    createdAt: string;
+    updatedAt: string;
+};
+
+/** Item de `GET /api/clients/:clientId/vehicles/driver-options`. */
+export type VehicleDriverOptionRow = {
+    id: string;
+    name: string;
+    /** Valor enum do vínculo (ex.: father) quando houver primeiro vínculo. */
+    relationshipType: string;
+};
+
 /** Item de `GET /api/clients/:clientId/responsibles/:responsibleId/students`. */
 export type ResponsibleStudentLinkWithStudent = {
     link: {

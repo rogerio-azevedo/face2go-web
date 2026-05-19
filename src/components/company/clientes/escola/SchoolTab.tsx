@@ -6,6 +6,7 @@ import type {
     SchoolClassRow,
     ShiftRow,
     StudentRow,
+    VehicleRow,
 } from "@/types/domain";
 import {
     Tabs,
@@ -19,6 +20,7 @@ import { PickupAuthorizationsSection } from "./PickupAuthorizationsSection";
 import { SchoolClassesSection } from "./SchoolClassesSection";
 import { ShiftsSection } from "./ShiftsSection";
 import { StudentsSection } from "./StudentsSection";
+import { VehiclesSection } from "./VehiclesSection";
 
 export function SchoolTab({
     clientId,
@@ -27,6 +29,7 @@ export function SchoolTab({
     initialResponsibles,
     initialShifts,
     initialPickupAuthorizations = [],
+    initialVehicles = [],
 }: {
     clientId: string;
     initialClasses: SchoolClassRow[];
@@ -34,13 +37,15 @@ export function SchoolTab({
     initialResponsibles: ResponsibleRow[];
     initialShifts: ShiftRow[];
     initialPickupAuthorizations?: PickupAuthorizationRow[];
+    initialVehicles?: VehicleRow[];
 }) {
     return (
         <div className="space-y-4">
             <p className="text-muted-foreground max-w-xl text-sm">
-                Cadastre turmas, turnos de acesso, alunos e responsáveis. Os
-                responsáveis podem ter login no app para acompanhar seus filhos
-                conforme suas permissões.
+                Cadastre turmas, turnos de acesso, alunos e responsáveis. Na
+                aba Veículos, gerencie placas para LPR vinculadas aos
+                responsáveis. Os responsáveis podem usar o app conforme suas
+                permissões.
             </p>
             <Tabs defaultValue="classes">
                 <TabsList className="h-auto w-full flex-wrap justify-start gap-1 md:w-fit">
@@ -51,6 +56,7 @@ export function SchoolTab({
                     <TabsTrigger value="pickups">
                         Autorizações retirada
                     </TabsTrigger>
+                    <TabsTrigger value="vehicles">Veículos</TabsTrigger>
                 </TabsList>
                 <TabsContent value="classes" className="pt-4">
                     <SchoolClassesSection
@@ -85,6 +91,12 @@ export function SchoolTab({
                         initialAuthorizations={initialPickupAuthorizations}
                         students={initialStudents}
                         responsibles={initialResponsibles}
+                    />
+                </TabsContent>
+                <TabsContent value="vehicles" className="pt-4">
+                    <VehiclesSection
+                        clientId={clientId}
+                        initialVehicles={initialVehicles}
                     />
                 </TabsContent>
             </Tabs>
