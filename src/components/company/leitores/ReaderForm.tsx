@@ -27,6 +27,8 @@ import { Switch } from "@/components/ui/switch";
 import {
     READER_BRANDS,
     READER_BRAND_LABELS,
+    READER_DIRECTIONS,
+    READER_DIRECTION_LABELS,
     readerFormSchema,
     type ReaderFormPayload,
 } from "@/lib/validations/readers";
@@ -52,6 +54,9 @@ function toCreateApiBody(data: ReaderFormPayload) {
         location: data.location,
         isActive: data.isActive,
     };
+    if (data.direction !== "") {
+        body.direction = data.direction;
+    }
     const u = data.username.trim();
     if (u) body.username = u;
     if (data.password.length > 0) body.password = data.password;
@@ -70,6 +75,7 @@ function toUpdateApiBody(data: ReaderFormPayload) {
         model: data.model,
         location: data.location,
         isActive: data.isActive,
+        direction: data.direction === "" ? null : data.direction,
         username: data.username.trim() ? data.username.trim() : null,
     };
     if (data.password.length > 0) body.password = data.password;
@@ -101,6 +107,7 @@ export function ReaderForm({
         () => ({
             clientId: defaultClientId,
             brand: "intelbras",
+            direction: "",
             name: "",
             description: undefined,
             ip: "",
@@ -120,6 +127,7 @@ export function ReaderForm({
             return {
                 clientId: reader.clientId,
                 brand: reader.brand,
+                direction: reader.direction ?? "",
                 name: reader.name,
                 description: reader.description ?? undefined,
                 ip: reader.ip,
@@ -277,6 +285,35 @@ export function ReaderForm({
                                 {errors.brand ? (
                                     <p className="text-destructive text-xs">
                                         {errors.brand.message}
+                                    </p>
+                                ) : null}
+                            </div>
+
+                            <div className="min-w-0 space-y-2">
+                                <Label htmlFor="reader-direction" className={fieldLabel}>
+                                    Sentido{" "}
+                                    <span className={hintClass}>(opcional)</span>
+                                </Label>
+                                <select
+                                    id="reader-direction"
+                                    className={cn(
+                                        "border-input bg-card text-foreground flex h-10 w-full rounded-md border px-3 py-2 text-sm shadow-sm",
+                                        errors.direction &&
+                                            "border-destructive ring-2 ring-destructive/20",
+                                    )}
+                                    aria-invalid={!!errors.direction}
+                                    {...register("direction")}
+                                >
+                                    <option value="">Não definido</option>
+                                    {READER_DIRECTIONS.map((dir) => (
+                                        <option key={dir} value={dir}>
+                                            {READER_DIRECTION_LABELS[dir]}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.direction ? (
+                                    <p className="text-destructive text-xs">
+                                        {errors.direction.message}
                                     </p>
                                 ) : null}
                             </div>

@@ -76,7 +76,8 @@ export async function updateReaderAction(
             d.location === undefined &&
             d.isActive === undefined &&
             d.username === undefined &&
-            d.password === undefined
+            d.password === undefined &&
+            d.direction === undefined
         ) {
             return { error: 'Nada para atualizar.' };
         }

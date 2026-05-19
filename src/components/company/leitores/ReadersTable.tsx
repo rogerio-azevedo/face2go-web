@@ -29,7 +29,9 @@ import {
 } from "@/components/ui/table";
 import {
     READER_BRAND_LABELS,
+    READER_DIRECTION_LABELS,
     type ReaderBrandSlug,
+    type ReaderDirectionSlug,
 } from "@/lib/validations/readers";
 
 function ConnectionBadge({
@@ -177,7 +179,7 @@ export function ReadersTable({
         });
     }
 
-    const colSpan = canManage ? 9 : 8;
+    const colSpan = canManage ? 8 : 7;
 
     return (
         <>
@@ -240,8 +242,7 @@ export function ReadersTable({
                             <TableHead>Marca</TableHead>
                             <TableHead>Endereço</TableHead>
                             <TableHead>Conexão</TableHead>
-                            <TableHead>Credenciais</TableHead>
-                            <TableHead>Descrição</TableHead>
+                            <TableHead>Direção</TableHead>
                             <TableHead>Status</TableHead>
                             {canManage ? (
                                 <TableHead className="text-right">
@@ -286,18 +287,22 @@ export function ReadersTable({
                                         />
                                     </TableCell>
                                     <TableCell>
-                                        {row.hasCredentials ? (
+                                        {row.direction ? (
                                             <Badge variant="outline">
-                                                Configuradas
+                                                {
+                                                    READER_DIRECTION_LABELS[
+                                                        row.direction as ReaderDirectionSlug
+                                                    ]
+                                                }
                                             </Badge>
                                         ) : (
-                                            <Badge variant="secondary">
-                                                Pendente
-                                            </Badge>
+                                            <span
+                                                className="text-muted-foreground text-sm"
+                                                title="Defina no formulário de edição"
+                                            >
+                                                —
+                                            </span>
                                         )}
-                                    </TableCell>
-                                    <TableCell className="max-w-[200px] truncate">
-                                        {row.description ?? "—"}
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex items-center gap-2">

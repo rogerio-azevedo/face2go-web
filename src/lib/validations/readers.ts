@@ -32,15 +32,24 @@ const optionalTrimmed = z
 export const READER_BRANDS = ["intelbras", "hikvision"] as const;
 export type ReaderBrandSlug = (typeof READER_BRANDS)[number];
 
+export const READER_DIRECTIONS = ["in", "out"] as const;
+export type ReaderDirectionSlug = (typeof READER_DIRECTIONS)[number];
+
 export const READER_BRAND_LABELS: Record<ReaderBrandSlug, string> = {
     intelbras: "Intelbras",
     hikvision: "Hikvision",
+};
+
+export const READER_DIRECTION_LABELS: Record<ReaderDirectionSlug, string> = {
+    in: "Entrada",
+    out: "Saída",
 };
 
 /** Objeto base sem refinamentos — permite `.partial()` no PATCH (Zod 4). */
 const readerFields = z.object({
     clientId: z.string().uuid("Cliente inválido."),
     brand: z.enum(READER_BRANDS, { message: "Marca inválida." }),
+    direction: z.union([z.literal(""), z.enum(READER_DIRECTIONS)]),
     name: z
         .string()
         .trim()
@@ -82,21 +91,35 @@ export const readerFormSchema = readerFields.refine(
     },
 );
 
-/** POST só no servidor — exige usuário se houver senha. */
-export const createReaderSchema = readerFormSchema.refine(
-    (d) =>
-        !d.password ||
-        d.password.length === 0 ||
-        d.username.trim().length > 0,
-    {
-        message: "Informe o usuário do leitor para salvar a senha.",
-        path: ["username"],
-    },
-);
+const readerCreateApiFields = readerFields
+    .omit({ direction: true })
+    .extend({
+        direction: z.enum(READER_DIRECTIONS).optional(),
+    });
 
-/** PATCH: campos opcionais; mesma regra de tamanho da senha quando enviada. */
+/** POST na API — payload JSON (sentido omitido quando vazio). */
+export const createReaderSchema = readerCreateApiFields
+    .refine((d) => passwordLengthOk(d.password), {
+        message: "Senha deve ter entre 4 e 256 caracteres",
+        path: ["password"],
+    })
+    .refine(
+        (d) =>
+            !d.password ||
+            d.password.length === 0 ||
+            d.username.trim().length > 0,
+        {
+            message: "Informe o usuário do leitor para salvar a senha.",
+            path: ["username"],
+        },
+    );
+
+/** PATCH enviado à API: sentido nulo limpa o campo no servidor. */
 export const updateReaderSchema = readerFields
     .partial()
+    .extend({
+        direction: z.enum(READER_DIRECTIONS).nullable().optional(),
+    })
     .refine((d) => passwordLengthOk(d.password), {
         message: "Senha deve ter entre 4 e 256 caracteres",
         path: ["password"],
@@ -109,6 +132,7 @@ export const readerSchema = readerFormSchema;
 export type ReaderFormPayload = {
     clientId: string;
     brand: ReaderBrandSlug;
+    direction: "" | ReaderDirectionSlug;
     name: string;
     description?: string;
     ip: string;

@@ -32,11 +32,14 @@ export type ClientListRow = {
 
 export type ReaderBrand = 'intelbras' | 'hikvision';
 
+export type ReaderDirection = 'in' | 'out';
+
 export type ReaderListRow = {
     id: string;
     clientId: string;
     clientName: string;
     brand: ReaderBrand;
+    direction: ReaderDirection | null;
     name: string;
     description: string | null;
     ip: string;
