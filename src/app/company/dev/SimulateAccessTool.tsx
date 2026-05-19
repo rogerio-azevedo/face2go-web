@@ -4,8 +4,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-import type { SimulatablePerson } from './actions';
+import type { DevSimReaderOption, SimulatablePerson } from './actions';
 import {
+    listReadersForClientAction,
     listSimulatablePeopleAction,
     simulateFaceAccessAction,
 } from './actions';
@@ -23,6 +24,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { READER_DIRECTION_LABELS } from '@/lib/validations/readers';
 
 export type SimulateClientOption = {
     id: string;
@@ -42,6 +44,11 @@ function filterPeople(list: SimulatablePerson[], q: string): SimulatablePerson[]
     const s = q.trim().toLowerCase();
     if (!s) return list;
     return list.filter((p) => p.name.toLowerCase().includes(s));
+}
+
+function readerOptionLabel(r: DevSimReaderOption): string {
+    if (!r.direction) return r.name;
+    return `${r.name} (${READER_DIRECTION_LABELS[r.direction]})`;
 }
 
 type PersonSimRowProps = {
@@ -100,34 +107,51 @@ export function SimulateAccessTool({
     const [search, setSearch] = useState('');
     const [students, setStudents] = useState<SimulatablePerson[]>([]);
     const [responsibles, setResponsibles] = useState<SimulatablePerson[]>([]);
+    const [readers, setReaders] = useState<DevSimReaderOption[]>([]);
+    const [readerId, setReaderId] = useState('');
     const [loadingList, setLoadingList] = useState(false);
     const [listError, setListError] = useState<string | null>(null);
     const [simulatingId, setSimulatingId] = useState<string | null>(null);
     const [tab, setTab] = useState('students');
 
-    const loadPeople = useCallback(async (cid: string) => {
+    const reloadForClient = useCallback(async (cid: string) => {
         if (!cid) {
             setStudents([]);
             setResponsibles([]);
+            setReaders([]);
+            setReaderId('');
             return;
         }
         setLoadingList(true);
         setListError(null);
-        const res = await listSimulatablePeopleAction(cid);
+        const [peopleRes, readersRes] = await Promise.all([
+            listSimulatablePeopleAction(cid),
+            listReadersForClientAction(cid),
+        ]);
         setLoadingList(false);
-        if (!('success' in res) || !res.success) {
-            setListError(res && 'error' in res ? res.error : 'Erro ao carregar.');
+
+        if (!('success' in peopleRes) || !peopleRes.success) {
+            setListError(
+                peopleRes && 'error' in peopleRes ? peopleRes.error : 'Erro ao carregar.',
+            );
             setStudents([]);
             setResponsibles([]);
-            return;
+        } else {
+            setStudents(peopleRes.students);
+            setResponsibles(peopleRes.responsibles);
         }
-        setStudents(res.students);
-        setResponsibles(res.responsibles);
+
+        if (!('success' in readersRes) || !readersRes.success) {
+            setReaders([]);
+        } else {
+            setReaders(readersRes.readers);
+        }
+        setReaderId('');
     }, []);
 
     useEffect(() => {
-        void loadPeople(clientId);
-    }, [clientId, loadPeople]);
+        void reloadForClient(clientId);
+    }, [clientId, reloadForClient]);
 
     const filteredStudents = useMemo(
         () => filterPeople(students, search),
@@ -155,6 +179,7 @@ export function SimulateAccessTool({
                 clientId,
                 personId: pid,
                 personType: type,
+                ...(readerId ? { readerId } : {}),
             });
             if ('error' in out) {
                 toast.error(out.error);
@@ -190,21 +215,46 @@ export function SimulateAccessTool({
                         Escola cujo fluxo de acesso (Mongo, push, TV) será disparado.
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="max-w-md">
-                    <label className="text-muted-foreground mb-2 block text-sm">
-                        Escola
-                    </label>
-                    <select
-                        value={clientId}
-                        onChange={(e) => setClientId(e.target.value)}
-                        className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive dark:bg-input/30 h-8 w-full rounded-lg border px-2.5 py-1 text-sm shadow-xs outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50"
-                    >
-                        {clients.map((c) => (
-                            <option key={c.id} value={c.id}>
-                                {c.name}
+                <CardContent className="max-w-md space-y-4">
+                    <div>
+                        <label className="text-muted-foreground mb-2 block text-sm">
+                            Escola
+                        </label>
+                        <select
+                            value={clientId}
+                            onChange={(e) => setClientId(e.target.value)}
+                            className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive dark:bg-input/30 h-8 w-full rounded-lg border px-2.5 py-1 text-sm shadow-xs outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50"
+                        >
+                            {clients.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                    {c.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="text-muted-foreground mb-2 block text-sm">
+                            Leitor (opcional)
+                        </label>
+                        <select
+                            value={readerId}
+                            onChange={(e) => setReaderId(e.target.value)}
+                            disabled={loadingList}
+                            className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive dark:bg-input/30 h-8 w-full rounded-lg border px-2.5 py-1 text-sm shadow-xs outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50"
+                        >
+                            <option value="">
+                                Sem leitor específico (simulador)
                             </option>
-                        ))}
-                    </select>
+                            {readers.map((r) => (
+                                <option key={r.id} value={r.id}>
+                                    {readerOptionLabel(r)}
+                                </option>
+                            ))}
+                        </select>
+                        <p className="text-muted-foreground mt-1.5 text-xs leading-relaxed">
+                            Leitores ativos da escola. Com um leitor selecionado, o push e o registro usam o nome e o sentido (Entrada/Saída) cadastrados.
+                        </p>
+                    </div>
                 </CardContent>
             </Card>
 

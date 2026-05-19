@@ -7,6 +7,7 @@ import {
     nestErrorMessage,
     parseResponseJson,
 } from '@/lib/api-fetch';
+import type { ReaderDirection, ReaderListRow } from '@/types/domain';
 
 function zodFirstMessage(error: unknown): string {
     if (error instanceof ZodError && error.issues[0]?.message) {
@@ -21,6 +22,7 @@ const simulateSchema = z.object({
     clientId: z.string().uuid(),
     personId: z.string().uuid(),
     personType: z.enum(['student', 'responsible']),
+    readerId: z.string().uuid().optional(),
 });
 
 export type SimulatablePerson = {
@@ -29,6 +31,47 @@ export type SimulatablePerson = {
     photoUrl: string | null;
     hasFace: boolean;
 };
+
+export type DevSimReaderOption = {
+    id: string;
+    name: string;
+    direction: ReaderDirection | null;
+};
+
+export async function listReadersForClientAction(
+    clientId: unknown,
+): Promise<
+    | { success: true; readers: DevSimReaderOption[] }
+    | { error: string }
+> {
+    try {
+        const parsed = clientIdSchema.safeParse(clientId);
+        if (!parsed.success) {
+            return { error: 'Cliente inválido.' };
+        }
+
+        const id = encodeURIComponent(parsed.data);
+        const res = await apiFetchAuthed(`/api/readers?clientId=${id}`);
+
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { error: nestErrorMessage(data) };
+        }
+
+        const rows = (await res.json()) as ReaderListRow[];
+        const readers: DevSimReaderOption[] = (rows ?? [])
+            .filter((r) => r.isActive)
+            .map((r) => ({
+                id: r.id,
+                name: r.name,
+                direction: r.direction ?? null,
+            }));
+
+        return { success: true, readers };
+    } catch {
+        return { error: 'Não foi possível carregar os leitores.' };
+    }
+}
 
 export async function listSimulatablePeopleAction(
     clientId: unknown,
