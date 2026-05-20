@@ -15,6 +15,7 @@ import {
     createStudentSchema,
     linkResponsibleStudentSchema,
     updateResponsibleSchema,
+    updateResponsibleStudentLinkSchema,
     updateSchoolClassSchema,
     updateStudentSchema,
 } from "@/lib/validations/school";
@@ -296,6 +297,49 @@ export async function linkResponsibleStudentAction(
         const res = await apiFetchAuthed(
             `/api/clients/${clientId}/responsibles/${responsibleId}/students`,
             { method: "POST", body: JSON.stringify(parsed.data) },
+        );
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { error: nestErrorMessage(data) };
+        }
+
+        revalidateSchoolRoutes(clientId);
+        return { success: true };
+    } catch {
+        return { error: "Sem permissão." };
+    }
+}
+
+export async function updateResponsibleStudentLinkAction(
+    clientId: string,
+    responsibleId: string,
+    studentId: string,
+    input: unknown,
+): Promise<{ success: true } | { error: string }> {
+    try {
+        const cid = ids.safeParse({ clientId });
+        const pid = z.string().uuid().safeParse(responsibleId);
+        const sid = z.string().uuid().safeParse(studentId);
+        if (!cid.success || !pid.success || !sid.success)
+            return { error: "Dados inválidos." };
+
+        const parsed = updateResponsibleStudentLinkSchema.safeParse(input);
+        if (!parsed.success)
+            return { error: zodFirstMessage(parsed.error) };
+
+        const d = parsed.data;
+        if (
+            d.relationshipType === undefined &&
+            d.isAuthorizedPickup === undefined
+        ) {
+            return { error: "Nada para atualizar." };
+        }
+
+        const body = stripUndefined(parsed.data);
+
+        const res = await apiFetchAuthed(
+            `/api/clients/${clientId}/responsibles/${responsibleId}/students/${studentId}`,
+            { method: "PATCH", body: JSON.stringify(body) },
         );
         if (!res.ok) {
             const data = await parseResponseJson(res);

@@ -193,6 +193,12 @@ export const linkResponsibleStudentSchema = z.object({
     isAuthorizedPickup: z.boolean().optional().default(true),
 });
 
+/** PATCH vínculo (espelho do servidor — ao menos um campo no cliente ao salvar edição). */
+export const updateResponsibleStudentLinkSchema = z.object({
+    relationshipType: responsibleRelationshipSchema.optional(),
+    isAuthorizedPickup: z.boolean().optional(),
+});
+
 /** Alinhado a `createPickupAuthorizationSchema` no servidor (app do responsável). */
 export const createPickupAuthorizationSchema = z
     .object({

@@ -8,6 +8,7 @@ import {
     linkResponsibleStudentAction,
     listResponsibleStudentLinksAction,
     unlinkResponsibleStudentAction,
+    updateResponsibleStudentLinkAction,
 } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
 import type {
     ResponsibleRow,
@@ -59,6 +60,7 @@ export function ParentStudentsSheet({
     const [pickStudentId, setPickStudentId] = useState("");
     const [relType, setRelType] = useState<ResponsibleRelationshipType>("other");
     const [authorizedPickup, setAuthorizedPickup] = useState(true);
+    const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
 
     const load = useCallback(async () => {
         if (!parent) return;
@@ -85,6 +87,15 @@ export function ParentStudentsSheet({
         return () => window.clearTimeout(id);
     }, [open, parent, load]);
 
+    useEffect(() => {
+        if (!open) {
+            setEditingStudentId(null);
+            setPickStudentId("");
+            setRelType("other");
+            setAuthorizedPickup(true);
+        }
+    }, [open]);
+
     const linkedIds = useMemo(
         () => new Set(items.map((x) => x.link.studentId)),
         [items],
@@ -94,6 +105,14 @@ export function ParentStudentsSheet({
         () => students.filter((s) => !linkedIds.has(s.id)),
         [students, linkedIds],
     );
+
+    const studentSelectOptions = useMemo(() => {
+        if (editingStudentId) {
+            const s = students.find((x) => x.id === editingStudentId);
+            return s ? [s] : [];
+        }
+        return availableStudents;
+    }, [editingStudentId, students, availableStudents]);
 
     async function onUnlink(studentId: string) {
         if (!parent) return;
@@ -116,6 +135,22 @@ export function ParentStudentsSheet({
         }
     }
 
+    function startEdit(row: ResponsibleStudentLinkWithStudent) {
+        setEditingStudentId(row.student.id);
+        setPickStudentId(row.student.id);
+        setRelType(
+            row.link.relationshipType as ResponsibleRelationshipType,
+        );
+        setAuthorizedPickup(row.link.isAuthorizedPickup);
+    }
+
+    function cancelEdit() {
+        setEditingStudentId(null);
+        setPickStudentId("");
+        setRelType("other");
+        setAuthorizedPickup(true);
+    }
+
     async function onLink() {
         if (!parent || !pickStudentId) {
             toast.error("Selecione um aluno.");
@@ -123,19 +158,37 @@ export function ParentStudentsSheet({
         }
         setBusy(true);
         try {
-            const r = await linkResponsibleStudentAction(clientId, parent.id, {
-                studentId: pickStudentId,
-                relationshipType: relType,
-                isAuthorizedPickup: authorizedPickup,
-            });
-            if ("error" in r) {
-                toast.error(r.error);
-                return;
+            if (editingStudentId) {
+                const r = await updateResponsibleStudentLinkAction(
+                    clientId,
+                    parent.id,
+                    pickStudentId,
+                    {
+                        relationshipType: relType,
+                        isAuthorizedPickup: authorizedPickup,
+                    },
+                );
+                if ("error" in r) {
+                    toast.error(r.error);
+                    return;
+                }
+                toast.success("Alterações salvas.");
+                cancelEdit();
+            } else {
+                const r = await linkResponsibleStudentAction(clientId, parent.id, {
+                    studentId: pickStudentId,
+                    relationshipType: relType,
+                    isAuthorizedPickup: authorizedPickup,
+                });
+                if ("error" in r) {
+                    toast.error(r.error);
+                    return;
+                }
+                toast.success("Aluno vinculado.");
+                setPickStudentId("");
+                setRelType("other");
+                setAuthorizedPickup(true);
             }
-            toast.success("Aluno vinculado.");
-            setPickStudentId("");
-            setRelType("other");
-            setAuthorizedPickup(true);
             await load();
             onChanged?.();
         } finally {
@@ -166,7 +219,7 @@ export function ParentStudentsSheet({
                                         <TableHead>Aluno</TableHead>
                                                                         <TableHead className="w-32">Parentesco</TableHead>
                                                                         <TableHead className="w-24">Retirada</TableHead>
-                                                                        <TableHead className="w-24 text-right">
+                                                                        <TableHead className="w-52 text-right">
                                                                             Ações
                                                                         </TableHead>
                                     </TableRow>
@@ -202,20 +255,44 @@ export function ParentStudentsSheet({
                                                         : "Não"}
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                                                    <Button
-                                                                                        type="button"
-                                                                                        variant="destructive"
-                                                                                        size="sm"
-                                                                                        className="shrink-0"
-                                                                                        disabled={busy}
-                                                                                        onClick={() =>
-                                                                                            onUnlink(
-                                                                                                row.student.id,
-                                                                                            )
-                                                                                        }
-                                                                                    >
-                                                                                        Remover
-                                                                                    </Button>
+                                                                                    <div className="flex justify-end gap-2">
+                                                                                        <Button
+                                                                                            type="button"
+                                                                                            variant="outline"
+                                                                                            size="sm"
+                                                                                            className="shrink-0"
+                                                                                            disabled={
+                                                                                                busy ||
+                                                                                                editingStudentId !== null
+                                                                                            }
+                                                                                            onClick={() =>
+                                                                                                startEdit(
+                                                                                                    row,
+                                                                                                )
+                                                                                            }
+                                                                                        >
+                                                                                            Editar
+                                                                                        </Button>
+                                                                                        <Button
+                                                                                            type="button"
+                                                                                            variant="destructive"
+                                                                                            size="sm"
+                                                                                            className="shrink-0"
+                                                                                            disabled={
+                                                                                                busy ||
+                                                                                                editingStudentId !== null
+                                                                                            }
+                                                                                            onClick={() =>
+                                                                                                onUnlink(
+                                                                                                    row
+                                                                                                        .student
+                                                                                                        .id,
+                                                                                                )
+                                                                                            }
+                                                                                        >
+                                                                                            Remover
+                                                                                        </Button>
+                                                                                    </div>
                                                                                 </TableCell>
                                             </TableRow>
                                         ))
@@ -226,26 +303,32 @@ export function ParentStudentsSheet({
 
                         <div className="space-y-4 border-t pt-4">
                             <h3 className="text-sm font-medium">
-                                Novo vínculo
+                                {editingStudentId ? "Editar vínculo" : "Novo vínculo"}
                             </h3>
                             <div className="grid gap-3">
                                 <div className="space-y-2">
                                     <Label htmlFor="lnk-student">Aluno</Label>
                                     <select
                                         id="lnk-student"
-                                        className="border-input bg-background flex h-10 w-full rounded-md border px-3 text-sm"
+                                        className="border-input bg-background flex h-10 w-full rounded-md border px-3 text-sm disabled:opacity-70"
                                         value={pickStudentId}
                                         onChange={(e) =>
                                             setPickStudentId(e.target.value)
                                         }
-                                        disabled={busy || availableStudents.length === 0}
+                                        disabled={
+                                            !!editingStudentId ||
+                                            busy ||
+                                            studentSelectOptions.length === 0
+                                        }
                                     >
                                         <option value="">
-                                            {availableStudents.length === 0
-                                                ? "Nenhum aluno disponível"
+                                            {studentSelectOptions.length === 0
+                                                ? editingStudentId
+                                                    ? "Aluno não encontrado"
+                                                    : "Nenhum aluno disponível"
                                                 : "Selecione"}
                                         </option>
-                                        {availableStudents.map((s) => (
+                                        {studentSelectOptions.map((s) => (
                                             <option key={s.id} value={s.id}>
                                                 {s.name} — {s.enrollment}
                                             </option>
@@ -291,17 +374,33 @@ export function ParentStudentsSheet({
                                         Autorizado a retirar o aluno
                                     </Label>
                                 </div>
-                                <Button
-                                    type="button"
-                                    disabled={busy}
-                                    onClick={() => void onLink()}
-                                >
-                                    {busy ? (
-                                        <Loader2 className="size-4 animate-spin" />
-                                    ) : (
-                                        "Vincular"
-                                    )}
-                                </Button>
+                                <div className="flex flex-wrap gap-2">
+                                    {editingStudentId ? (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            disabled={busy}
+                                            onClick={() => cancelEdit()}
+                                            className="shrink-0"
+                                        >
+                                            Cancelar
+                                        </Button>
+                                    ) : null}
+                                    <Button
+                                        type="button"
+                                        disabled={busy}
+                                        onClick={() => void onLink()}
+                                        className="min-w-0 flex-1"
+                                    >
+                                        {busy ? (
+                                            <Loader2 className="size-4 animate-spin" />
+                                        ) : editingStudentId ? (
+                                            "Salvar alterações"
+                                        ) : (
+                                            "Vincular"
+                                        )}
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     </div>
