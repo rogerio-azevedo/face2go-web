@@ -23,6 +23,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { loginSchema, type LoginInput } from "@/lib/validations/auth";
 
+const marketingUrl = process.env.NEXT_PUBLIC_MARKETING_URL?.trim() ?? "";
+
 export function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -165,10 +167,10 @@ export function LoginForm() {
                             Cadastro com convite
                         </Link>
                         <Link
-                            href="/"
+                            href={marketingUrl || "/"}
                             className="text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
                         >
-                            Voltar
+                            {marketingUrl ? "Voltar ao site" : "Voltar ao início"}
                         </Link>
                     </nav>
                 </CardFooter>

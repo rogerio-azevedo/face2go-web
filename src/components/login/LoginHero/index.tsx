@@ -31,7 +31,7 @@ export function LoginHero() {
                     className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-brand-slate underline-offset-4 transition-colors hover:text-brand-deep-navy hover:underline"
                 >
                     <span aria-hidden>←</span>
-                    Voltar para a landing
+                    Voltar ao site
                 </Link>
             ) : (
                 <span className="h-6" aria-hidden />
