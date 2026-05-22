@@ -5,15 +5,15 @@ import { LegalDocumentPageContent } from "@/components/legal/LegalDocumentPageCo
 import { getActiveLegalDocument } from "@/lib/legal-documents";
 
 export const metadata: Metadata = {
-    title: "Política de Privacidade • Face2Go",
+    title: "Termos de Uso • Face2Go",
     description:
-        "Política de Privacidade do Face2Go — como tratamos dados pessoais, biometria facial e informações de crianças e adolescentes.",
+        "Termos de Uso do Face2Go — regras de acesso e utilização da plataforma, aplicativo e serviços de controle de acesso.",
 };
 
 export const dynamic = "force-dynamic";
 
-export default async function PrivacyPolicyPage() {
-    const document = await getActiveLegalDocument("privacy_policy");
+export default async function TermsOfUsePage() {
+    const document = await getActiveLegalDocument("terms_of_use");
 
     if (!document) {
         notFound();
@@ -22,8 +22,8 @@ export default async function PrivacyPolicyPage() {
     return (
         <LegalDocumentPageContent
             document={document}
-            contactLabel="Dúvidas sobre privacidade?"
-            contactEmail="privacidade@face2go.com.br"
+            contactLabel="Dúvidas sobre os termos?"
+            contactEmail="contato@face2go.com.br"
         />
     );
 }

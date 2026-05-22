@@ -32,7 +32,11 @@ export const authConfig = {
             }
 
             /** Páginas legais públicas. */
-            if (path === "/privacy-policy" || path === "/privacidade") {
+            if (
+                path === "/privacy-policy" ||
+                path === "/terms-of-use" ||
+                path === "/privacidade"
+            ) {
                 return true;
             }
 

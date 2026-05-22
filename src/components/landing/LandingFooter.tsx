@@ -26,6 +26,12 @@ export function LandingFooter() {
                     >
                         Política de Privacidade
                     </Link>
+                    <Link
+                        href="/terms-of-use"
+                        className="text-white/75 underline-offset-4 hover:text-white hover:underline"
+                    >
+                        Termos de Uso
+                    </Link>
                 </nav>
             </div>
         </footer>

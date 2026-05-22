@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -38,16 +39,29 @@ export function LegalDocumentMarkdown({ content }: LegalDocumentMarkdownProps) {
           <strong className="text-brand-deep-navy font-semibold">{children}</strong>
         ),
         hr: () => <hr className="my-8 border-slate-200" />,
-        a: ({ href, children }) => (
-          <a
-            href={href}
-            className="text-brand-turquoise font-medium underline underline-offset-2 hover:text-brand-deep-navy"
-            target={href?.startsWith('http') ? '_blank' : undefined}
-            rel={href?.startsWith('http') ? 'noopener noreferrer' : undefined}
-          >
-            {children}
-          </a>
-        ),
+        a: ({ href, children }) => {
+          if (href?.startsWith("/")) {
+            return (
+              <Link
+                href={href}
+                className="text-brand-turquoise font-medium underline underline-offset-2 hover:text-brand-deep-navy"
+              >
+                {children}
+              </Link>
+            );
+          }
+
+          return (
+            <a
+              href={href}
+              className="text-brand-turquoise font-medium underline underline-offset-2 hover:text-brand-deep-navy"
+              target={href?.startsWith("http") ? "_blank" : undefined}
+              rel={href?.startsWith("http") ? "noopener noreferrer" : undefined}
+            >
+              {children}
+            </a>
+          );
+        },
       }}
     >
       {content}
