@@ -7,6 +7,6 @@ export const config = {
         /*
          * /display é público (TV) — não passa pelo auth middleware.
          */
-        "/((?!api|_next/static|_next/image|display|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+        "/((?!api|_next/static|_next/image|display|privacy-policy|privacidade|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
     ],
 };

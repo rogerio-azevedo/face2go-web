@@ -31,6 +31,11 @@ export const authConfig = {
                 return true;
             }
 
+            /** Páginas legais públicas. */
+            if (path === "/privacy-policy" || path === "/privacidade") {
+                return true;
+            }
+
             if (path === "/login") {
                 if (isLoggedIn) {
                     return Response.redirect(

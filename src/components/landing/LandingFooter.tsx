@@ -19,6 +19,14 @@ export function LandingFooter() {
                     Gestão de cadastro e acesso com leitores faciais e outros
                     equipamentos. © {year} Face2Go. Todos os direitos reservados.
                 </p>
+                <nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm">
+                    <Link
+                        href="/privacy-policy"
+                        className="text-white/75 underline-offset-4 hover:text-white hover:underline"
+                    >
+                        Política de Privacidade
+                    </Link>
+                </nav>
             </div>
         </footer>
     );
