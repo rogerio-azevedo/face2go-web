@@ -4,6 +4,7 @@ import type {
     ArrivalLayout,
     ArrivalSseArrivalPayload,
 } from '@/components/arrivals/arrival-types';
+import { FaceCirclePhoto } from '@/components/ui/face-circle-photo';
 import { cn } from '@/lib/utils';
 
 export function formatArrivalTime(eventDateIso: string | null): string {
@@ -84,36 +85,6 @@ export function getCardScale(studentCount: number): ArrivalCardScale {
         studentName: 'text-xs md:text-sm',
         studentClass: 'text-xs',
     };
-}
-
-type FacePhotoProps = {
-    photoUrl: string | null;
-    nameHint: string | null;
-    className?: string;
-};
-
-/** Foto pré-assinada (R2) — usa `<img>` (URLs variadas); não usar next/image aqui. */
-export function FaceCirclePhoto(props: FacePhotoProps) {
-    const initial =
-        props.nameHint?.trim()?.charAt(0)?.toUpperCase() ?? '?';
-    return (
-        <div className={props.className}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            {props.photoUrl ? (
-                <img
-                    alt=""
-                    src={props.photoUrl}
-                    className="size-full object-cover"
-                    loading="lazy"
-                    decoding="async"
-                />
-            ) : (
-                <span className="flex size-full items-center justify-center font-bold uppercase text-teal-600">
-                    {initial}
-                </span>
-            )}
-        </div>
-    );
 }
 
 /** Cartão para grade — responsável visível à distância e filhos com foto + nome destacados. */

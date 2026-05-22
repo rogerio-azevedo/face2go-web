@@ -1,12 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import type { SchoolClassRow, StudentRow } from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { FaceCirclePhoto } from "@/components/ui/face-circle-photo";
 import { Label } from "@/components/ui/label";
 import {
     Table,
@@ -54,6 +55,18 @@ export function StudentsSection({
         return initialStudents.filter((s) => s.classId === filterClassId);
     }, [filterClassId, initialStudents]);
 
+    useEffect(() => {
+        console.log(
+            "[StudentsSection] alunos",
+            initialStudents.map((row) => ({
+                id: row.id,
+                name: row.name,
+                photoKey: row.photoKey,
+                photoUrl: row.photoUrl,
+            })),
+        );
+    }, [initialStudents]);
+
     return (
         <>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-2">
@@ -92,6 +105,7 @@ export function StudentsSection({
                 <Table>
                     <TableHeader>
                         <TableRow>
+                            <TableHead className="w-[52px]" aria-label="Foto" />
                             <TableHead>Nome</TableHead>
                             <TableHead>Matrícula</TableHead>
                             <TableHead>Turma</TableHead>
@@ -105,7 +119,7 @@ export function StudentsSection({
                         {rows.length === 0 ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={5}
+                                    colSpan={6}
                                     className="text-muted-foreground py-10 text-center"
                                 >
                                     Nenhum aluno neste filtro.
@@ -114,6 +128,15 @@ export function StudentsSection({
                         ) : (
                             rows.map((row) => (
                                 <TableRow key={row.id}>
+                                    <TableCell className="align-middle">
+                                        <div className="size-8 shrink-0 overflow-hidden rounded-full bg-teal-100 ring-2 ring-teal-100">
+                                            <FaceCirclePhoto
+                                                className="size-full"
+                                                photoUrl={row.photoUrl ?? null}
+                                                nameHint={row.name}
+                                            />
+                                        </div>
+                                    </TableCell>
                                     <TableCell className="font-medium">
                                         {row.name}
                                     </TableCell>

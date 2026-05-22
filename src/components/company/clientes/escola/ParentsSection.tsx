@@ -1,12 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import type { ResponsibleRow, StudentRow } from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { FaceCirclePhoto } from "@/components/ui/face-circle-photo";
 import {
     Table,
     TableBody,
@@ -39,6 +40,18 @@ export function ParentsSection({
         startTransition(() => router.refresh());
     }
 
+    useEffect(() => {
+        console.log(
+            "[ParentsSection] responsáveis",
+            initialResponsibles.map((row) => ({
+                id: row.id,
+                name: row.name,
+                photoKey: row.photoKey,
+                photoUrl: row.photoUrl,
+            })),
+        );
+    }, [initialResponsibles]);
+
     return (
         <>
             <div className="flex justify-end gap-2 mb-2">
@@ -58,6 +71,7 @@ export function ParentsSection({
                 <Table>
                     <TableHeader>
                         <TableRow>
+                            <TableHead className="w-[52px]" aria-label="Foto" />
                             <TableHead>Nome</TableHead>
                             <TableHead>Telefone</TableHead>
                             <TableHead>Documento</TableHead>
@@ -72,7 +86,7 @@ export function ParentsSection({
                         {initialResponsibles.length === 0 ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={6}
+                                    colSpan={7}
                                     className="text-muted-foreground py-10 text-center"
                                 >
                                     Nenhum responsável cadastrado.
@@ -81,6 +95,17 @@ export function ParentsSection({
                         ) : (
                             initialResponsibles.map((row) => (
                                 <TableRow key={row.id}>
+                                    <TableCell className="align-middle">
+                                        <div className="size-8 shrink-0 overflow-hidden rounded-full bg-teal-100 ring-2 ring-teal-100">
+                                            <FaceCirclePhoto
+                                                className="size-full"
+                                                photoUrl={
+                                                    row.photoUrl ?? null
+                                                }
+                                                nameHint={row.name}
+                                            />
+                                        </div>
+                                    </TableCell>
                                     <TableCell className="font-medium">
                                         {row.name}
                                     </TableCell>

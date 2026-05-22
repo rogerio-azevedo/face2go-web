@@ -23,7 +23,6 @@ export type ClientListRow = {
     phone: string | null;
     email: string | null;
     logoUrl: string | null;
-    /** Minutos em relação ao UTC (ex.: −180 = UTC−3). Aceita também horas inteiras curtas na API quando |valor|≤14. */
     timezoneOffsetMinutes: number;
     isActive: boolean;
     createdAt: string;
@@ -164,10 +163,8 @@ export type SchoolClassRow = {
     id: string;
     clientId: string;
     name: string;
-    /** FK para cadastro em Turnos; quando definido, a lista usa `linkedShiftName`. */
     shiftId: string | null;
     linkedShiftName: string | null;
-    /** Enum legado (turmas antigas ou sem vínculo). */
     shift: ClassShift | null;
     year: number;
     isActive: boolean;
@@ -229,6 +226,7 @@ export type StudentRow = {
     document: string | null;
     birthDate: string | null;
     photoKey: string | null;
+    photoUrl: string | null;
     faceId: number | null;
     deviceSyncStatus: DeviceSyncStatus | null;
     deviceSyncedAt: string | null;
@@ -246,6 +244,8 @@ export type ResponsibleRow = {
     name: string;
     phone: string | null;
     document: string | null;
+    photoKey: string | null;
+    photoUrl: string | null;
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
@@ -269,7 +269,6 @@ export type VehicleRow = {
 export type VehicleDriverOptionRow = {
     id: string;
     name: string;
-    /** Valor enum do vínculo (ex.: father) quando houver primeiro vínculo. */
     relationshipType: string;
 };
 

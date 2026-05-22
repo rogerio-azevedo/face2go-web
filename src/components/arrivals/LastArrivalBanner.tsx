@@ -5,10 +5,10 @@ import type {
     ArrivalSseArrivalPayload,
 } from '@/components/arrivals/arrival-types';
 import {
-    FaceCirclePhoto,
     formatArrivalTime,
     getCardScale,
 } from '@/components/arrivals/ArrivalCard';
+import { FaceCirclePhoto } from '@/components/ui/face-circle-photo';
 import { cn } from '@/lib/utils';
 
 export function LastArrivalBanner(props: {
