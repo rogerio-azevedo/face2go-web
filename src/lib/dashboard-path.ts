@@ -21,7 +21,7 @@ export function getDashboardPathForRole(role: string | undefined): string {
         case "face_user":
             return "/client/dashboard";
         default:
-            return "/login";
+            return "/sem-acesso";
     }
 }
 

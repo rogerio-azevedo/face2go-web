@@ -26,6 +26,11 @@ export const authConfig = {
                 return true;
             }
 
+            /** Fallback após login com role não suportado no web — evita loop com /login. */
+            if (path === "/sem-acesso") {
+                return true;
+            }
+
             if (path === "/login") {
                 if (isLoggedIn) {
                     return Response.redirect(
