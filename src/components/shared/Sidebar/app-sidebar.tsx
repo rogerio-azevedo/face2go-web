@@ -5,6 +5,7 @@ import type { ComponentProps } from "react";
 import {
     BriefcaseBusiness,
     Building2,
+    Camera,
     FlaskConical,
     History,
     LayoutDashboard,
@@ -67,6 +68,11 @@ function navItemsForRole(
                     icon: ScanLine,
                 },
                 {
+                    title: "Câmeras",
+                    url: "/company/cameras",
+                    icon: Camera,
+                },
+                {
                     title: "Acessos",
                     url: "/company/acessos",
                     icon: History,
@@ -111,6 +117,13 @@ function navItemsForRole(
                     title: "Leitores",
                     url: "/company/leitores",
                     icon: ScanLine,
+                });
+            }
+            if (pathSet?.has("/company/cameras") === true) {
+                items.push({
+                    title: "Câmeras",
+                    url: "/company/cameras",
+                    icon: Camera,
                 });
             }
             if (pathSet?.has("/company/acessos") === true) {

@@ -53,6 +53,76 @@ export type ReaderListRow = {
     createdAt: string;
 };
 
+/** Câmera LPR/PTZ (área empresa) — JSON `GET /api/cameras`. */
+export type CameraType = 'lpr' | 'ptz' | 'general';
+
+export type CameraListRow = {
+    id: string;
+    clientId: string;
+    clientName: string;
+    type: CameraType;
+    brand: string;
+    name: string;
+    description: string | null;
+    ip: string;
+    port: number;
+    serialNumber: string | null;
+    model: string | null;
+    location: string | null;
+    username: string | null;
+    hasCredentials: boolean;
+    deviceId: string | null;
+    deviceToken: string;
+    isActive: boolean;
+    lastSeenAt: string | null;
+    createdAt: string;
+};
+
+/** Resposta de `GET /api/cameras/monitor/status` (datas ISO). */
+export type CameraMonitorDeviceApiRow = {
+    cameraId: string;
+    cameraName: string;
+    clientName: string;
+    type: string;
+    brand: string;
+    host: string;
+    isActive: boolean;
+    hasCredentials: boolean;
+    streamSupported: boolean;
+    connected: boolean;
+    snapConnected: boolean;
+    eventsReceived: number;
+    lastEventAt: string | null;
+    connectedSince: string | null;
+    snapConnectedSince: string | null;
+    lastConnectionError: string | null;
+    snapLastConnectionError: string | null;
+    lastSeenAt: string | null;
+};
+
+export type CamerasMonitorStatusResponse = {
+    devices: CameraMonitorDeviceApiRow[];
+    summary: {
+        total: number;
+        connected: number;
+        disconnected: number;
+    };
+};
+
+/** Resposta `GET /api/cameras/:cameraId/device-plates` — placas na câmera (TrafficRedList). */
+export type DevicePlate = {
+    plateNumber: string;
+    recNo: number | null;
+    /** Nome do proprietário na câmera (TrafficRedList / MasterOfCar). */
+    owner: string;
+};
+
+export type DevicePlatesListResult = {
+    totalCount: number;
+    found: number;
+    records: DevicePlate[];
+};
+
 /** Resposta de `GET /api/readers/monitor/status` (datas ISO). */
 export type ReaderMonitorDeviceApiRow = {
     readerId: string;
