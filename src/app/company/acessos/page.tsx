@@ -1,17 +1,24 @@
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import { AccessTypeToggle } from "@/components/company/acessos/AccessTypeToggle";
 import { AccessesTable } from "@/components/company/acessos/AccessesTable";
+import { LprAccessesTable } from "@/components/company/acessos/LprAccessesTable";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { apiFetchAuthed } from "@/lib/api-fetch";
 import { can } from "@/lib/permissions";
-import type { AccessesListResponse, ClientListRow } from "@/types/domain";
+import type {
+    AccessesListResponse,
+    ClientListRow,
+    LprAccessesListResponse,
+} from "@/types/domain";
 
 type SearchParams = {
     clientId?: string;
     startDate?: string;
     endDate?: string;
     page?: string;
+    type?: string;
 };
 
 export default async function CompanyAccessesPage({
@@ -36,6 +43,8 @@ export default async function CompanyAccessesPage({
         redirect("/company/dashboard");
     }
 
+    const isLprTab = sp.type?.trim() === "lpr";
+
     /** Offset do cliente no filtro; listagem mista usa o offset de cada cliente na tabela */
     let clientTimezoneOffsetMinutes = 0;
 
@@ -46,9 +55,16 @@ export default async function CompanyAccessesPage({
     if (sp.page?.trim()) qs.set("page", sp.page.trim());
 
     const query = qs.toString();
-    const path = query ? `/api/accesses?${query}` : "/api/accesses";
+    const apiBase = isLprTab ? "/api/lpr-accesses" : "/api/accesses";
+    const apiPath = query ? `${apiBase}?${query}` : apiBase;
 
-    let data: AccessesListResponse = {
+    let facialData: AccessesListResponse = {
+        items: [],
+        page: 1,
+        pageSize: 20,
+        total: 0,
+    };
+    let lprData: LprAccessesListResponse = {
         items: [],
         page: 1,
         pageSize: 20,
@@ -58,12 +74,17 @@ export default async function CompanyAccessesPage({
 
     try {
         const [accessRes, clientsRes] = await Promise.all([
-            apiFetchAuthed(path),
+            apiFetchAuthed(apiPath),
             apiFetchAuthed("/api/clients"),
         ]);
 
         if (accessRes.ok) {
-            data = (await accessRes.json()) as AccessesListResponse;
+            const json = (await accessRes.json()) as unknown;
+            if (isLprTab) {
+                lprData = json as LprAccessesListResponse;
+            } else {
+                facialData = json as AccessesListResponse;
+            }
         }
         if (clientsRes.ok) {
             clients = (await clientsRes.json()) as ClientListRow[];
@@ -74,26 +95,46 @@ export default async function CompanyAccessesPage({
             }
         }
     } catch {
-        data = { items: [], page: 1, pageSize: 20, total: 0 };
+        if (isLprTab) {
+            lprData = { items: [], page: 1, pageSize: 20, total: 0 };
+        } else {
+            facialData = { items: [], page: 1, pageSize: 20, total: 0 };
+        }
         clients = [];
     }
+
+    const filterDefaults = {
+        clientId: sp.clientId?.trim() ?? "",
+        startDate: sp.startDate?.trim() ?? "",
+        endDate: sp.endDate?.trim() ?? "",
+    };
 
     return (
         <div className="space-y-6">
             <PageHeader
-                title="Acessos faciais"
-                description="Registros capturados pelos leitores Intelbras (stream em tempo real)."
+                title="Acessos"
+                description="Registros capturados pelos leitores e câmeras Intelbras (stream em tempo real)."
             />
-            <AccessesTable
-                data={data}
-                clients={clients}
-                clientTimezoneOffsetMinutes={clientTimezoneOffsetMinutes}
-                filters={{
-                    clientId: sp.clientId?.trim() ?? "",
-                    startDate: sp.startDate?.trim() ?? "",
-                    endDate: sp.endDate?.trim() ?? "",
-                }}
-            />
+            <AccessTypeToggle />
+            {isLprTab ? (
+                <LprAccessesTable
+                    data={lprData}
+                    clients={clients}
+                    clientTimezoneOffsetMinutes={
+                        clientTimezoneOffsetMinutes
+                    }
+                    filters={filterDefaults}
+                />
+            ) : (
+                <AccessesTable
+                    data={facialData}
+                    clients={clients}
+                    clientTimezoneOffsetMinutes={
+                        clientTimezoneOffsetMinutes
+                    }
+                    filters={filterDefaults}
+                />
+            )}
         </div>
     );
 }

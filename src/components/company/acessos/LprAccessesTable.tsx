@@ -1,10 +1,10 @@
 "use client";
 
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useTransition } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import type { AccessesListResponse, ClientListRow } from "@/types/domain";
+import type { ClientListRow, LprAccessesListResponse } from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,37 +18,37 @@ import {
     TableRow,
 } from "@/components/ui/table";
 
-function similarityBadge(similarity: number | null) {
-    if (similarity == null || Number.isNaN(similarity)) {
+function confidenceBadge(confidence: number | null) {
+    if (confidence == null || Number.isNaN(confidence)) {
         return (
             <Badge variant="secondary" className="font-normal tabular-nums">
                 —
             </Badge>
         );
     }
-    if (similarity >= 80) {
+    if (confidence >= 80) {
         return (
             <Badge
                 variant="outline"
                 className="border-emerald-200 bg-emerald-50 font-normal text-emerald-800 tabular-nums hover:bg-emerald-50"
             >
-                {similarity}%
+                {confidence}%
             </Badge>
         );
     }
-    if (similarity >= 60) {
+    if (confidence >= 60) {
         return (
             <Badge
                 variant="outline"
                 className="border-amber-200 bg-amber-50 font-normal text-amber-900 tabular-nums hover:bg-amber-50"
             >
-                {similarity}%
+                {confidence}%
             </Badge>
         );
     }
     return (
         <Badge variant="secondary" className="font-normal tabular-nums">
-            {similarity}%
+            {confidence}%
         </Badge>
     );
 }
@@ -71,9 +71,8 @@ function formatDateTime(iso: string | null, offsetMinutes: number): string {
 }
 
 type Props = {
-    data: AccessesListResponse;
+    data: LprAccessesListResponse;
     clients: ClientListRow[];
-    /** Offset quando há filtro por cliente; listagem mista usa o offset de cada cliente. */
     clientTimezoneOffsetMinutes: number;
     filters: {
         clientId: string;
@@ -82,7 +81,7 @@ type Props = {
     };
 };
 
-export function AccessesTable({
+export function LprAccessesTable({
     data,
     clients,
     clientTimezoneOffsetMinutes,
@@ -101,6 +100,7 @@ export function AccessesTable({
     const buildHref = useCallback(
         (patch: Record<string, string | undefined>) => {
             const next = new URLSearchParams(params?.toString() ?? "");
+            next.set("type", "lpr");
             for (const [k, v] of Object.entries(patch)) {
                 if (v === undefined || v === "") next.delete(k);
                 else next.set(k, v);
@@ -125,7 +125,6 @@ export function AccessesTable({
                     startDate: startDate || undefined,
                     endDate: endDate || undefined,
                     page: undefined,
-                    type: undefined,
                 }),
             );
         });
@@ -136,7 +135,6 @@ export function AccessesTable({
             router.push(
                 buildHref({
                     page: p > 1 ? String(p) : undefined,
-                    type: undefined,
                 }),
             );
         });
@@ -149,9 +147,9 @@ export function AccessesTable({
                 className="flex flex-col gap-4 rounded-xl border bg-card p-4 shadow-sm md:flex-row md:flex-wrap md:items-end"
             >
                 <div className="grid flex-1 gap-2 min-w-[200px]">
-                    <Label htmlFor="filter-client">Cliente</Label>
+                    <Label htmlFor="lpr-filter-client">Cliente</Label>
                     <select
-                        id="filter-client"
+                        id="lpr-filter-client"
                         name="clientId"
                         defaultValue={filters.clientId}
                         className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -165,18 +163,18 @@ export function AccessesTable({
                     </select>
                 </div>
                 <div className="grid gap-2 min-w-[160px]">
-                    <Label htmlFor="filter-start">De</Label>
+                    <Label htmlFor="lpr-filter-start">De</Label>
                     <Input
-                        id="filter-start"
+                        id="lpr-filter-start"
                         name="startDate"
                         type="date"
                         defaultValue={filters.startDate}
                     />
                 </div>
                 <div className="grid gap-2 min-w-[160px]">
-                    <Label htmlFor="filter-end">Até</Label>
+                    <Label htmlFor="lpr-filter-end">Até</Label>
                     <Input
-                        id="filter-end"
+                        id="lpr-filter-end"
                         name="endDate"
                         type="date"
                         defaultValue={filters.endDate}
@@ -191,14 +189,14 @@ export function AccessesTable({
                 <Table>
                     <TableHeader>
                         <TableRow className="bg-muted/40 hover:bg-muted/40">
-                            <TableHead>Pessoa</TableHead>
-                            <TableHead>Leitor</TableHead>
+                            <TableHead>Placa</TableHead>
+                            <TableHead>Câmera</TableHead>
                             <TableHead>Cliente</TableHead>
                             <TableHead>Horário</TableHead>
                             <TableHead className="text-right">
-                                Similaridade
+                                Confiança
                             </TableHead>
-                            <TableHead>Evento</TableHead>
+                            <TableHead>Direção</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -208,26 +206,61 @@ export function AccessesTable({
                                     colSpan={6}
                                     className="h-24 text-center text-muted-foreground"
                                 >
-                                    Nenhum acesso encontrado para os filtros
-                                    atuais.
+                                    Nenhuma detecção de placa encontrada para
+                                    os filtros atuais.
                                 </TableCell>
                             </TableRow>
                         ) : (
                             data.items.map((row) => (
                                 <TableRow key={row.id}>
-                                    <TableCell className="font-medium">
-                                        {row.personName?.trim() ||
-                                            `Face #${row.userId}`}
+                                    <TableCell>
+                                        <div className="flex flex-col gap-1">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <span className="font-semibold tracking-wide">
+                                                    {row.plateNumber}
+                                                </span>
+                                                {row.isBlocked === true ? (
+                                                    <Badge
+                                                        variant="destructive"
+                                                        className="text-xs font-normal"
+                                                    >
+                                                        Bloqueado
+                                                    </Badge>
+                                                ) : null}
+                                                {row.isAllowed === true ? (
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="border-emerald-200 bg-emerald-50 text-xs font-normal text-emerald-800 hover:bg-emerald-50"
+                                                    >
+                                                        Permitido
+                                                    </Badge>
+                                                ) : null}
+                                            </div>
+                                            {(row.plateColor ||
+                                                row.vehicleType ||
+                                                row.vehicleBrand) && (
+                                                <span className="text-xs text-muted-foreground">
+                                                    {[
+                                                        row.plateColor,
+                                                        row.vehicleBrand ??
+                                                            undefined,
+                                                        row.vehicleType,
+                                                    ]
+                                                        .filter(Boolean)
+                                                        .join(" · ") || "—"}
+                                                </span>
+                                            )}
+                                        </div>
                                     </TableCell>
                                     <TableCell className="text-muted-foreground">
-                                        {row.readerName}
+                                        {row.cameraName}
                                     </TableCell>
                                     <TableCell className="text-muted-foreground">
                                         {row.clientName}
                                     </TableCell>
                                     <TableCell className="tabular-nums text-sm text-muted-foreground">
                                         {formatDateTime(
-                                            row.eventDate ?? row.createdAt,
+                                            row.snapTime ?? row.createdAt,
                                             filters.clientId
                                                 ? clientTimezoneOffsetMinutes
                                                 : (clients.find(
@@ -238,12 +271,12 @@ export function AccessesTable({
                                         )}
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        {similarityBadge(row.similarity)}
+                                        {confidenceBadge(row.confidence)}
                                     </TableCell>
-                                    <TableCell>
-                                        <span className="text-xs text-muted-foreground">
-                                            {row.eventCode}
-                                        </span>
+                                    <TableCell className="text-muted-foreground text-sm">
+                                        {row.direction?.trim()
+                                            ? row.direction
+                                            : "—"}
                                     </TableCell>
                                 </TableRow>
                             ))

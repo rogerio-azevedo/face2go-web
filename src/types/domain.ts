@@ -222,6 +222,33 @@ export type AccessesListResponse = {
     total: number;
 };
 
+/** Item de `GET /api/lpr-accesses` (datas ISO). */
+export type LprAccessRow = {
+    id: string;
+    cameraId: string;
+    cameraName: string;
+    clientId: string;
+    clientName: string;
+    plateNumber: string;
+    plateColor: string | null;
+    confidence: number | null;
+    vehicleType: string | null;
+    vehicleBrand: string | null;
+    direction: string | null;
+    snapTime: string | null;
+    isAllowed: boolean | null;
+    isBlocked: boolean | null;
+    cutoutPicKey: string | null;
+    createdAt: string;
+};
+
+export type LprAccessesListResponse = {
+    items: LprAccessRow[];
+    page: number;
+    pageSize: number;
+    total: number;
+};
+
 /** Turno de turma (enum `class_shift` no Postgres). */
 export type ClassShift =
     | "morning"
