@@ -1,10 +1,14 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo, useTransition } from "react";
+import { useCallback, useMemo, useState, useTransition } from "react";
 
-import type { ClientListRow, LprAccessesListResponse } from "@/types/domain";
+import type {
+    ClientListRow,
+    LprAccessPhotoUrls,
+    LprAccessesListResponse,
+} from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +21,13 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import {
+    getApiBaseUrl,
+    nestErrorMessage,
+    parseResponseJson,
+} from "@/lib/api-fetch";
+
+import { LprPhotoSheet } from "./LprPhotoSheet";
 
 function confidenceBadge(confidence: number | null) {
     if (confidence == null || Number.isNaN(confidence)) {
@@ -79,6 +90,8 @@ type Props = {
         startDate: string;
         endDate: string;
     };
+    /** Bearer JWT para `GET /api/lpr-accesses/:id/photo` no navegador. */
+    accessToken: string;
 };
 
 export function LprAccessesTable({
@@ -86,10 +99,70 @@ export function LprAccessesTable({
     clients,
     clientTimezoneOffsetMinutes,
     filters,
+    accessToken,
 }: Props) {
     const router = useRouter();
     const params = useSearchParams();
     const [pending, startTransition] = useTransition();
+
+    const [photoOpen, setPhotoOpen] = useState(false);
+    const [photoLoading, setPhotoLoading] = useState(false);
+    const [photoError, setPhotoError] = useState<string | null>(null);
+    const [photoUrls, setPhotoUrls] = useState<LprAccessPhotoUrls | null>(
+        null,
+    );
+    const [photoSubtitle, setPhotoSubtitle] = useState("");
+
+    const openLprPhotos = useCallback(
+        async (accessId: string, plateLabel: string) => {
+            if (!accessToken.trim()) {
+                setPhotoSubtitle(plateLabel);
+                setPhotoOpen(true);
+                setPhotoLoading(false);
+                setPhotoError("Sessão inválida. Faça login novamente.");
+                setPhotoUrls(null);
+                return;
+            }
+            setPhotoSubtitle(plateLabel);
+            setPhotoOpen(true);
+            setPhotoLoading(true);
+            setPhotoError(null);
+            setPhotoUrls(null);
+            try {
+                const url = `${getApiBaseUrl()}/api/lpr-accesses/${encodeURIComponent(accessId)}/photo`;
+                const res = await fetch(url, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                });
+                const parsed = await parseResponseJson(res);
+                if (!res.ok) {
+                    setPhotoError(nestErrorMessage(parsed));
+                    return;
+                }
+                const body = parsed as LprAccessPhotoUrls;
+                setPhotoUrls({
+                    cutoutUrl:
+                        typeof body?.cutoutUrl === "string"
+                            ? body.cutoutUrl
+                            : null,
+                    vehicleUrl:
+                        typeof body?.vehicleUrl === "string"
+                            ? body.vehicleUrl
+                            : null,
+                    normalUrl:
+                        typeof body?.normalUrl === "string"
+                            ? body.normalUrl
+                            : null,
+                });
+            } catch {
+                setPhotoError("Erro ao carregar fotos.");
+            } finally {
+                setPhotoLoading(false);
+            }
+        },
+        [accessToken],
+    );
 
     const totalPages = useMemo(
         () =>
@@ -142,6 +215,23 @@ export function LprAccessesTable({
 
     return (
         <div className="space-y-6">
+            <LprPhotoSheet
+                open={photoOpen}
+                loading={photoLoading}
+                error={photoError}
+                urls={photoUrls}
+                subtitle={photoSubtitle || undefined}
+                onOpenChange={(next) => {
+                    setPhotoOpen(next);
+                    if (!next) {
+                        setPhotoUrls(null);
+                        setPhotoError(null);
+                        setPhotoLoading(false);
+                        setPhotoSubtitle("");
+                    }
+                }}
+            />
+
             <form
                 onSubmit={applyFilters}
                 className="flex flex-col gap-4 rounded-xl border bg-card p-4 shadow-sm md:flex-row md:flex-wrap md:items-end"
@@ -197,13 +287,20 @@ export function LprAccessesTable({
                                 Confiança
                             </TableHead>
                             <TableHead>Direção</TableHead>
+                            <TableHead className="text-center">
+                                <span className="sr-only">Visualizar foto</span>
+                                <Eye
+                                    className="inline size-4 text-muted-foreground"
+                                    aria-hidden
+                                />
+                            </TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {data.items.length === 0 ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={6}
+                                    colSpan={7}
                                     className="h-24 text-center text-muted-foreground"
                                 >
                                     Nenhuma detecção de placa encontrada para
@@ -277,6 +374,29 @@ export function LprAccessesTable({
                                         {row.direction?.trim()
                                             ? row.direction
                                             : "—"}
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                        {row.cutoutPicKey ? (
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="shrink-0"
+                                                aria-label={`Ver foto do acesso da placa ${row.plateNumber}`}
+                                                onClick={() =>
+                                                    void openLprPhotos(
+                                                        row.id,
+                                                        row.plateNumber,
+                                                    )
+                                                }
+                                            >
+                                                <Eye className="size-4" />
+                                            </Button>
+                                        ) : (
+                                            <span className="text-muted-foreground tabular-nums">
+                                                —
+                                            </span>
+                                        )}
                                     </TableCell>
                                 </TableRow>
                             ))

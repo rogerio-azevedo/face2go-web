@@ -90,13 +90,10 @@ export type CameraMonitorDeviceApiRow = {
     hasCredentials: boolean;
     streamSupported: boolean;
     connected: boolean;
-    snapConnected: boolean;
     eventsReceived: number;
     lastEventAt: string | null;
     connectedSince: string | null;
-    snapConnectedSince: string | null;
     lastConnectionError: string | null;
-    snapLastConnectionError: string | null;
     lastSeenAt: string | null;
 };
 
@@ -247,6 +244,13 @@ export type LprAccessesListResponse = {
     page: number;
     pageSize: number;
     total: number;
+};
+
+/** Resposta de `GET /api/lpr-accesses/:id/photo` — URLs temporárias (R2). */
+export type LprAccessPhotoUrls = {
+    cutoutUrl: string | null;
+    vehicleUrl: string | null;
+    normalUrl: string | null;
 };
 
 /** Turno de turma (enum `class_shift` no Postgres). */

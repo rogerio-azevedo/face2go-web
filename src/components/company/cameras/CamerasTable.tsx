@@ -102,7 +102,7 @@ function SnapBadge({
             <span className="text-muted-foreground text-xs tabular-nums">—</span>
         );
     }
-    if (device.snapConnected) {
+    if (device.connected) {
         return (
             <span className="text-xs tabular-nums text-emerald-700">Snap ok</span>
         );
@@ -110,7 +110,7 @@ function SnapBadge({
     return (
         <span
             className="cursor-help text-xs tabular-nums text-amber-700"
-            title={device.snapLastConnectionError ?? "Snap indisponível"}
+            title={device.lastConnectionError ?? "Snap indisponível"}
         >
             Snap off
         </span>

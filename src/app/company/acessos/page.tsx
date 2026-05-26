@@ -124,6 +124,7 @@ export default async function CompanyAccessesPage({
                         clientTimezoneOffsetMinutes
                     }
                     filters={filterDefaults}
+                    accessToken={session?.accessToken ?? ""}
                 />
             ) : (
                 <AccessesTable
