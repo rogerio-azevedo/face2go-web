@@ -2,15 +2,19 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import { joinContextAction } from "@/app/join/actions";
+import {
+    getInvitePreviewAction,
+    type InvitePreview,
+} from "@/app/register/actions";
 import { ContextSelector } from "@/components/login/ContextSelector";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
     Card,
     CardContent,
@@ -23,34 +27,60 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
     establishSessionFromContext,
-    loginWithIdentifier,
     selectContextWithToken,
 } from "@/lib/auth-contexts";
 import { getDashboardPathForRole } from "@/lib/dashboard-path";
 import { loginSchema, type LoginInput } from "@/lib/validations/auth";
+import { cn } from "@/lib/utils";
 import type { LoginResponse, UserContext } from "@/types/auth-context";
 
-const marketingUrl = process.env.NEXT_PUBLIC_MARKETING_URL?.trim() ?? "";
+const companyRoleLabels: Record<string, string> = {
+    company_admin: "Administrador da empresa",
+    company_operator: "Operador",
+};
 
-type LoginStep = "credentials" | "context";
+const clientRoleLabels: Record<string, string> = {
+    client_admin: "Administrador do cliente",
+    client_operator: "Operador do cliente",
+};
 
-export function LoginForm() {
+function inviteTitle(preview: InvitePreview): string {
+    if (!preview) return "Entrar e vincular contexto";
+    if (preview.inviteType === "company") {
+        return `Entrar — ${preview.companyName}`;
+    }
+    return `Entrar — ${preview.clientName}`;
+}
+
+function inviteRoleLabel(preview: InvitePreview): string {
+    if (!preview) return "";
+    if (preview.inviteType === "company") {
+        return companyRoleLabels[preview.role] ?? preview.role;
+    }
+    return clientRoleLabels[preview.role] ?? preview.role;
+}
+
+function inviteContextLabel(preview: InvitePreview): string {
+    if (!preview) return "";
+    if (preview.inviteType === "company") {
+        return preview.companyName;
+    }
+    return `${preview.clientName} (${preview.companyName})`;
+}
+
+type JoinStep = "credentials" | "context";
+
+export function JoinContextForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const errorParam = searchParams.get("error");
-    const registeredParam = searchParams.get("registered");
-    const [step, setStep] = useState<LoginStep>("credentials");
+    const inviteCode = searchParams.get("invite")?.trim() ?? "";
+
+    const [inviteLoading, setInviteLoading] = useState(!!inviteCode);
+    const [preview, setPreview] = useState<InvitePreview>(null);
+    const [step, setStep] = useState<JoinStep>("credentials");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-    const [loginPayload, setLoginPayload] = useState<LoginResponse | null>(
-        null,
-    );
-
-    useEffect(() => {
-        if (registeredParam === "1") {
-            toast.success("Cadastro realizado. Entre com sua conta.");
-        }
-    }, [registeredParam]);
+    const [joinPayload, setJoinPayload] = useState<LoginResponse | null>(null);
 
     const {
         register,
@@ -61,7 +91,30 @@ export function LoginForm() {
         defaultValues: { identifier: "", password: "" },
     });
 
-    const completeLogin = async (
+    const loadInvite = useCallback(async () => {
+        if (!inviteCode) {
+            setInviteLoading(false);
+            return;
+        }
+        setInviteLoading(true);
+        try {
+            const data = await getInvitePreviewAction(inviteCode);
+            if (!data) {
+                setPreview(null);
+                toast.error("Convite inválido ou expirado.");
+            } else {
+                setPreview(data);
+            }
+        } finally {
+            setInviteLoading(false);
+        }
+    }, [inviteCode]);
+
+    useEffect(() => {
+        void loadInvite();
+    }, [loadInvite]);
+
+    const completeJoin = async (
         payload: LoginResponse,
         selectedContext: UserContext,
     ) => {
@@ -81,7 +134,7 @@ export function LoginForm() {
             throw new Error("Não foi possível iniciar a sessão.");
         }
 
-        toast.success("Login realizado.");
+        toast.success("Contexto vinculado com sucesso.");
         router.push(getDashboardPathForRole(selected.user.role));
         router.refresh();
     };
@@ -89,23 +142,31 @@ export function LoginForm() {
     const onSubmit = handleSubmit(async (data) => {
         setIsSubmitting(true);
         try {
-            const payload = await loginWithIdentifier(
-                data.identifier,
-                data.password,
-            );
+            const result = await joinContextAction({
+                identifier: data.identifier,
+                password: data.password,
+                invite: inviteCode,
+            });
 
-            if (payload.contexts.length === 1) {
-                await completeLogin(payload, payload.contexts[0]!);
+            if (!result.success) {
+                toast.error(result.error);
                 return;
             }
 
-            setLoginPayload(payload);
+            const payload = result.data;
+
+            if (payload.contexts.length === 1) {
+                await completeJoin(payload, payload.contexts[0]!);
+                return;
+            }
+
+            setJoinPayload(payload);
             setStep("context");
         } catch (error) {
             toast.error(
                 error instanceof Error
                     ? error.message
-                    : "E-mail/CPF ou senha inválidos.",
+                    : "Não foi possível vincular o contexto.",
             );
         } finally {
             setIsSubmitting(false);
@@ -113,10 +174,10 @@ export function LoginForm() {
     });
 
     const onSelectContext = async (context: UserContext) => {
-        if (!loginPayload) return;
+        if (!joinPayload) return;
         setIsSubmitting(true);
         try {
-            await completeLogin(loginPayload, context);
+            await completeJoin(joinPayload, context);
         } catch (error) {
             toast.error(
                 error instanceof Error
@@ -128,10 +189,66 @@ export function LoginForm() {
         }
     };
 
-    if (step === "context" && loginPayload) {
+    if (!inviteCode) {
+        return (
+            <Card className="w-full max-w-md shadow-md">
+                <CardHeader>
+                    <CardTitle>Vincular contexto</CardTitle>
+                    <CardDescription>
+                        É necessário um link válido com o parâmetro{" "}
+                        <code className="text-xs">invite</code>.
+                    </CardDescription>
+                </CardHeader>
+                <CardFooter>
+                    <Link
+                        href="/login"
+                        className={cn(buttonVariants({ variant: "outline" }), "w-full")}
+                    >
+                        Voltar ao login
+                    </Link>
+                </CardFooter>
+            </Card>
+        );
+    }
+
+    if (inviteLoading) {
+        return (
+            <Card className="w-full max-w-md shadow-md">
+                <CardContent className="pt-6">
+                    <p className="text-muted-foreground text-sm">
+                        Validando convite...
+                    </p>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    if (!preview) {
+        return (
+            <Card className="w-full max-w-md shadow-md">
+                <CardHeader>
+                    <CardTitle>Convite inválido</CardTitle>
+                    <CardDescription>
+                        Não foi possível usar este link. Solicite um novo convite
+                        à administração.
+                    </CardDescription>
+                </CardHeader>
+                <CardFooter>
+                    <Link
+                        href="/login"
+                        className={cn(buttonVariants({ variant: "outline" }), "w-full")}
+                    >
+                        Voltar ao login
+                    </Link>
+                </CardFooter>
+            </Card>
+        );
+    }
+
+    if (step === "context" && joinPayload) {
         return (
             <ContextSelector
-                contexts={loginPayload.contexts}
+                contexts={joinPayload.contexts}
                 isSubmitting={isSubmitting}
                 onSelect={onSelectContext}
             />
@@ -139,29 +256,16 @@ export function LoginForm() {
     }
 
     return (
-        <Card className="w-full max-w-md rounded-2xl border border-border/70 bg-brand-white shadow-lg shadow-black/7 ring-1 ring-black/4">
-            <CardHeader className="gap-5 space-y-0">
-                <Image
-                    src="/face2go_dark.svg"
-                    alt="Face2Go"
-                    width={492}
-                    height={185}
-                    priority
-                    className="h-10 w-auto max-w-[200px] shrink-0"
-                />
-                <div className="space-y-1.5 pt-2">
-                    <CardTitle className="text-2xl font-semibold tracking-tight text-brand-midnight-navy">
-                        Entrar
-                    </CardTitle>
-                    <CardDescription className="text-base text-muted-foreground">
-                        Acesse sua conta para continuar no sistema.
-                    </CardDescription>
-                </div>
-                {errorParam ? (
-                    <p className="text-sm text-destructive" role="alert">
-                        {errorParam}
-                    </p>
-                ) : null}
+        <Card className="w-full max-w-md shadow-md">
+            <CardHeader>
+                <CardTitle>{inviteTitle(preview)}</CardTitle>
+                <CardDescription>
+                    Contexto: <strong>{inviteContextLabel(preview)}</strong>
+                    <br />
+                    Papel: <strong>{inviteRoleLabel(preview)}</strong>
+                    <br />
+                    Entre com sua conta existente para vincular este acesso.
+                </CardDescription>
             </CardHeader>
             <form onSubmit={onSubmit}>
                 <CardContent className="flex flex-col gap-4">
@@ -171,7 +275,6 @@ export function LoginForm() {
                             id="identifier"
                             type="text"
                             autoComplete="username"
-                            placeholder="voce@empresa.com.br ou 000.000.000-00"
                             aria-invalid={!!errors.identifier}
                             {...register("identifier")}
                         />
@@ -220,31 +323,23 @@ export function LoginForm() {
                         ) : null}
                     </div>
                 </CardContent>
-                <CardFooter className="flex flex-col gap-4 border-border/70 bg-muted/40">
+                <CardFooter className="flex flex-col gap-2">
                     <Button
                         type="submit"
-                        className="h-11 w-full text-[15px] font-semibold"
-                        size="lg"
+                        className="w-full"
                         disabled={isSubmitting}
                     >
-                        {isSubmitting ? "Entrando..." : "Entrar no sistema"}
+                        {isSubmitting ? "Entrando..." : "Entrar e vincular"}
                     </Button>
-                    <nav className="flex flex-col gap-2 text-center sm:flex-row sm:justify-center sm:gap-6">
-                        <Link
-                            href="/register"
-                            className="text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
-                        >
-                            Cadastro com convite
-                        </Link>
-                        <Link
-                            href={marketingUrl || "/"}
-                            className="text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
-                        >
-                            {marketingUrl
-                                ? "Voltar ao site"
-                                : "Voltar ao início"}
-                        </Link>
-                    </nav>
+                    <Link
+                        href={`/register?invite=${encodeURIComponent(inviteCode)}`}
+                        className={cn(
+                            buttonVariants({ variant: "ghost" }),
+                            "w-full",
+                        )}
+                    >
+                        Ainda não tenho conta
+                    </Link>
                 </CardFooter>
             </form>
         </Card>

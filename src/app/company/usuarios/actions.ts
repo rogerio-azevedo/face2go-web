@@ -20,6 +20,35 @@ function zodFirstMessage(error: unknown): string {
 
 const roleSchema = z.enum(['company_admin', 'company_operator']);
 
+const generateCompanyInviteSchema = z.object({
+    role: roleSchema,
+});
+
+export async function generateCompanyInviteAction(
+    input: unknown,
+): Promise<{ success: true; code: string } | { success: false; error: string }> {
+    try {
+        const parsed = generateCompanyInviteSchema.safeParse(input);
+        if (!parsed.success) {
+            return { success: false, error: zodFirstMessage(parsed.error) };
+        }
+
+        const res = await apiFetchAuthed('/api/company-users/invite-links', {
+            method: 'POST',
+            body: JSON.stringify(parsed.data),
+        });
+        const data = await parseResponseJson(res);
+        if (!res.ok) {
+            return { success: false, error: nestErrorMessage(data) };
+        }
+
+        revalidatePath('/company/usuarios');
+        return { success: true, code: (data as { code: string }).code };
+    } catch {
+        return { success: false, error: 'Sem permissão.' };
+    }
+}
+
 const updateRoleSchema = z.object({
     companyUserId: z.string().uuid(),
     role: roleSchema,

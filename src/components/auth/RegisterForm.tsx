@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import {
     getInvitePreviewAction,
     registerWithInviteAction,
+    type InvitePreview,
 } from "@/app/register/actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -22,10 +23,39 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
-const roleLabels: Record<string, string> = {
+const companyRoleLabels: Record<string, string> = {
     company_admin: "Administrador da empresa",
     company_operator: "Operador",
 };
+
+const clientRoleLabels: Record<string, string> = {
+    client_admin: "Administrador do cliente",
+    client_operator: "Operador do cliente",
+};
+
+function inviteTitle(preview: InvitePreview): string {
+    if (!preview) return "Cadastro";
+    if (preview.inviteType === "company") {
+        return `Cadastro — ${preview.companyName}`;
+    }
+    return `Cadastro — ${preview.clientName}`;
+}
+
+function inviteRoleLabel(preview: InvitePreview): string {
+    if (!preview) return "";
+    if (preview.inviteType === "company") {
+        return companyRoleLabels[preview.role] ?? preview.role;
+    }
+    return clientRoleLabels[preview.role] ?? preview.role;
+}
+
+function inviteContextLabel(preview: InvitePreview): string {
+    if (!preview) return "";
+    if (preview.inviteType === "company") {
+        return preview.companyName;
+    }
+    return `${preview.clientName} (${preview.companyName})`;
+}
 
 export function RegisterForm() {
     const router = useRouter();
@@ -33,10 +63,7 @@ export function RegisterForm() {
     const inviteCode = searchParams.get("invite")?.trim() ?? "";
 
     const [inviteLoading, setInviteLoading] = useState(!!inviteCode);
-    const [preview, setPreview] = useState<{
-        companyName: string;
-        role: string;
-    } | null>(null);
+    const [preview, setPreview] = useState<InvitePreview>(null);
 
     const [step, setStep] = useState(1);
     const [email, setEmail] = useState("");
@@ -46,6 +73,9 @@ export function RegisterForm() {
     const [jobTitle, setJobTitle] = useState("");
 
     const [isPending, startTransition] = useTransition();
+
+    const isCompanyInvite = preview?.inviteType === "company";
+    const requiresCompanyProfile = isCompanyInvite;
 
     const loadInvite = useCallback(async () => {
         if (!inviteCode) {
@@ -59,10 +89,7 @@ export function RegisterForm() {
                 setPreview(null);
                 toast.error("Convite inválido ou expirado.");
             } else {
-                setPreview({
-                    companyName: data.companyName,
-                    role: data.role,
-                });
+                setPreview(data);
             }
         } finally {
             setInviteLoading(false);
@@ -91,13 +118,15 @@ export function RegisterForm() {
             toast.error("Informe o nome completo.");
             return;
         }
-        if (!phone.trim() || phone.replace(/\D/g, "").length < 8) {
-            toast.error("Informe um telefone válido.");
-            return;
-        }
-        if (!jobTitle.trim() || jobTitle.trim().length < 2) {
-            toast.error("Informe o cargo.");
-            return;
+        if (requiresCompanyProfile) {
+            if (!phone.trim() || phone.replace(/\D/g, "").length < 8) {
+                toast.error("Informe um telefone válido.");
+                return;
+            }
+            if (!jobTitle.trim() || jobTitle.trim().length < 2) {
+                toast.error("Informe o cargo.");
+                return;
+            }
         }
 
         startTransition(async () => {
@@ -105,12 +134,14 @@ export function RegisterForm() {
                 email: email.trim(),
                 password,
                 name: name.trim(),
-                phone: phone.trim(),
-                jobTitle: jobTitle.trim(),
+                phone: requiresCompanyProfile ? phone.trim() : undefined,
+                jobTitle: requiresCompanyProfile ? jobTitle.trim() : undefined,
                 invite: inviteCode,
             });
             if (result.success) {
-                toast.success("Cadastro concluído. Faça login para continuar.");
+                toast.success(
+                    "Cadastro concluído. Faça login e selecione o contexto.",
+                );
                 router.push("/login?registered=1");
             } else {
                 toast.error(result.error);
@@ -177,13 +208,13 @@ export function RegisterForm() {
     return (
         <Card className="w-full max-w-md shadow-md">
             <CardHeader>
-                <CardTitle>Cadastro — {preview.companyName}</CardTitle>
+                <CardTitle>{inviteTitle(preview)}</CardTitle>
                 <CardDescription>
-                    Papel:{" "}
-                    <strong>
-                        {roleLabels[preview.role] ?? preview.role}
-                    </strong>
-                    . Etapa {step} de 2.
+                    Contexto: <strong>{inviteContextLabel(preview)}</strong>
+                    <br />
+                    Papel: <strong>{inviteRoleLabel(preview)}</strong>
+                    <br />
+                    Etapa {step} de 2.
                 </CardDescription>
             </CardHeader>
             {step === 1 ? (
@@ -200,7 +231,9 @@ export function RegisterForm() {
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="password">Senha</Label>
+                            <Label htmlFor="password">
+                                Senha (ou confirme sua senha atual)
+                            </Label>
                             <Input
                                 id="password"
                                 type="password"
@@ -208,6 +241,10 @@ export function RegisterForm() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                             />
+                            <p className="text-xs text-muted-foreground">
+                                Se você já tem conta no Face2Go, use a senha
+                                atual para vincular este novo contexto.
+                            </p>
                         </div>
                     </CardContent>
                     <CardFooter className="flex flex-col gap-2">
@@ -218,7 +255,7 @@ export function RegisterForm() {
                         >
                             Continuar
                         </Button>
-                                            <Link
+                        <Link
                             href="/login"
                             className={cn(
                                 buttonVariants({ variant: "ghost" }),
@@ -241,23 +278,29 @@ export function RegisterForm() {
                                 onChange={(e) => setName(e.target.value)}
                             />
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="phone">Telefone</Label>
-                            <Input
-                                id="phone"
-                                autoComplete="tel"
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="jobTitle">Cargo</Label>
-                            <Input
-                                id="jobTitle"
-                                value={jobTitle}
-                                onChange={(e) => setJobTitle(e.target.value)}
-                            />
-                        </div>
+                        {requiresCompanyProfile ? (
+                            <>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="phone">Telefone</Label>
+                                    <Input
+                                        id="phone"
+                                        autoComplete="tel"
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
+                                    />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="jobTitle">Cargo</Label>
+                                    <Input
+                                        id="jobTitle"
+                                        value={jobTitle}
+                                        onChange={(e) =>
+                                            setJobTitle(e.target.value)
+                                        }
+                                    />
+                                </div>
+                            </>
+                        ) : null}
                     </CardContent>
                     <CardFooter className="flex flex-col gap-2">
                         <div className="flex w-full gap-2">

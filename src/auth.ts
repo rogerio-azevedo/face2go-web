@@ -4,6 +4,15 @@ import { z } from 'zod';
 
 import { authConfig } from '@/auth.config';
 import type { Face2goCredentialsUser } from '@/lib/dashboard-path';
+import type { UserContext } from '@/types/auth-context';
+
+const sessionCredentialsSchema = z.object({
+    mode: z.literal('session'),
+    accessToken: z.string().min(1),
+    user: z.string().min(1),
+    contexts: z.string().optional(),
+    activeContext: z.string().optional(),
+});
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
     pages: authConfig.pages,
@@ -14,13 +23,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             if (user) {
                 const u = user as Face2goCredentialsUser & {
                     accessToken?: string;
+                    contexts?: UserContext[];
+                    activeContext?: UserContext;
                 };
                 token.role = u.role;
                 token.companyId = u.companyId ?? null;
                 token.clientId = u.clientId ?? null;
                 token.companyUserId = u.companyUserId ?? null;
                 token.clientUserId = u.clientUserId ?? null;
+                token.responsibleId = u.responsibleId ?? null;
                 token.accessToken = u.accessToken;
+                token.contexts = u.contexts ?? [];
+                token.activeContext = u.activeContext ?? null;
             }
             return token;
         },
@@ -38,73 +52,63 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     (token.companyUserId as string | null) ?? undefined;
                 session.user.clientUserId =
                     (token.clientUserId as string | null) ?? undefined;
+                session.user.responsibleId =
+                    (token.responsibleId as string | null) ?? undefined;
             }
             session.accessToken = token.accessToken as string | undefined;
+            session.contexts = (token.contexts as UserContext[] | undefined) ?? [];
+            session.activeContext =
+                (token.activeContext as UserContext | null | undefined) ?? null;
             return session;
         },
     },
     providers: [
         Credentials({
             async authorize(credentials): Promise<
-                | (Face2goCredentialsUser & { accessToken?: string })
+                | (Face2goCredentialsUser & {
+                      accessToken?: string;
+                      contexts?: UserContext[];
+                      activeContext?: UserContext;
+                  })
                 | null
             > {
-                const parsed = z
-                    .object({
-                        email: z.string().email(),
-                        password: z.string().min(6),
-                    })
-                    .safeParse(credentials);
-
+                const parsed = sessionCredentialsSchema.safeParse(credentials);
                 if (!parsed.success) return null;
 
-                const base = process.env.NEXT_PUBLIC_API_URL?.replace(
-                    /\/$/,
-                    '',
-                );
-                if (!base) {
-                    console.error('NEXT_PUBLIC_API_URL não definido');
+                let user: Face2goCredentialsUser;
+                try {
+                    user = JSON.parse(parsed.data.user) as Face2goCredentialsUser;
+                } catch {
                     return null;
                 }
 
-                const res = await fetch(`${base}/api/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(parsed.data),
-                });
-
-                if (!res.ok) {
-                    const errorText = await res.text().catch(() => 'No response body');
-                    console.error('Erro na autenticação remota:', res.status, res.statusText, errorText);
-                    return null;
+                let contexts: UserContext[] | undefined;
+                if (parsed.data.contexts) {
+                    try {
+                        contexts = JSON.parse(
+                            parsed.data.contexts,
+                        ) as UserContext[];
+                    } catch {
+                        contexts = undefined;
+                    }
                 }
 
-                const data = (await res.json()) as {
-                    accessToken: string;
-                    user: {
-                        id: string;
-                        email: string;
-                        name?: string | null;
-                        role: string;
-                        companyId?: string;
-                        clientId?: string;
-                        companyUserId?: string;
-                        clientUserId?: string;
-                    };
-                };
-
-                const u = data.user;
+                let activeContext: UserContext | undefined;
+                if (parsed.data.activeContext) {
+                    try {
+                        activeContext = JSON.parse(
+                            parsed.data.activeContext,
+                        ) as UserContext;
+                    } catch {
+                        activeContext = undefined;
+                    }
+                }
 
                 return {
-                    id: u.id,
-                    email: u.email,
-                    name: u.name ?? undefined,
-                    role: u.role as Face2goCredentialsUser['role'],
-                    companyId: u.companyId,
-                    clientId: u.clientId,
-                    companyUserId: u.companyUserId,
-                    clientUserId: u.clientUserId,
-                    accessToken: data.accessToken,
+                    ...user,
+                    accessToken: parsed.data.accessToken,
+                    contexts,
+                    activeContext,
                 };
             },
         }),

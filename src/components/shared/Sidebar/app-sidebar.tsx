@@ -27,6 +27,7 @@ import {
 
 import { NavMain, type NavMainItem } from "./nav-main";
 import { NavUser, type NavSidebarUser } from "./nav-user";
+import { ContextSwitcher } from "@/components/shared/Header/ContextSwitcher";
 
 export type { NavMainItem };
 
@@ -270,6 +271,7 @@ export function AppSidebar({
                 <NavMain items={navItems} />
             </SidebarContent>
             <SidebarFooter>
+                <ContextSwitcher className="mb-2 px-2" />
                 <NavUser user={navUser} />
             </SidebarFooter>
             <SidebarRail />

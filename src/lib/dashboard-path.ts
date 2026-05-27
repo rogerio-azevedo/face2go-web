@@ -7,7 +7,8 @@ export type SessionRole =
     | "company_operator"
     | "client_admin"
     | "client_operator"
-    | "face_user";
+    | "face_user"
+    | "responsible";
 
 export function getDashboardPathForRole(role: string | undefined): string {
     switch (role) {
@@ -20,6 +21,8 @@ export function getDashboardPathForRole(role: string | undefined): string {
         case "client_operator":
         case "face_user":
             return "/client/dashboard";
+        case "responsible":
+            return "/sem-acesso";
         default:
             return "/sem-acesso";
     }
@@ -32,4 +35,5 @@ export type Face2goCredentialsUser = User & {
     clientId?: string;
     companyUserId?: string;
     clientUserId?: string;
+    responsibleId?: string;
 };

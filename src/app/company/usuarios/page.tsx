@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 
 import { auth } from '@/auth';
 import { CompanyUsersTable } from '@/components/company/usuarios/CompanyUsersTable';
+import { CompanyInvitePanel } from '@/components/company/usuarios/CompanyInvitePanel';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { apiFetchAuthed } from '@/lib/api-fetch';
 import type { CompanyUserListRow } from '@/types/domain';
@@ -44,6 +45,10 @@ export default async function CompanyUsersPage() {
                 title="Usuários da empresa"
                 description="Papéis, dados de contato e permissões por módulo (operadores)."
             />
+            <section className="space-y-3">
+                <h2 className="text-sm font-medium">Convites</h2>
+                <CompanyInvitePanel />
+            </section>
             <CompanyUsersTable
                 users={users}
                 currentUserId={user.id}

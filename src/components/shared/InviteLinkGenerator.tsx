@@ -3,24 +3,20 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { generateInviteAction } from "@/app/super-admin/companies/[id]/actions";
 import { Button } from "@/components/ui/button";
 
-type CompanyInviteRole = "company_admin" | "company_operator";
+type InviteGenerateResult =
+    | { success: true; code: string }
+    | { success: false; error: string };
 
-const roleLabels: Record<CompanyInviteRole, string> = {
-    company_admin: "Administrador da empresa",
-    company_operator: "Operador",
-};
-
-export function InviteGenerator({
-    companyId,
-    role,
+export function InviteLinkGenerator({
     title,
+    roleLabel,
+    onGenerate,
 }: {
-    companyId: string;
-    role: CompanyInviteRole;
-    title?: string;
+    title: string;
+    roleLabel: string;
+    onGenerate: () => Promise<InviteGenerateResult>;
 }) {
     const [lastCode, setLastCode] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -29,10 +25,7 @@ export function InviteGenerator({
         setLoading(true);
         setLastCode(null);
         try {
-            const formData = new FormData();
-            formData.append("companyId", companyId);
-            formData.append("role", role);
-            const result = await generateInviteAction(formData);
+            const result = await onGenerate();
             if (result.success) {
                 setLastCode(result.code);
                 toast.success("Link gerado.");
@@ -49,9 +42,8 @@ export function InviteGenerator({
 
     return (
         <div className="flex flex-col gap-2 rounded-lg border p-4">
-            <h3 className="text-sm font-semibold">
-                {title ?? `Convite — ${roleLabels[role]}`}
-            </h3>
+            <h3 className="text-sm font-semibold">{title}</h3>
+            <p className="text-xs text-muted-foreground">Papel: {roleLabel}</p>
             <div className="flex items-center gap-2">
                 <Button
                     type="button"

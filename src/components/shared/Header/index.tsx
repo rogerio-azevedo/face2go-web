@@ -16,7 +16,7 @@ export function Header() {
                 "shrink-0 border-b bg-card transition-[width,height] ease-linear",
                 hasSecondaryContent
                     ? "px-4 py-3 md:px-6"
-                    : "flex h-16 items-center px-4 md:px-6 group-has-data-[collapsible=icon]/sidebar-wrapper:h-12",
+                    : "flex h-16 items-center gap-3 px-4 md:px-6 group-has-data-[collapsible=icon]/sidebar-wrapper:h-12",
             )}
         >
             {hasSecondaryContent && (
@@ -37,11 +37,9 @@ export function Header() {
                             ) : null}
                         </div>
 
-                        {toolbar ? (
-                            <div className="flex shrink-0 flex-wrap items-center gap-3">
-                                {toolbar}
-                            </div>
-                        ) : null}
+                        <div className="flex shrink-0 flex-wrap items-center gap-3">
+                            {toolbar ? toolbar : null}
+                        </div>
                     </div>
                 </div>
             )}

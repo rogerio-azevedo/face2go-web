@@ -23,6 +23,7 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from "@/components/ui/sidebar";
+import { clearContextStorage } from "@/lib/auth-contexts";
 
 export type NavSidebarUser = {
     name?: string | null;
@@ -95,7 +96,12 @@ export function NavUser({ user }: { user: NavSidebarUser }) {
                             </DropdownMenuLabel>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => signOut()}>
+                        <DropdownMenuItem
+                            onClick={() => {
+                                clearContextStorage();
+                                void signOut();
+                            }}
+                        >
                             <LogOut className="size-4 shrink-0" />
                             Sair
                         </DropdownMenuItem>

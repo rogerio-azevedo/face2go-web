@@ -16,23 +16,43 @@ function zodFirstMessage(error: unknown): string {
     return 'Dados inválidos.';
 }
 
-export type InvitePreview = {
-    role: 'company_admin' | 'company_operator';
-    companyName: string;
-} | null;
+export type InvitePreview =
+    | {
+          inviteType: 'company';
+          role: 'company_admin' | 'company_operator';
+          companyName: string;
+      }
+    | {
+          inviteType: 'client';
+          role: 'client_admin' | 'client_operator';
+          clientName: string;
+          companyName: string;
+      }
+    | null;
 
 export async function getInvitePreviewAction(code: string): Promise<InvitePreview> {
     const trimmed = code?.trim() ?? '';
     if (trimmed.length < 4) return null;
 
     try {
-        const res = await apiFetchPublic(
+        const companyRes = await apiFetchPublic(
             `/api/invite-links/${encodeURIComponent(trimmed)}`,
         );
 
-        if (!res.ok) return null;
+        if (companyRes.ok) {
+            const data = await companyRes.json();
+            if (data && typeof data === 'object' && 'companyName' in data) {
+                return data as Exclude<InvitePreview, null>;
+            }
+        }
 
-        const data = await res.json();
+        const clientRes = await apiFetchPublic(
+            `/api/client-invite-links/${encodeURIComponent(trimmed)}`,
+        );
+
+        if (!clientRes.ok) return null;
+
+        const data = await clientRes.json();
         if (!data || typeof data !== 'object') return null;
 
         return data as Exclude<InvitePreview, null>;

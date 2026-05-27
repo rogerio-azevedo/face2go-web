@@ -58,6 +58,15 @@ export const authConfig = {
                 return true;
             }
 
+            if (path === "/join" || path.startsWith("/join/")) {
+                if (isLoggedIn) {
+                    return Response.redirect(
+                        new URL(getDashboardPathForRole(role), nextUrl)
+                    );
+                }
+                return true;
+            }
+
             if (path.startsWith("/super-admin")) {
                 if (!isLoggedIn) return false;
                 if (role !== "super_admin") {
