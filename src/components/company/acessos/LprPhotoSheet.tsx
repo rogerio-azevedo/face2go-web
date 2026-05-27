@@ -32,13 +32,13 @@ function PhotoBlock({
             <figcaption className="text-xs font-medium text-muted-foreground">
                 {title}
             </figcaption>
-            <div className="flex max-h-[min(360px,50vh)] w-full items-center justify-center overflow-hidden rounded-md border bg-muted p-2">
+            <div className="flex max-h-[min(640px,75vh)] w-full items-center justify-center overflow-hidden rounded-md border bg-muted p-2">
                 {/* URLs presignadas R2 não passam pelo otimizador Next */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                     src={src}
                     alt={title}
-                    className="max-h-[min(360px,50vh)] w-auto max-w-full object-contain"
+                    className="max-h-[min(640px,75vh)] w-full object-contain"
                 />
             </div>
         </figure>
@@ -62,7 +62,7 @@ export function LprPhotoSheet({
             <SheetContent
                 side="right"
                 showCloseButton
-                className="w-full gap-6 overflow-y-auto sm:max-w-lg"
+                className="w-full gap-6 overflow-y-auto data-[side=right]:w-full data-[side=right]:sm:!max-w-4xl"
             >
                 <SheetHeader>
                     <SheetTitle>Fotos do acesso LPR</SheetTitle>
