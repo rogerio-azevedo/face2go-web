@@ -10,6 +10,7 @@ import {
     History,
     LayoutDashboard,
     MonitorPlay,
+    RefreshCcw,
     ScanLine,
     Users,
 } from "lucide-react";
@@ -87,6 +88,11 @@ function navItemsForRole(
                     url: "/company/display",
                     icon: MonitorPlay,
                 },
+                {
+                    title: "Integração",
+                    url: "/company/integracao",
+                    icon: RefreshCcw,
+                },
                 ...(process.env.NODE_ENV !== "production"
                     ? [
                           {
@@ -145,6 +151,13 @@ function navItemsForRole(
                     title: "Display na TV",
                     url: "/company/display",
                     icon: MonitorPlay,
+                });
+            }
+            if (pathSet?.has("/company/integracao") === true) {
+                items.push({
+                    title: "Integração",
+                    url: "/company/integracao",
+                    icon: RefreshCcw,
                 });
             }
             return items;

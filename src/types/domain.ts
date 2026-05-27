@@ -24,9 +24,37 @@ export type ClientListRow = {
     email: string | null;
     logoUrl: string | null;
     timezoneOffsetMinutes: number;
+    ienhFilialCode?: number | null;
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
+};
+
+export type IenhFilialMappingRow = {
+    filialCode: number;
+    filialName: string;
+    clientId: string | null;
+    clientName: string | null;
+};
+
+export type IenhSnapshotInfo = {
+    file: string;
+    recordCount: number;
+    fetchedAt: string;
+    perlet: string;
+};
+
+export type IenhSyncResult = {
+    processedRecords: number;
+    studentsCreated: number;
+    studentsUpdated: number;
+    studentsDeactivated: number;
+    responsiblesCreated: number;
+    responsiblesUpdated: number;
+    classesCreated: number;
+    linksCreated: number;
+    errors: { enrollment: string; message: string }[];
+    durationMs: number;
 };
 
 export type ReaderBrand = 'intelbras' | 'hikvision';
