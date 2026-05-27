@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import type { SchoolClassRow, StudentRow } from "@/types/domain";
@@ -21,14 +21,20 @@ import { schoolClassTurnLabel } from "@/lib/validations/school";
 
 import { StudentForm } from "./StudentForm";
 
-function classLabel(
+function classesLabel(
     classes: SchoolClassRow[],
-    classId: string | null,
+    studentClasses: StudentRow["classes"],
 ): string {
-    if (!classId) return "—";
-    const c = classes.find((x) => x.id === classId);
-    if (!c) return "—";
-    return `${c.name} (${schoolClassTurnLabel(c)}, ${c.year})`;
+    const active = (studentClasses ?? []).filter((c) => c.isActive);
+    if (active.length === 0) return "—";
+
+    return active
+        .map((link) => {
+            const meta = classes.find((c) => c.id === link.classId);
+            const turn = meta ? schoolClassTurnLabel(meta) : link.linkedShiftName ?? "—";
+            return `${link.className} (${turn}, ${link.year})`;
+        })
+        .join(" · ");
 }
 
 export function StudentsSection({
@@ -46,26 +52,27 @@ export function StudentsSection({
     const [sheetOpen, setSheetOpen] = useState(false);
     const [editRow, setEditRow] = useState<StudentRow | null>(null);
 
+    const studentsWithClasses = useMemo(
+        () =>
+            initialStudents.map((s) => ({
+                ...s,
+                classes: s.classes ?? [],
+            })),
+        [initialStudents],
+    );
+
     function refresh() {
         startTransition(() => router.refresh());
     }
 
     const rows = useMemo(() => {
-        if (!filterClassId) return initialStudents;
-        return initialStudents.filter((s) => s.classId === filterClassId);
-    }, [filterClassId, initialStudents]);
-
-    useEffect(() => {
-        console.log(
-            "[StudentsSection] alunos",
-            initialStudents.map((row) => ({
-                id: row.id,
-                name: row.name,
-                photoKey: row.photoKey,
-                photoUrl: row.photoUrl,
-            })),
+        if (!filterClassId) return studentsWithClasses;
+        return studentsWithClasses.filter((s) =>
+            s.classes.some(
+                (c) => c.isActive && c.classId === filterClassId,
+            ),
         );
-    }, [initialStudents]);
+    }, [filterClassId, studentsWithClasses]);
 
     return (
         <>
@@ -108,7 +115,7 @@ export function StudentsSection({
                             <TableHead className="w-[52px]" aria-label="Foto" />
                             <TableHead>Nome</TableHead>
                             <TableHead>Matrícula</TableHead>
-                            <TableHead>Turma</TableHead>
+                            <TableHead>Turmas</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead className="text-right">
                                 Ações
@@ -141,8 +148,8 @@ export function StudentsSection({
                                         {row.name}
                                     </TableCell>
                                     <TableCell>{row.enrollment}</TableCell>
-                                    <TableCell>
-                                        {classLabel(classes, row.classId)}
+                                    <TableCell className="max-w-[280px] text-sm">
+                                        {classesLabel(classes, row.classes)}
                                     </TableCell>
                                     <TableCell>
                                         {row.isActive ? (
@@ -177,7 +184,6 @@ export function StudentsSection({
                 open={sheetOpen}
                 onOpenChange={setSheetOpen}
                 clientId={clientId}
-                classes={classes}
                 mode={editRow ? "edit" : "create"}
                 student={editRow}
                 onSuccess={() => {

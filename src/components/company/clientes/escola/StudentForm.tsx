@@ -11,7 +11,7 @@ import {
     createStudentAction,
     updateStudentAction,
 } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
-import type { SchoolClassRow, StudentRow } from "@/types/domain";
+import type { StudentRow } from "@/types/domain";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,7 +25,6 @@ import {
 import { Switch } from "@/components/ui/switch";
 import {
     createStudentSchema,
-    schoolClassTurnLabel,
     updateStudentSchema,
 } from "@/lib/validations/school";
 
@@ -40,7 +39,6 @@ export function StudentForm({
     open,
     onOpenChange,
     clientId,
-    classes,
     mode,
     student,
     onSuccess,
@@ -48,7 +46,6 @@ export function StudentForm({
     open: boolean;
     onOpenChange: (open: boolean) => void;
     clientId: string;
-    classes: SchoolClassRow[];
     mode: "create" | "edit";
     student: StudentRow | null;
     onSuccess?: () => void;
@@ -64,7 +61,6 @@ export function StudentForm({
                 enrollment: student.enrollment,
                 document: student.document ?? "",
                 birthDate: toDateInput(student.birthDate),
-                classId: student.classId ?? "",
                 photoKey: student.photoKey ?? "",
                 accessSchedule: student.accessSchedule ?? undefined,
                 isActive: student.isActive,
@@ -75,7 +71,6 @@ export function StudentForm({
             enrollment: "",
             document: "",
             birthDate: "",
-            classId: "",
             photoKey: "",
             accessSchedule: undefined,
             isActive: true,
@@ -92,6 +87,11 @@ export function StudentForm({
         name: "isActive",
         defaultValue: defaults.isActive === false ? false : true,
     });
+
+    const activeClasses = useMemo(
+        () => (student?.classes ?? []).filter((c) => c.isActive),
+        [student],
+    );
 
     useEffect(() => {
         if (open) {
@@ -173,22 +173,22 @@ export function StudentForm({
                         ) : null}
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="st-class">Turma (opcional)</Label>
-                        <select
-                            id="st-class"
-                            className="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-                            {...form.register("classId")}
-                        >
-                            <option value="">Sem turma</option>
-                            {classes.map((c) => (
-                                <option key={c.id} value={c.id}>
-                                    {c.name} — {schoolClassTurnLabel(c)} /{" "}
-                                    {c.year}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+                    {mode === "edit" && activeClasses.length > 0 ? (
+                        <div className="space-y-2">
+                            <Label>Turmas (integração IENH)</Label>
+                            <ul className="text-muted-foreground list-inside list-disc text-sm">
+                                {activeClasses.map((c) => (
+                                    <li key={c.id}>
+                                        {c.className} ({c.year})
+                                    </li>
+                                ))}
+                            </ul>
+                            <p className="text-muted-foreground text-xs">
+                                Vínculos com turmas são atualizados pela
+                                sincronização IENH.
+                            </p>
+                        </div>
+                    ) : null}
 
                     <div className="space-y-2">
                         <Label htmlFor="st-doc">Documento (opcional)</Label>

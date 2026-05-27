@@ -95,10 +95,6 @@ export const createStudentSchema = z.object({
             (v) => v === undefined || /^\d{4}-\d{2}-\d{2}$/.test(v),
             "Use a data no formato AAAA-MM-DD.",
         ),
-    classId: z
-        .union([z.string().uuid(), z.literal("")])
-        .optional()
-        .transform((v) => (v === "" || v === undefined ? undefined : v)),
     photoKey: z
         .string()
         .trim()
@@ -109,19 +105,7 @@ export const createStudentSchema = z.object({
     isActive: z.boolean().optional().default(true),
 });
 
-export const updateStudentSchema = createStudentSchema
-    .omit({ classId: true })
-    .partial()
-    .extend({
-        classId: z
-            .union([z.string().uuid(), z.literal(""), z.null()])
-            .optional()
-            .transform((v) => {
-                if (v === undefined) return undefined;
-                if (v === "") return null;
-                return v;
-            }),
-    });
+export const updateStudentSchema = createStudentSchema.partial();
 
 export const RESPONSIBLE_RELATIONSHIP_VALUES = [
     "father",

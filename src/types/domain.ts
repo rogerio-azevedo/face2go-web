@@ -63,6 +63,11 @@ export type IenhSyncResult = {
     responsiblesCreated: number;
     responsiblesUpdated: number;
     classesCreated: number;
+    classesMerged?: number;
+    classLinksCreated: number;
+    classLinksUpdated: number;
+    classLinksDeactivated: number;
+    classLinksDeduped?: number;
     linksCreated: number;
     errors: { enrollment: string; message: string }[];
     durationMs: number;
@@ -357,10 +362,21 @@ export type StudentAccessScheduleJson = {
     notes?: string;
 } | null;
 
+export type StudentClassRow = {
+    id: string;
+    classId: string;
+    className: string;
+    shiftId: string | null;
+    linkedShiftName: string | null;
+    shift: ClassShift | null;
+    year: number;
+    situacaoMatricula: string | null;
+    isActive: boolean;
+};
+
 export type StudentRow = {
     id: string;
     clientId: string;
-    classId: string | null;
     name: string;
     enrollment: string;
     document: string | null;
@@ -375,6 +391,7 @@ export type StudentRow = {
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
+    classes: StudentClassRow[];
 };
 
 export type ResponsibleRow = {

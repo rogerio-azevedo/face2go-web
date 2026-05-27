@@ -465,8 +465,32 @@ export function IntegracaoIenhPanel({
                             <Badge variant="secondary">
                                 Turmas criadas: {syncResult.classesCreated}
                             </Badge>
+                            {(syncResult.classesMerged ?? 0) > 0 ? (
+                                <Badge variant="secondary">
+                                    Turmas duplicadas fundidas:{" "}
+                                    {syncResult.classesMerged}
+                                </Badge>
+                            ) : null}
                             <Badge variant="secondary">
-                                Vínculos criados: {syncResult.linksCreated}
+                                Vínculos turma criados:{" "}
+                                {syncResult.classLinksCreated ?? 0}
+                            </Badge>
+                            <Badge variant="secondary">
+                                Vínculos turma atualizados:{" "}
+                                {syncResult.classLinksUpdated ?? 0}
+                            </Badge>
+                            <Badge variant="secondary">
+                                Vínculos turma desativados:{" "}
+                                {syncResult.classLinksDeactivated ?? 0}
+                            </Badge>
+                            {(syncResult.classLinksDeduped ?? 0) > 0 ? (
+                                <Badge variant="secondary">
+                                    Vínculos turma deduplicados:{" "}
+                                    {syncResult.classLinksDeduped}
+                                </Badge>
+                            ) : null}
+                            <Badge variant="secondary">
+                                Vínculos responsável: {syncResult.linksCreated}
                             </Badge>
                         </div>
                         {syncResult.errors.length > 0 ? (
