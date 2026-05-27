@@ -8,6 +8,7 @@ export type DashboardStats = {
     schoolClasses: number;
     vehicles: number;
     facialReaders: number;
+    cameras: number;
 };
 
 export type CompanyRow = {

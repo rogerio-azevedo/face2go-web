@@ -1,4 +1,5 @@
 import {
+    Camera,
     Car,
     GraduationCap,
     ScanLine,
@@ -17,6 +18,7 @@ const EMPTY_STATS: DashboardStats = {
     schoolClasses: 0,
     vehicles: 0,
     facialReaders: 0,
+    cameras: 0,
 };
 
 export default async function ClientDashboardPage() {
@@ -82,6 +84,15 @@ export default async function ClientDashboardPage() {
                         description="Leitores faciais da unidade."
                         icon={ScanLine}
                         iconClassName="bg-teal-600"
+                    />
+                </li>
+                <li>
+                    <DashboardStatsCard
+                        title="Câmeras"
+                        value={stats.cameras}
+                        description="Câmeras LPR e de monitoramento da unidade."
+                        icon={Camera}
+                        iconClassName="bg-blue-600"
                     />
                 </li>
             </ul>

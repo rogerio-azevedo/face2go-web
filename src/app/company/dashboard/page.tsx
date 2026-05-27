@@ -1,5 +1,6 @@
 import {
     BriefcaseBusiness,
+    Camera,
     Car,
     GraduationCap,
     ScanLine,
@@ -19,6 +20,7 @@ const EMPTY_STATS: DashboardStats = {
     schoolClasses: 0,
     vehicles: 0,
     facialReaders: 0,
+    cameras: 0,
 };
 
 export default async function CompanyDashboardPage() {
@@ -99,6 +101,16 @@ export default async function CompanyDashboardPage() {
                         icon={ScanLine}
                         iconClassName="bg-teal-600"
                         href="/company/leitores"
+                    />
+                </li>
+                <li>
+                    <DashboardStatsCard
+                        title="Câmeras"
+                        value={stats.cameras}
+                        description="Câmeras LPR e de monitoramento cadastradas."
+                        icon={Camera}
+                        iconClassName="bg-blue-600"
+                        href="/company/cameras"
                     />
                 </li>
             </ul>
