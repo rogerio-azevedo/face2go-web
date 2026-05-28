@@ -1,10 +1,14 @@
 "use client";
 
+import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo, useTransition } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useCallback, useMemo, useState, useTransition } from "react";
 
-import type { AccessesListResponse, ClientListRow } from "@/types/domain";
+import type {
+    AccessesListResponse,
+    ClientListRow,
+    FacialAccessPhotoUrl,
+} from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,41 +21,14 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import {
+    getApiBaseUrl,
+    nestErrorMessage,
+    parseResponseJson,
+} from "@/lib/api-fetch";
+import { READER_DIRECTION_LABELS } from "@/lib/validations/readers";
 
-function similarityBadge(similarity: number | null) {
-    if (similarity == null || Number.isNaN(similarity)) {
-        return (
-            <Badge variant="secondary" className="font-normal tabular-nums">
-                —
-            </Badge>
-        );
-    }
-    if (similarity >= 80) {
-        return (
-            <Badge
-                variant="outline"
-                className="border-emerald-200 bg-emerald-50 font-normal text-emerald-800 tabular-nums hover:bg-emerald-50"
-            >
-                {similarity}%
-            </Badge>
-        );
-    }
-    if (similarity >= 60) {
-        return (
-            <Badge
-                variant="outline"
-                className="border-amber-200 bg-amber-50 font-normal text-amber-900 tabular-nums hover:bg-amber-50"
-            >
-                {similarity}%
-            </Badge>
-        );
-    }
-    return (
-        <Badge variant="secondary" className="font-normal tabular-nums">
-            {similarity}%
-        </Badge>
-    );
-}
+import { FacePhotoSheet } from "./FacePhotoSheet";
 
 /** Exibe instante UTC no relógio civil com offset fixo (minutos desde UTC). */
 function formatDateTime(iso: string | null, offsetMinutes: number): string {
@@ -70,6 +47,13 @@ function formatDateTime(iso: string | null, offsetMinutes: number): string {
     }
 }
 
+function directionLabel(direction: "in" | "out" | null): string {
+    if (direction === "in" || direction === "out") {
+        return READER_DIRECTION_LABELS[direction];
+    }
+    return "—";
+}
+
 type Props = {
     data: AccessesListResponse;
     clients: ClientListRow[];
@@ -80,6 +64,8 @@ type Props = {
         startDate: string;
         endDate: string;
     };
+    /** Bearer JWT para `GET /api/accesses/:id/photo` no navegador. */
+    accessToken: string;
 };
 
 export function AccessesTable({
@@ -87,10 +73,60 @@ export function AccessesTable({
     clients,
     clientTimezoneOffsetMinutes,
     filters,
+    accessToken,
 }: Props) {
     const router = useRouter();
     const params = useSearchParams();
     const [pending, startTransition] = useTransition();
+
+    const [photoOpen, setPhotoOpen] = useState(false);
+    const [photoLoading, setPhotoLoading] = useState(false);
+    const [photoError, setPhotoError] = useState<string | null>(null);
+    const [photoUrl, setPhotoUrl] = useState<FacialAccessPhotoUrl | null>(
+        null,
+    );
+    const [photoSubtitle, setPhotoSubtitle] = useState("");
+
+    const openFacePhoto = useCallback(
+        async (accessId: string, personLabel: string) => {
+            if (!accessToken.trim()) {
+                setPhotoSubtitle(personLabel);
+                setPhotoOpen(true);
+                setPhotoLoading(false);
+                setPhotoError("Sessão inválida. Faça login novamente.");
+                setPhotoUrl(null);
+                return;
+            }
+            setPhotoSubtitle(personLabel);
+            setPhotoOpen(true);
+            setPhotoLoading(true);
+            setPhotoError(null);
+            setPhotoUrl(null);
+            try {
+                const url = `${getApiBaseUrl()}/api/accesses/${encodeURIComponent(accessId)}/photo`;
+                const res = await fetch(url, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                });
+                const parsed = await parseResponseJson(res);
+                if (!res.ok) {
+                    setPhotoError(nestErrorMessage(parsed));
+                    return;
+                }
+                const body = parsed as FacialAccessPhotoUrl;
+                setPhotoUrl({
+                    snapUrl:
+                        typeof body?.snapUrl === "string" ? body.snapUrl : null,
+                });
+            } catch {
+                setPhotoError("Erro ao carregar foto.");
+            } finally {
+                setPhotoLoading(false);
+            }
+        },
+        [accessToken],
+    );
 
     const totalPages = useMemo(
         () =>
@@ -144,6 +180,23 @@ export function AccessesTable({
 
     return (
         <div className="space-y-6">
+            <FacePhotoSheet
+                open={photoOpen}
+                loading={photoLoading}
+                error={photoError}
+                url={photoUrl}
+                subtitle={photoSubtitle || undefined}
+                onOpenChange={(next) => {
+                    setPhotoOpen(next);
+                    if (!next) {
+                        setPhotoUrl(null);
+                        setPhotoError(null);
+                        setPhotoLoading(false);
+                        setPhotoSubtitle("");
+                    }
+                }}
+            />
+
             <form
                 onSubmit={applyFilters}
                 className="flex flex-col gap-4 rounded-xl border bg-card p-4 shadow-sm md:flex-row md:flex-wrap md:items-end"
@@ -195,17 +248,22 @@ export function AccessesTable({
                             <TableHead>Leitor</TableHead>
                             <TableHead>Cliente</TableHead>
                             <TableHead>Horário</TableHead>
-                            <TableHead className="text-right">
-                                Similaridade
-                            </TableHead>
+                            <TableHead>Sentido</TableHead>
                             <TableHead>Evento</TableHead>
+                            <TableHead className="text-center">
+                                <span className="sr-only">Visualizar foto</span>
+                                <Eye
+                                    className="inline size-4 text-muted-foreground"
+                                    aria-hidden
+                                />
+                            </TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {data.items.length === 0 ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={6}
+                                    colSpan={7}
                                     className="h-24 text-center text-muted-foreground"
                                 >
                                     Nenhum acesso encontrado para os filtros
@@ -213,40 +271,82 @@ export function AccessesTable({
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            data.items.map((row) => (
-                                <TableRow key={row.id}>
-                                    <TableCell className="font-medium">
-                                        {row.personName?.trim() ||
-                                            `Face #${row.userId}`}
-                                    </TableCell>
-                                    <TableCell className="text-muted-foreground">
-                                        {row.readerName}
-                                    </TableCell>
-                                    <TableCell className="text-muted-foreground">
-                                        {row.clientName}
-                                    </TableCell>
-                                    <TableCell className="tabular-nums text-sm text-muted-foreground">
-                                        {formatDateTime(
-                                            row.eventDate ?? row.createdAt,
-                                            filters.clientId
-                                                ? clientTimezoneOffsetMinutes
-                                                : (clients.find(
-                                                      (c) =>
-                                                          c.id === row.clientId,
-                                                  )?.timezoneOffsetMinutes ??
-                                                      0),
-                                        )}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        {similarityBadge(row.similarity)}
-                                    </TableCell>
-                                    <TableCell>
-                                        <span className="text-xs text-muted-foreground">
-                                            {row.eventCode}
-                                        </span>
-                                    </TableCell>
-                                </TableRow>
-                            ))
+                            data.items.map((row) => {
+                                const personLabel =
+                                    row.personName?.trim() ||
+                                    `Face #${row.userId}`;
+
+                                return (
+                                    <TableRow key={row.id}>
+                                        <TableCell className="font-medium">
+                                            {personLabel}
+                                        </TableCell>
+                                        <TableCell className="text-muted-foreground">
+                                            {row.readerName}
+                                        </TableCell>
+                                        <TableCell className="text-muted-foreground">
+                                            {row.clientName}
+                                        </TableCell>
+                                        <TableCell className="tabular-nums text-sm text-muted-foreground">
+                                            {formatDateTime(
+                                                row.eventDate ?? row.createdAt,
+                                                filters.clientId
+                                                    ? clientTimezoneOffsetMinutes
+                                                    : (clients.find(
+                                                          (c) =>
+                                                              c.id ===
+                                                              row.clientId,
+                                                      )?.timezoneOffsetMinutes ??
+                                                          0),
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {row.readerDirection ? (
+                                                <Badge
+                                                    variant="outline"
+                                                    className="font-normal"
+                                                >
+                                                    {directionLabel(
+                                                        row.readerDirection,
+                                                    )}
+                                                </Badge>
+                                            ) : (
+                                                <span className="text-muted-foreground">
+                                                    —
+                                                </span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            <span className="text-xs text-muted-foreground">
+                                                {row.eventCode}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            {row.snapR2Key ? (
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="shrink-0"
+                                                    aria-label={`Ver foto do acesso de ${personLabel}`}
+                                                    onClick={() =>
+                                                        void openFacePhoto(
+                                                            row.id,
+                                                            personLabel,
+                                                        )
+                                                    }
+                                                >
+                                                    <Eye className="size-4" />
+                                                </Button>
+                                            ) : (
+                                                <span className="text-muted-foreground tabular-nums">
+                                                    —
+                                                </span>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })
                         )}
                     </TableBody>
                 </Table>

@@ -254,6 +254,8 @@ export type AccessRow = {
     similarity: number | null;
     eventDate: string | null;
     createdAt: string;
+    snapR2Key: string | null;
+    readerDirection: "in" | "out" | null;
 };
 
 export type AccessesListResponse = {
@@ -261,6 +263,11 @@ export type AccessesListResponse = {
     page: number;
     pageSize: number;
     total: number;
+};
+
+/** Resposta de `GET /api/accesses/:id/photo` — URL temporária (R2). */
+export type FacialAccessPhotoUrl = {
+    snapUrl: string | null;
 };
 
 /** Item de `GET /api/lpr-accesses` (datas ISO). */

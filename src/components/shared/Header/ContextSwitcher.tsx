@@ -1,7 +1,6 @@
 "use client";
 
 import { Check, ChevronsUpDown } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -9,6 +8,7 @@ import { toast } from "sonner";
 import {
     DropdownMenu,
     DropdownMenuContent,
+    DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
@@ -70,7 +70,6 @@ export function ContextSwitcher({
     className,
     compact = false,
 }: ContextSwitcherProps) {
-    const router = useRouter();
     const { update } = useSession();
     const { isMobile } = useSidebar();
     const [isSwitching, setIsSwitching] = useState(false);
@@ -116,9 +115,7 @@ export function ContextSwitcher({
             }
 
             await update();
-            router.push(getDashboardPathForRole(selected.user.role));
-            router.refresh();
-            toast.success("Contexto alterado.");
+            window.location.assign(getDashboardPathForRole(selected.user.role));
         } catch (error) {
             toast.error(
                 error instanceof Error
@@ -179,9 +176,11 @@ export function ContextSwitcher({
                             align="end"
                             sideOffset={4}
                         >
-                            <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
-                                Trocar contexto
-                            </DropdownMenuLabel>
+                            <DropdownMenuGroup>
+                                <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
+                                    Trocar contexto
+                                </DropdownMenuLabel>
+                            </DropdownMenuGroup>
                             <DropdownMenuSeparator />
                             {contexts.map((context: UserContext) => {
                                 const key = contextStorageKey(context);
