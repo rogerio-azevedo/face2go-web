@@ -23,7 +23,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
     establishSessionFromContext,
-    loginWithIdentifier,
+    establishSessionFromLegacyLogin,
+    isLegacyLoginResponse,
+    loginWithEmail,
     selectContextWithToken,
 } from "@/lib/auth-contexts";
 import { getDashboardPathForRole } from "@/lib/dashboard-path";
@@ -58,7 +60,7 @@ export function LoginForm() {
         formState: { errors },
     } = useForm<LoginInput>({
         resolver: zodResolver(loginSchema),
-        defaultValues: { identifier: "", password: "" },
+        defaultValues: { email: "", password: "" },
     });
 
     const completeLogin = async (
@@ -89,10 +91,22 @@ export function LoginForm() {
     const onSubmit = handleSubmit(async (data) => {
         setIsSubmitting(true);
         try {
-            const payload = await loginWithIdentifier(
-                data.identifier,
+            const payload = await loginWithEmail(
+                data.email,
                 data.password,
             );
+
+            if (isLegacyLoginResponse(payload)) {
+                const result = await establishSessionFromLegacyLogin(payload);
+                if (result?.error) {
+                    throw new Error("Não foi possível iniciar a sessão.");
+                }
+
+                toast.success("Login realizado.");
+                router.push(getDashboardPathForRole(payload.user.role));
+                router.refresh();
+                return;
+            }
 
             if (payload.contexts.length === 1) {
                 await completeLogin(payload, payload.contexts[0]!);
@@ -105,7 +119,7 @@ export function LoginForm() {
             toast.error(
                 error instanceof Error
                     ? error.message
-                    : "E-mail/CPF ou senha inválidos.",
+                    : "E-mail ou senha inválidos.",
             );
         } finally {
             setIsSubmitting(false);
@@ -166,18 +180,18 @@ export function LoginForm() {
             <form onSubmit={onSubmit}>
                 <CardContent className="flex flex-col gap-4">
                     <div className="grid gap-2">
-                        <Label htmlFor="identifier">E-mail ou CPF</Label>
+                        <Label htmlFor="email">E-mail</Label>
                         <Input
-                            id="identifier"
-                            type="text"
+                            id="email"
+                            type="email"
                             autoComplete="username"
-                            placeholder="voce@empresa.com.br ou 000.000.000-00"
-                            aria-invalid={!!errors.identifier}
-                            {...register("identifier")}
+                            placeholder="voce@empresa.com.br"
+                            aria-invalid={!!errors.email}
+                            {...register("email")}
                         />
-                        {errors.identifier ? (
+                        {errors.email ? (
                             <p className="text-xs text-destructive">
-                                {errors.identifier.message}
+                                {errors.email.message}
                             </p>
                         ) : null}
                     </div>

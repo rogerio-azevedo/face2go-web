@@ -1,6 +1,8 @@
 import { signIn } from "next-auth/react";
 
 import type {
+    LegacyLoginResponse,
+    LoginApiResponse,
     LoginResponse,
     SelectContextResponse,
     UserContext,
@@ -73,20 +75,51 @@ export function selectContextPayload(context: UserContext): {
     };
 }
 
-export async function loginWithIdentifier(
-    identifier: string,
+export function isLegacyLoginResponse(
+    data: LoginApiResponse,
+): data is LegacyLoginResponse {
+    return "accessToken" in data && !("identityToken" in data);
+}
+
+export async function loginWithEmail(
+    email: string,
     password: string,
-): Promise<LoginResponse> {
+): Promise<LoginApiResponse> {
     const res = await fetch(`${getApiBaseUrl()}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ identifier, password }),
+        body: JSON.stringify({ email: email.trim(), password }),
     });
     const data = await parseResponseJson(res);
     if (!res.ok) {
         throw new Error(nestErrorMessage(data));
     }
-    return data as LoginResponse;
+    return data as LoginApiResponse;
+}
+
+export async function establishSessionFromLegacyLogin(
+    input: LegacyLoginResponse,
+) {
+    const credentialsUser: Face2goCredentialsUser = {
+        id: input.user.id,
+        email: input.user.email,
+        name: input.user.name ?? undefined,
+        role: input.user.role as Face2goCredentialsUser["role"],
+        companyId: input.user.companyId,
+        clientId: input.user.clientId,
+        companyUserId: input.user.companyUserId,
+        clientUserId: input.user.clientUserId,
+        responsibleId: input.user.responsibleId,
+    };
+
+    clearContextStorage();
+
+    return signIn("credentials", {
+        mode: "session",
+        accessToken: input.accessToken,
+        user: JSON.stringify(credentialsUser),
+        redirect: false,
+    });
 }
 
 export async function selectContextWithToken(

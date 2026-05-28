@@ -30,7 +30,10 @@ import {
     selectContextWithToken,
 } from "@/lib/auth-contexts";
 import { getDashboardPathForRole } from "@/lib/dashboard-path";
-import { loginSchema, type LoginInput } from "@/lib/validations/auth";
+import {
+    joinCredentialsSchema,
+    type JoinCredentialsInput,
+} from "@/lib/validations/auth";
 import { cn } from "@/lib/utils";
 import type { LoginResponse, UserContext } from "@/types/auth-context";
 
@@ -86,8 +89,8 @@ export function JoinContextForm() {
         register,
         handleSubmit,
         formState: { errors },
-    } = useForm<LoginInput>({
-        resolver: zodResolver(loginSchema),
+    } = useForm<JoinCredentialsInput>({
+        resolver: zodResolver(joinCredentialsSchema),
         defaultValues: { identifier: "", password: "" },
     });
 

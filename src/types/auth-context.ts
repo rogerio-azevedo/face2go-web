@@ -56,6 +56,24 @@ export type LoginResponse = {
     identityToken: string;
 };
 
+/** Resposta legada do backend em produção (login direto com accessToken). */
+export type LegacyLoginResponse = {
+    accessToken: string;
+    user: {
+        id: string;
+        email: string;
+        name?: string | null;
+        role: string;
+        companyId?: string;
+        clientId?: string;
+        companyUserId?: string;
+        clientUserId?: string;
+        responsibleId?: string;
+    };
+};
+
+export type LoginApiResponse = LoginResponse | LegacyLoginResponse;
+
 export type SelectContextResponse = {
     accessToken: string;
     context: UserContext;
