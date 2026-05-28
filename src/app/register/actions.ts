@@ -30,6 +30,52 @@ export type InvitePreview =
       }
     | null;
 
+const COMPANY_ROLES = ['company_admin', 'company_operator'] as const;
+const CLIENT_ROLES = ['client_admin', 'client_operator'] as const;
+
+function parseCompanyInvitePreview(data: unknown): InvitePreview {
+    if (!data || typeof data !== 'object') return null;
+
+    const record = data as Record<string, unknown>;
+    const companyName =
+        typeof record.companyName === 'string' ? record.companyName.trim() : '';
+    const role = record.role;
+
+    if (!companyName) return null;
+    if (!COMPANY_ROLES.includes(role as (typeof COMPANY_ROLES)[number])) {
+        return null;
+    }
+
+    return {
+        inviteType: 'company',
+        role: role as (typeof COMPANY_ROLES)[number],
+        companyName,
+    };
+}
+
+function parseClientInvitePreview(data: unknown): InvitePreview {
+    if (!data || typeof data !== 'object') return null;
+
+    const record = data as Record<string, unknown>;
+    const clientName =
+        typeof record.clientName === 'string' ? record.clientName.trim() : '';
+    const companyName =
+        typeof record.companyName === 'string' ? record.companyName.trim() : '';
+    const role = record.role;
+
+    if (!clientName || !companyName) return null;
+    if (!CLIENT_ROLES.includes(role as (typeof CLIENT_ROLES)[number])) {
+        return null;
+    }
+
+    return {
+        inviteType: 'client',
+        role: role as (typeof CLIENT_ROLES)[number],
+        clientName,
+        companyName,
+    };
+}
+
 export async function getInvitePreviewAction(code: string): Promise<InvitePreview> {
     const trimmed = code?.trim() ?? '';
     if (trimmed.length < 4) return null;
@@ -41,9 +87,8 @@ export async function getInvitePreviewAction(code: string): Promise<InvitePrevie
 
         if (companyRes.ok) {
             const data = await companyRes.json();
-            if (data && typeof data === 'object' && 'companyName' in data) {
-                return data as Exclude<InvitePreview, null>;
-            }
+            const companyPreview = parseCompanyInvitePreview(data);
+            if (companyPreview) return companyPreview;
         }
 
         const clientRes = await apiFetchPublic(
@@ -53,9 +98,7 @@ export async function getInvitePreviewAction(code: string): Promise<InvitePrevie
         if (!clientRes.ok) return null;
 
         const data = await clientRes.json();
-        if (!data || typeof data !== 'object') return null;
-
-        return data as Exclude<InvitePreview, null>;
+        return parseClientInvitePreview(data);
     } catch {
         return null;
     }

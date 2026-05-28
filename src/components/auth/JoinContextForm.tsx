@@ -50,9 +50,9 @@ const clientRoleLabels: Record<string, string> = {
 function inviteTitle(preview: InvitePreview): string {
     if (!preview) return "Entrar e vincular contexto";
     if (preview.inviteType === "company") {
-        return `Entrar — ${preview.companyName}`;
+        return `Entrar — ${preview.companyName || "—"}`;
     }
-    return `Entrar — ${preview.clientName}`;
+    return `Entrar — ${preview.clientName || "—"}`;
 }
 
 function inviteRoleLabel(preview: InvitePreview): string {
@@ -66,9 +66,11 @@ function inviteRoleLabel(preview: InvitePreview): string {
 function inviteContextLabel(preview: InvitePreview): string {
     if (!preview) return "";
     if (preview.inviteType === "company") {
-        return preview.companyName;
+        return preview.companyName || "—";
     }
-    return `${preview.clientName} (${preview.companyName})`;
+    const clientName = preview.clientName || "—";
+    const companyName = preview.companyName || "—";
+    return `${clientName} (${companyName})`;
 }
 
 type JoinStep = "credentials" | "context";
