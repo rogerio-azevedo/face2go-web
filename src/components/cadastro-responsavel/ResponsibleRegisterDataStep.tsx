@@ -1,0 +1,155 @@
+"use client";
+
+import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+import type { ResponsibleRegisterFormData } from "./ResponsibleRegisterFaceStep";
+
+type ResponsibleRegisterDataStepProps = {
+    initial: ResponsibleRegisterFormData;
+    onNext: (data: ResponsibleRegisterFormData) => void;
+};
+
+export function ResponsibleRegisterDataStep({
+    initial,
+    onNext,
+}: ResponsibleRegisterDataStepProps) {
+    const [form, setForm] = useState(initial);
+    const [error, setError] = useState<string | null>(null);
+
+    const update = (key: keyof ResponsibleRegisterFormData, value: string) => {
+        setForm((prev) => ({ ...prev, [key]: value }));
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+        if (!form.name.trim()) {
+            setError("Informe o nome.");
+            return;
+        }
+        if (!form.email.trim()) {
+            setError("Informe o e-mail.");
+            return;
+        }
+        if (form.password.length < 8) {
+            setError("Senha deve ter pelo menos 8 caracteres.");
+            return;
+        }
+        const hasPartialVehicle =
+            form.plate.trim() ||
+            form.brand.trim() ||
+            form.model.trim() ||
+            form.color.trim();
+        if (hasPartialVehicle) {
+            if (
+                !form.plate.trim() ||
+                !form.brand.trim() ||
+                !form.model.trim() ||
+                !form.color.trim()
+            ) {
+                setError("Preencha todos os campos do veículo ou deixe todos vazios.");
+                return;
+            }
+        }
+        onNext(form);
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+                <Label htmlFor="name">Nome</Label>
+                <Input
+                    id="name"
+                    value={form.name}
+                    onChange={(e) => update("name", e.target.value)}
+                    autoComplete="name"
+                />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="email">E-mail</Label>
+                <Input
+                    id="email"
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => update("email", e.target.value)}
+                    autoComplete="email"
+                />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="password">Senha</Label>
+                <Input
+                    id="password"
+                    type="password"
+                    value={form.password}
+                    onChange={(e) => update("password", e.target.value)}
+                    autoComplete="new-password"
+                />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="phone">Telefone (opcional)</Label>
+                <Input
+                    id="phone"
+                    value={form.phone}
+                    onChange={(e) => update("phone", e.target.value)}
+                    autoComplete="tel"
+                />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="document">Documento (opcional)</Label>
+                <Input
+                    id="document"
+                    value={form.document}
+                    onChange={(e) => update("document", e.target.value)}
+                />
+            </div>
+
+            <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
+                <p className="text-sm font-medium">Veículo (opcional)</p>
+                <div className="space-y-2">
+                    <Label htmlFor="plate">Placa</Label>
+                    <Input
+                        id="plate"
+                        value={form.plate}
+                        onChange={(e) => update("plate", e.target.value.toUpperCase())}
+                    />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="space-y-2">
+                        <Label htmlFor="brand">Marca</Label>
+                        <Input
+                            id="brand"
+                            value={form.brand}
+                            onChange={(e) => update("brand", e.target.value)}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="model">Modelo</Label>
+                        <Input
+                            id="model"
+                            value={form.model}
+                            onChange={(e) => update("model", e.target.value)}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="color">Cor</Label>
+                        <Input
+                            id="color"
+                            value={form.color}
+                            onChange={(e) => update("color", e.target.value)}
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+
+            <Button type="submit" size="lg" className="h-11 w-full">
+                Continuar para foto
+            </Button>
+        </form>
+    );
+}
