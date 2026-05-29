@@ -49,23 +49,68 @@ export function PickupFaceStep({ code, onCompleted }: PickupFaceStepProps) {
 
     useEffect(() => () => stopCamera(), [stopCamera]);
 
+    /** O <video> só existe com status "live"; o stream tem que ser ligado depois do mount. */
+    useEffect(() => {
+        if (status !== "live") return;
+        const video = videoRef.current;
+        const stream = streamRef.current;
+        if (!video || !stream) return;
+
+        video.setAttribute("playsinline", "true");
+        video.setAttribute("webkit-playsinline", "true");
+        video.muted = true;
+        video.playsInline = true;
+        video.srcObject = stream;
+
+        const tryPlay = () => {
+            void video.play().catch(() => undefined);
+        };
+        tryPlay();
+        video.onloadedmetadata = tryPlay;
+
+        return () => {
+            video.onloadedmetadata = null;
+            video.srcObject = null;
+        };
+    }, [status]);
+
     const startLiveCamera = async () => {
         setMessage(null);
+        if (!navigator.mediaDevices?.getUserMedia) {
+            setMessage(
+                "Use HTTPS ou abra pelo celular para acessar a câmera.",
+            );
+            return;
+        }
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: "user" },
-                audio: false,
-            });
+            let stream: MediaStream;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: "user",
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                    },
+                    audio: false,
+                });
+            } catch {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "user" },
+                    audio: false,
+                });
+            }
             streamRef.current = stream;
             setStatus("live");
         } catch {
-            setMessage("Não foi possível acessar a câmera.");
+            setMessage(
+                "Não foi possível acessar a câmera. Verifique permissões.",
+            );
         }
     };
 
     const captureFromVideo = () => {
         const video = videoRef.current;
-        if (!video) return;
+        if (!video || video.videoWidth === 0) return;
         const canvas = document.createElement("canvas");
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
