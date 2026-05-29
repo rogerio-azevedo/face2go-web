@@ -122,6 +122,8 @@ export function PickupFaceStep({ code, onCompleted }: PickupFaceStepProps) {
                         <>
                             <Button
                                 type="button"
+                                size="lg"
+                                className="h-11 w-full"
                                 onClick={() => void uploadPreview()}
                             >
                                 Enviar esta foto
@@ -129,6 +131,8 @@ export function PickupFaceStep({ code, onCompleted }: PickupFaceStepProps) {
                             <Button
                                 type="button"
                                 variant="outline"
+                                size="lg"
+                                className="h-11 w-full"
                                 onClick={camera.resetCapture}
                             >
                                 Tirar de novo
@@ -143,7 +147,8 @@ export function PickupFaceStep({ code, onCompleted }: PickupFaceStepProps) {
                     {camera.status === "uploaded" ? (
                         <Button
                             type="button"
-                            className="w-full"
+                            size="lg"
+                            className="h-11 w-full"
                             disabled={submitting}
                             onClick={() => void submitRegistration()}
                         >

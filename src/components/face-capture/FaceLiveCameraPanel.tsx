@@ -62,10 +62,11 @@ export function FaceLiveCameraPanel({
                             <div className="aspect-[3/4] w-[72%] max-w-[240px] rounded-[100%] border-[3px] border-white/90 shadow-[0_0_0_200vmax_rgba(0,0,0,0.5)]" />
                         </div>
                     </div>
-                    <div className="flex flex-col gap-2 sm:flex-row">
+                    <div className="mx-auto flex w-full max-w-[min(100%,320px)] flex-col gap-2">
                         <Button
                             type="button"
-                            className="flex-1"
+                            size="lg"
+                            className="h-11 w-full"
                             onClick={onCaptureFromVideo}
                         >
                             <Camera className="mr-2 size-4" />
@@ -74,7 +75,8 @@ export function FaceLiveCameraPanel({
                         <Button
                             type="button"
                             variant="outline"
-                            className="flex-1"
+                            size="lg"
+                            className="h-11 w-full"
                             onClick={onCancelLive}
                         >
                             Cancelar
@@ -92,7 +94,7 @@ export function FaceLiveCameraPanel({
                         className="mx-auto max-h-72 w-full max-w-sm rounded-2xl border object-contain bg-muted"
                     />
                     {previewActions ? (
-                        <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+                        <div className="mx-auto flex w-full max-w-[min(100%,320px)] flex-col gap-2">
                             {previewActions}
                         </div>
                     ) : null}
@@ -100,10 +102,11 @@ export function FaceLiveCameraPanel({
             ) : null}
 
             {status === "idle" ? (
-                <div className="flex flex-col gap-2">
+                <div className="mx-auto flex w-full max-w-[min(100%,320px)] flex-col gap-2">
                     <Button
                         type="button"
-                        className="w-full"
+                        size="lg"
+                        className="h-11 w-full"
                         onClick={onOpenCameraClick}
                     >
                         <Camera className="mr-2 size-4" />
