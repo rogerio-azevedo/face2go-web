@@ -115,10 +115,12 @@ export function RetiradaWizard({ code }: RetiradaWizardProps) {
     }
 
     return (
-        <div className="mx-auto max-w-lg space-y-6 rounded-2xl border bg-card p-6 shadow-sm md:p-8">
-            <header className="space-y-1 text-center">
+        <div className="mx-auto max-w-lg space-y-6 rounded-2xl border bg-card p-4 shadow-sm pt-4 md:p-6 md:pt-6">
+            <PickupFaceStep code={code} onCompleted={() => setDone(true)} />
+
+            <header className="space-y-1 border-t pt-6 text-center">
                 <p className="text-sm text-muted-foreground">{preview.clientName}</p>
-                <h1 className="text-2xl font-semibold tracking-tight">
+                <h1 className="text-xl font-semibold tracking-tight">
                     Cadastro de face — retirada
                 </h1>
                 <p className="text-sm text-muted-foreground">
@@ -136,8 +138,6 @@ export function RetiradaWizard({ code }: RetiradaWizardProps) {
                     {formatDate(preview.validUntil)}
                 </p>
             </div>
-
-            <PickupFaceStep code={code} onCompleted={() => setDone(true)} />
         </div>
     );
 }

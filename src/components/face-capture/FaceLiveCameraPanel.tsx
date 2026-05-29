@@ -36,11 +36,6 @@ export function FaceLiveCameraPanel({
 }: FaceLiveCameraPanelProps) {
     return (
         <div className="space-y-4">
-            <p className="text-center text-sm text-muted-foreground">
-                Centralize o rosto na moldura oval, com boa luz e sem óculos
-                escuros.
-            </p>
-
             <input
                 ref={captureInputRef}
                 type="file"
@@ -130,6 +125,11 @@ export function FaceLiveCameraPanel({
                     {message}
                 </p>
             ) : null}
+
+            <p className="text-center text-sm text-muted-foreground">
+                Centralize o rosto na moldura oval, com boa luz e sem óculos
+                escuros.
+            </p>
         </div>
     );
 }

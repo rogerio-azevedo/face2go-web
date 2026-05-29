@@ -9,7 +9,7 @@ export default async function RetiradaPublicPage({ params }: PageProps) {
     const raw = code?.trim() ?? "";
 
     return (
-        <div className="min-h-screen bg-muted/30 px-4 py-10">
+        <div className="min-h-screen bg-muted/30 px-4 pt-3 pb-10">
             <RetiradaWizard code={raw} />
         </div>
     );
