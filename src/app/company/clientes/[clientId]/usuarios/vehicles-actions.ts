@@ -9,8 +9,17 @@ import {
     nestErrorMessage,
     parseResponseJson,
 } from "@/lib/api-fetch";
+import {
+    buildSchoolListQuery,
+    normalizePaginated,
+    type SchoolListParams,
+} from "@/lib/pagination";
 import { vehicleUpsertSchema } from "@/lib/validations/vehicles";
-import type { VehicleDriverOptionRow, VehicleRow } from "@/types/domain";
+import type {
+    PaginatedResponse,
+    VehicleDriverOptionRow,
+    VehicleRow,
+} from "@/types/domain";
 
 function zodFirstMessage(error: unknown): string {
     if (error instanceof ZodError && error.issues[0]?.message) {
@@ -30,19 +39,27 @@ const ids = z.object({
 
 export async function listClientVehiclesAction(
     clientId: string,
-): Promise<{ success: true; items: VehicleRow[] } | { error: string }> {
+    params: SchoolListParams = {},
+): Promise<
+    | { success: true; result: PaginatedResponse<VehicleRow> }
+    | { error: string }
+> {
     try {
         const c = ids.safeParse({ clientId });
         if (!c.success) return { error: "Cliente inválido." };
+        const qs = buildSchoolListQuery(params);
         const res = await apiFetchAuthed(
-            `/api/clients/${c.data.clientId}/vehicles`,
+            `/api/clients/${c.data.clientId}/vehicles?${qs}`,
         );
         if (!res.ok) {
             const data = await parseResponseJson(res);
             return { error: nestErrorMessage(data) };
         }
-        const items = (await parseResponseJson(res)) as VehicleRow[];
-        return { success: true, items: Array.isArray(items) ? items : [] };
+        const parsed = await parseResponseJson(res);
+        return {
+            success: true,
+            result: normalizePaginated<VehicleRow>(parsed),
+        };
     } catch {
         return { error: "Sem permissão." };
     }

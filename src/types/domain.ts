@@ -362,6 +362,14 @@ export type ResponsibleRelationshipType =
     | "guardian"
     | "other";
 
+/** Resposta paginada padrão da API escola (alunos, responsáveis, veículos). */
+export type PaginatedResponse<T> = {
+    data: T[];
+    total: number;
+    page: number;
+    pageSize: number;
+};
+
 export type StudentAccessScheduleJson = {
     shifts?: ClassShift[];
     entryTime?: string;
@@ -406,6 +414,7 @@ export type ResponsibleRow = {
     clientId: string;
     userId: string | null;
     name: string;
+    email?: string | null;
     phone: string | null;
     document: string | null;
     photoKey: string | null;
@@ -434,6 +443,19 @@ export type VehicleDriverOptionRow = {
     id: string;
     name: string;
     relationshipType: string;
+};
+
+/** Item de `GET /api/clients/:clientId/students/:studentId/responsibles`. */
+export type StudentResponsibleLinkWithResponsible = {
+    link: {
+        id: string;
+        responsibleId: string;
+        studentId: string;
+        relationshipType: ResponsibleRelationshipType;
+        isAuthorizedPickup: boolean;
+        createdAt: string;
+    };
+    responsible: ResponsibleRow;
 };
 
 /** Item de `GET /api/clients/:clientId/responsibles/:responsibleId/students`. */

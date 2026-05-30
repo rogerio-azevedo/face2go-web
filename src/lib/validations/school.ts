@@ -145,6 +145,10 @@ export const createResponsibleSchema = z.object({
 
 export const updateResponsibleSchema = z.object({
     name: z.string().trim().min(1).max(255).optional(),
+    email: z
+        .union([z.literal(""), z.email("E-mail inválido.")])
+        .optional()
+        .transform((v) => (v === "" ? undefined : v)),
     phone: z.preprocess(
         (val: unknown) =>
             val === "" || val === undefined || val === null

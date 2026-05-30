@@ -1,11 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import {
     cancelPickupAuthorizationAction,
+    getResponsibleByIdAction,
+    getStudentByIdAction,
     markUsedPickupAuthorizationAction,
 } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
 import { Badge } from "@/components/ui/badge";
@@ -73,34 +75,80 @@ function formatRange(from: string, until: string): string {
 export function PickupAuthorizationsSection({
     clientId,
     initialAuthorizations,
-    students,
-    responsibles,
 }: {
     clientId: string;
     initialAuthorizations: PickupAuthorizationRow[];
-    students: StudentRow[];
-    responsibles: ResponsibleRow[];
 }) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [rows, setRows] =
         useState<PickupAuthorizationRow[]>(initialAuthorizations);
+    const [studentById, setStudentById] = useState(
+        () => new Map<string, StudentRow>(),
+    );
+    const [responsibleById, setResponsibleById] = useState(
+        () => new Map<string, ResponsibleRow>(),
+    );
 
     useEffect(() => {
         setRows(initialAuthorizations);
     }, [initialAuthorizations]);
 
-    const studentById = useMemo(() => {
-        const m = new Map<string, StudentRow>();
-        for (const s of students) m.set(s.id, s);
-        return m;
-    }, [students]);
+    useEffect(() => {
+        if (rows.length === 0) {
+            setStudentById(new Map());
+            setResponsibleById(new Map());
+            return;
+        }
 
-    const responsibleById = useMemo(() => {
-        const m = new Map<string, ResponsibleRow>();
-        for (const r of responsibles) m.set(r.id, r);
-        return m;
-    }, [responsibles]);
+        const studentIds = [...new Set(rows.map((r) => r.studentId))];
+        const responsibleIds = [
+            ...new Set(
+                rows.flatMap((r) =>
+                    [
+                        r.requestedByResponsibleId,
+                        r.authorizedResponsibleId,
+                    ].filter((id): id is string => Boolean(id)),
+                ),
+            ),
+        ];
+
+        let cancelled = false;
+
+        void (async () => {
+            const [studentResults, responsibleResults] = await Promise.all([
+                Promise.all(
+                    studentIds.map((id) => getStudentByIdAction(clientId, id)),
+                ),
+                Promise.all(
+                    responsibleIds.map((id) =>
+                        getResponsibleByIdAction(clientId, id),
+                    ),
+                ),
+            ]);
+
+            if (cancelled) return;
+
+            const nextStudents = new Map<string, StudentRow>();
+            for (const r of studentResults) {
+                if ("success" in r) nextStudents.set(r.student.id, r.student);
+            }
+
+            const nextResponsibles = new Map<string, ResponsibleRow>();
+            for (const r of responsibleResults) {
+                if ("success" in r) {
+                    nextResponsibles.set(r.responsible.id, r.responsible);
+                }
+            }
+
+            setStudentById(nextStudents);
+            setResponsibleById(nextResponsibles);
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [clientId, rows]);
 
     function refresh() {
         startTransition(() => router.refresh());

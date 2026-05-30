@@ -1,11 +1,15 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import { deleteClientVehicleAction } from "@/app/company/clientes/[clientId]/usuarios/vehicles-actions";
-import type { VehicleRow } from "@/types/domain";
+import {
+    deleteClientVehicleAction,
+    listClientVehiclesAction,
+} from "@/app/company/clientes/[clientId]/usuarios/vehicles-actions";
+import type { PaginatedResponse, VehicleRow } from "@/types/domain";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -17,6 +21,8 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import { SearchInput } from "@/components/ui/search-input";
 import {
     Table,
     TableBody,
@@ -33,10 +39,14 @@ export function VehiclesSection({
     initialVehicles,
 }: {
     clientId: string;
-    initialVehicles: VehicleRow[];
+    initialVehicles: PaginatedResponse<VehicleRow>;
 }) {
     const router = useRouter();
-    const [, startTransition] = useTransition();
+    const [isPending, startTransition] = useTransition();
+    const [list, setList] = useState(initialVehicles);
+    const [search, setSearch] = useState("");
+    const [page, setPage] = useState(initialVehicles.page);
+    const [loading, setLoading] = useState(false);
     const [sheetOpen, setSheetOpen] = useState(false);
     const [editRow, setEditRow] = useState<VehicleRow | null>(null);
     const [pendingDelete, setPendingDelete] = useState<VehicleRow | null>(
@@ -44,8 +54,44 @@ export function VehiclesSection({
     );
     const [deleting, setDeleting] = useState(false);
 
+    const fetchList = useCallback(
+        async (nextPage: number, nextSearch: string) => {
+            setLoading(true);
+            try {
+                const r = await listClientVehiclesAction(clientId, {
+                    page: nextPage,
+                    pageSize: list.pageSize,
+                    search: nextSearch || undefined,
+                });
+                if ("error" in r) {
+                    toast.error(r.error);
+                    return;
+                }
+                setList(r.result);
+            } finally {
+                setLoading(false);
+            }
+        },
+        [clientId, list.pageSize],
+    );
+
+    useEffect(() => {
+        setList(initialVehicles);
+        setPage(initialVehicles.page);
+    }, [initialVehicles]);
+
+    useEffect(() => {
+        void fetchList(page, search);
+    }, [page, search, fetchList]);
+
     function refresh() {
         startTransition(() => router.refresh());
+        void fetchList(page, search);
+    }
+
+    function onSearchChange(value: string) {
+        setSearch(value);
+        setPage(1);
     }
 
     async function confirmDelete() {
@@ -68,17 +114,28 @@ export function VehiclesSection({
         }
     }
 
+    const tableBusy = loading || isPending;
+
     return (
         <>
-            <div className="space-y-2">
+            <div className="mb-4 space-y-4">
                 <p className="text-muted-foreground max-w-xl text-sm">
                     Veículos cadastrados para liberação por placa (LPR). Cadastre
                     a placa vinculada ao condutor (responsável).
                 </p>
-                <div className="flex justify-end gap-2">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+                    <SearchInput
+                        id="search-vehicles"
+                        value={search}
+                        onValueChange={onSearchChange}
+                        placeholder="Buscar por placa, marca ou modelo…"
+                        disabled={tableBusy}
+                        className="w-full sm:max-w-md"
+                    />
                     <Button
                         type="button"
                         size="default"
+                        className="w-full shrink-0 sm:w-auto"
                         onClick={() => {
                             setEditRow(null);
                             setSheetOpen(true);
@@ -89,7 +146,15 @@ export function VehiclesSection({
                 </div>
             </div>
 
-            <div className="rounded-md border">
+            <div className="relative rounded-md border">
+                {tableBusy ? (
+                    <div
+                        className="bg-background/60 absolute inset-0 z-10 flex items-center justify-center rounded-md"
+                        aria-hidden
+                    >
+                        <Loader2 className="text-muted-foreground size-6 animate-spin" />
+                    </div>
+                ) : null}
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -104,17 +169,19 @@ export function VehiclesSection({
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {initialVehicles.length === 0 ? (
+                        {list.data.length === 0 ? (
                             <TableRow>
                                 <TableCell
                                     colSpan={6}
                                     className="text-muted-foreground py-10 text-center"
                                 >
-                                    Nenhum veículo cadastrado.
+                                    {search
+                                        ? "Nenhum veículo encontrado."
+                                        : "Nenhum veículo cadastrado."}
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            initialVehicles.map((row) => (
+                            list.data.map((row) => (
                                 <TableRow key={row.id}>
                                     <TableCell className="font-mono font-semibold tracking-wide">
                                         {row.plate}
@@ -155,6 +222,14 @@ export function VehiclesSection({
                     </TableBody>
                 </Table>
             </div>
+
+            <DataTablePagination
+                page={list.page}
+                pageSize={list.pageSize}
+                total={list.total}
+                disabled={tableBusy}
+                onPageChange={setPage}
+            />
 
             <VehicleForm
                 open={sheetOpen}

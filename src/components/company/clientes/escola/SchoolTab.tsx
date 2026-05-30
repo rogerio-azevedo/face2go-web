@@ -1,6 +1,7 @@
 "use client";
 
 import type {
+    PaginatedResponse,
     PickupAuthorizationRow,
     ResponsibleRow,
     SchoolClassRow,
@@ -8,6 +9,7 @@ import type {
     StudentRow,
     VehicleRow,
 } from "@/types/domain";
+import { emptyPaginated } from "@/lib/pagination";
 import {
     Tabs,
     TabsContent,
@@ -29,24 +31,18 @@ export function SchoolTab({
     initialResponsibles,
     initialShifts,
     initialPickupAuthorizations = [],
-    initialVehicles = [],
+    initialVehicles = emptyPaginated<VehicleRow>(),
 }: {
     clientId: string;
     initialClasses: SchoolClassRow[];
-    initialStudents: StudentRow[];
-    initialResponsibles: ResponsibleRow[];
+    initialStudents: PaginatedResponse<StudentRow>;
+    initialResponsibles: PaginatedResponse<ResponsibleRow>;
     initialShifts: ShiftRow[];
     initialPickupAuthorizations?: PickupAuthorizationRow[];
-    initialVehicles?: VehicleRow[];
+    initialVehicles?: PaginatedResponse<VehicleRow>;
 }) {
     return (
         <div className="space-y-4">
-            <p className="text-muted-foreground max-w-xl text-sm">
-                Cadastre horários de acesso, turmas, alunos e responsáveis. Na
-                aba Veículos, gerencie placas para LPR vinculadas aos
-                responsáveis. Os responsáveis podem usar o app conforme suas
-                permissões.
-            </p>
             <Tabs defaultValue="shifts">
                 <TabsList className="h-auto w-full flex-wrap justify-start gap-1 md:w-fit">
                     <TabsTrigger value="shifts">Horários</TabsTrigger>
@@ -82,15 +78,12 @@ export function SchoolTab({
                     <ParentsSection
                         clientId={clientId}
                         initialResponsibles={initialResponsibles}
-                        students={initialStudents}
                     />
                 </TabsContent>
                 <TabsContent value="pickups" className="pt-4">
                     <PickupAuthorizationsSection
                         clientId={clientId}
                         initialAuthorizations={initialPickupAuthorizations}
-                        students={initialStudents}
-                        responsibles={initialResponsibles}
                     />
                 </TabsContent>
                 <TabsContent value="vehicles" className="pt-4">

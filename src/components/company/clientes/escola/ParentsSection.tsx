@@ -1,13 +1,17 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import type { ResponsibleRow, StudentRow } from "@/types/domain";
+import { listResponsiblesAction } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
+import type { PaginatedResponse, ResponsibleRow } from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import { FaceCirclePhoto } from "@/components/ui/face-circle-photo";
+import { SearchInput } from "@/components/ui/search-input";
 import {
     Table,
     TableBody,
@@ -17,57 +21,98 @@ import {
     TableRow,
 } from "@/components/ui/table";
 
+import { ParentEditSheet } from "./ParentEditSheet";
 import { ParentForm } from "./ParentForm";
-import { ParentStudentsSheet } from "./ParentStudentsSheet";
 
 export function ParentsSection({
     clientId,
     initialResponsibles,
-    students,
 }: {
     clientId: string;
-    initialResponsibles: ResponsibleRow[];
-    students: StudentRow[];
+    initialResponsibles: PaginatedResponse<ResponsibleRow>;
 }) {
     const router = useRouter();
-    const [, startTransition] = useTransition();
-    const [sheetOpen, setSheetOpen] = useState(false);
+    const [isPending, startTransition] = useTransition();
+    const [list, setList] = useState(initialResponsibles);
+    const [search, setSearch] = useState("");
+    const [page, setPage] = useState(initialResponsibles.page);
+    const [loading, setLoading] = useState(false);
+    const [createOpen, setCreateOpen] = useState(false);
+    const [editOpen, setEditOpen] = useState(false);
     const [editRow, setEditRow] = useState<ResponsibleRow | null>(null);
-    const [linksOpen, setLinksOpen] = useState(false);
-    const [linkParentId, setLinkParentId] = useState<ResponsibleRow | null>(null);
+
+    const fetchList = useCallback(
+        async (nextPage: number, nextSearch: string) => {
+            setLoading(true);
+            try {
+                const r = await listResponsiblesAction(clientId, {
+                    page: nextPage,
+                    pageSize: list.pageSize,
+                    search: nextSearch || undefined,
+                });
+                if ("error" in r) {
+                    toast.error(r.error);
+                    return;
+                }
+                setList(r.result);
+            } finally {
+                setLoading(false);
+            }
+        },
+        [clientId, list.pageSize],
+    );
+
+    useEffect(() => {
+        setList(initialResponsibles);
+        setPage(initialResponsibles.page);
+    }, [initialResponsibles]);
+
+    useEffect(() => {
+        void fetchList(page, search);
+    }, [page, search, fetchList]);
 
     function refresh() {
         startTransition(() => router.refresh());
+        void fetchList(page, search);
     }
 
-    useEffect(() => {
-        console.log(
-            "[ParentsSection] responsáveis",
-            initialResponsibles.map((row) => ({
-                id: row.id,
-                name: row.name,
-                photoKey: row.photoKey,
-                photoUrl: row.photoUrl,
-            })),
-        );
-    }, [initialResponsibles]);
+    function onSearchChange(value: string) {
+        setSearch(value);
+        setPage(1);
+    }
+
+    const tableBusy = loading || isPending;
 
     return (
         <>
-            <div className="flex justify-end gap-2 mb-2">
+            <div className="mb-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <SearchInput
+                    id="search-responsibles"
+                    value={search}
+                    onValueChange={onSearchChange}
+                    placeholder="Buscar por nome…"
+                    disabled={tableBusy}
+                    className="sm:max-w-sm"
+                />
                 <Button
                     type="button"
                     size="default"
-                    onClick={() => {
-                        setEditRow(null);
-                        setSheetOpen(true);
-                    }}
+                    className="self-end shrink-0"
+                    onClick={() => setCreateOpen(true)}
                 >
                     Novo responsável
                 </Button>
             </div>
 
-            <div className="rounded-md border">
+            <div className="relative rounded-md border">
+                {tableBusy ? (
+                    <div
+                        className="bg-background/60 absolute inset-0 z-10 flex items-center justify-center rounded-md"
+                        aria-hidden
+                    >
+                        <Loader2 className="text-muted-foreground size-6 animate-spin" />
+                    </div>
+                ) : null}
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -77,31 +122,29 @@ export function ParentsSection({
                             <TableHead>Documento</TableHead>
                             <TableHead>Acesso login</TableHead>
                             <TableHead>Status</TableHead>
-                            <TableHead className="text-right">
-                                Ações
-                            </TableHead>
+                            <TableHead className="text-right">Ações</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {initialResponsibles.length === 0 ? (
+                        {list.data.length === 0 ? (
                             <TableRow>
                                 <TableCell
                                     colSpan={7}
                                     className="text-muted-foreground py-10 text-center"
                                 >
-                                    Nenhum responsável cadastrado.
+                                    {search
+                                        ? "Nenhum responsável encontrado."
+                                        : "Nenhum responsável cadastrado."}
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            initialResponsibles.map((row) => (
+                            list.data.map((row) => (
                                 <TableRow key={row.id}>
                                     <TableCell className="align-middle">
                                         <div className="size-8 shrink-0 overflow-hidden rounded-full bg-teal-100 ring-2 ring-teal-100">
                                             <FaceCirclePhoto
                                                 className="size-full"
-                                                photoUrl={
-                                                    row.photoUrl ?? null
-                                                }
+                                                photoUrl={row.photoUrl ?? null}
                                                 nameHint={row.name}
                                             />
                                         </div>
@@ -115,9 +158,7 @@ export function ParentsSection({
                                         {row.userId ? (
                                             <Badge>Sim</Badge>
                                         ) : (
-                                            <Badge variant="secondary">
-                                                —
-                                            </Badge>
+                                            <Badge variant="secondary">—</Badge>
                                         )}
                                     </TableCell>
                                     <TableCell>
@@ -130,30 +171,17 @@ export function ParentsSection({
                                         )}
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        <div className="flex flex-wrap justify-end gap-2">
-                                            <Button
-                                                type="button"
-                                                variant="secondary"
-                                                size="sm"
-                                                onClick={() => {
-                                                    setLinkParentId(row);
-                                                    setLinksOpen(true);
-                                                }}
-                                            >
-                                                Alunos vinculados
-                                            </Button>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => {
-                                                    setEditRow(row);
-                                                    setSheetOpen(true);
-                                                }}
-                                            >
-                                                Editar
-                                            </Button>
-                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                                setEditRow(row);
+                                                setEditOpen(true);
+                                            }}
+                                        >
+                                            Editar
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -162,31 +190,37 @@ export function ParentsSection({
                 </Table>
             </div>
 
+            <DataTablePagination
+                page={list.page}
+                pageSize={list.pageSize}
+                total={list.total}
+                disabled={tableBusy}
+                onPageChange={setPage}
+            />
+
             <ParentForm
-                open={sheetOpen}
-                onOpenChange={setSheetOpen}
+                open={createOpen}
+                onOpenChange={setCreateOpen}
                 clientId={clientId}
-                mode={editRow ? "edit" : "create"}
-                parent={editRow}
                 onSuccess={() => {
-                    toast.success(
-                        editRow
-                            ? "Responsável atualizado."
-                            : "Responsável cadastrado.",
-                    );
+                    toast.success("Responsável cadastrado.");
                     refresh();
                 }}
             />
 
-            <ParentStudentsSheet
-                open={linksOpen}
-                onOpenChange={setLinksOpen}
+            <ParentEditSheet
+                open={editOpen}
+                onOpenChange={(open) => {
+                    setEditOpen(open);
+                    if (!open) setEditRow(null);
+                }}
                 clientId={clientId}
-                parent={linkParentId}
-                students={students}
-                onChanged={() => {
+                parent={editRow}
+                onSuccess={() => {
+                    toast.success("Responsável atualizado.");
                     refresh();
                 }}
+                onLinksChanged={() => refresh()}
             />
         </>
     );

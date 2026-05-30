@@ -1,14 +1,18 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import type { SchoolClassRow, StudentRow } from "@/types/domain";
+import { listStudentsAction } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
+import type { PaginatedResponse, SchoolClassRow, StudentRow } from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import { FaceCirclePhoto } from "@/components/ui/face-circle-photo";
 import { Label } from "@/components/ui/label";
+import { SearchInput } from "@/components/ui/search-input";
 import {
     Table,
     TableBody,
@@ -19,6 +23,7 @@ import {
 } from "@/components/ui/table";
 import { schoolClassTurnLabel } from "@/lib/validations/school";
 
+import { StudentEditSheet } from "./StudentEditSheet";
 import { StudentForm } from "./StudentForm";
 
 function classesLabel(
@@ -44,71 +49,123 @@ export function StudentsSection({
 }: {
     clientId: string;
     classes: SchoolClassRow[];
-    initialStudents: StudentRow[];
+    initialStudents: PaginatedResponse<StudentRow>;
 }) {
     const router = useRouter();
-    const [, startTransition] = useTransition();
+    const [isPending, startTransition] = useTransition();
+    const [list, setList] = useState(initialStudents);
+    const [search, setSearch] = useState("");
     const [filterClassId, setFilterClassId] = useState("");
-    const [sheetOpen, setSheetOpen] = useState(false);
+    const [page, setPage] = useState(initialStudents.page);
+    const [loading, setLoading] = useState(false);
+    const [createOpen, setCreateOpen] = useState(false);
+    const [editOpen, setEditOpen] = useState(false);
     const [editRow, setEditRow] = useState<StudentRow | null>(null);
 
-    const studentsWithClasses = useMemo(
-        () =>
-            initialStudents.map((s) => ({
-                ...s,
-                classes: s.classes ?? [],
-            })),
-        [initialStudents],
+    const fetchList = useCallback(
+        async (nextPage: number, nextSearch: string, classId: string) => {
+            setLoading(true);
+            try {
+                const r = await listStudentsAction(clientId, {
+                    page: nextPage,
+                    pageSize: list.pageSize,
+                    search: nextSearch || undefined,
+                    classId: classId || undefined,
+                });
+                if ("error" in r) {
+                    toast.error(r.error);
+                    return;
+                }
+                setList(r.result);
+            } finally {
+                setLoading(false);
+            }
+        },
+        [clientId, list.pageSize],
     );
+
+    useEffect(() => {
+        setList(initialStudents);
+        setPage(initialStudents.page);
+    }, [initialStudents]);
+
+    useEffect(() => {
+        void fetchList(page, search, filterClassId);
+    }, [page, search, filterClassId, fetchList]);
 
     function refresh() {
         startTransition(() => router.refresh());
+        void fetchList(page, search, filterClassId);
     }
 
-    const rows = useMemo(() => {
-        if (!filterClassId) return studentsWithClasses;
-        return studentsWithClasses.filter((s) =>
-            s.classes.some(
-                (c) => c.isActive && c.classId === filterClassId,
-            ),
-        );
-    }, [filterClassId, studentsWithClasses]);
+    function onSearchChange(value: string) {
+        setSearch(value);
+        setPage(1);
+    }
+
+    function onClassFilterChange(classId: string) {
+        setFilterClassId(classId);
+        setPage(1);
+    }
+
+    const rows = list.data.map((s) => ({
+        ...s,
+        classes: s.classes ?? [],
+    }));
+
+    const tableBusy = loading || isPending;
 
     return (
         <>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-2">
-                <div className="flex w-full flex-col gap-2 sm:w-auto">
-                    <Label htmlFor="filter-class" className="text-muted-foreground">
-                        Filtrar por turma
-                    </Label>
-                    <select
-                        id="filter-class"
-                        className="border-input bg-background ring-offset-background focus-visible:ring-ring h-10 w-full min-w-[200px] rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none sm:w-72"
-                        value={filterClassId}
-                        onChange={(e) => setFilterClassId(e.target.value)}
-                    >
-                        <option value="">Todas</option>
-                        {classes.map((c) => (
-                            <option key={c.id} value={c.id}>
-                                {c.name} — {schoolClassTurnLabel(c)} / {c.year}
-                            </option>
-                        ))}
-                    </select>
+            <div className="mb-2 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+                <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+                    <div className="flex w-full flex-col gap-2 sm:w-auto">
+                        <Label htmlFor="filter-class" className="text-muted-foreground">
+                            Filtrar por turma
+                        </Label>
+                        <select
+                            id="filter-class"
+                            className="border-input bg-background ring-offset-background focus-visible:ring-ring h-10 w-full min-w-[200px] rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none sm:w-72"
+                            value={filterClassId}
+                            disabled={tableBusy}
+                            onChange={(e) => onClassFilterChange(e.target.value)}
+                        >
+                            <option value="">Todas</option>
+                            {classes.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                    {c.name} — {schoolClassTurnLabel(c)} / {c.year}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <SearchInput
+                        id="search-students"
+                        value={search}
+                        onValueChange={onSearchChange}
+                        placeholder="Buscar por nome…"
+                        disabled={tableBusy}
+                        className="sm:flex-1"
+                    />
                 </div>
                 <Button
                     type="button"
                     size="default"
                     className="self-end"
-                    onClick={() => {
-                        setEditRow(null);
-                        setSheetOpen(true);
-                    }}
+                    onClick={() => setCreateOpen(true)}
                 >
                     Novo aluno
                 </Button>
             </div>
 
-            <div className="rounded-md border">
+            <div className="relative rounded-md border">
+                {tableBusy ? (
+                    <div
+                        className="bg-background/60 absolute inset-0 z-10 flex items-center justify-center rounded-md"
+                        aria-hidden
+                    >
+                        <Loader2 className="text-muted-foreground size-6 animate-spin" />
+                    </div>
+                ) : null}
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -129,7 +186,9 @@ export function StudentsSection({
                                     colSpan={6}
                                     className="text-muted-foreground py-10 text-center"
                                 >
-                                    Nenhum aluno neste filtro.
+                                    {search || filterClassId
+                                        ? "Nenhum aluno encontrado."
+                                        : "Nenhum aluno cadastrado."}
                                 </TableCell>
                             </TableRow>
                         ) : (
@@ -167,7 +226,7 @@ export function StudentsSection({
                                             size="sm"
                                             onClick={() => {
                                                 setEditRow(row);
-                                                setSheetOpen(true);
+                                                setEditOpen(true);
                                             }}
                                         >
                                             Editar
@@ -180,18 +239,39 @@ export function StudentsSection({
                 </Table>
             </div>
 
+            <DataTablePagination
+                page={list.page}
+                pageSize={list.pageSize}
+                total={list.total}
+                disabled={tableBusy}
+                onPageChange={setPage}
+            />
+
             <StudentForm
-                open={sheetOpen}
-                onOpenChange={setSheetOpen}
+                open={createOpen}
+                onOpenChange={setCreateOpen}
                 clientId={clientId}
-                mode={editRow ? "edit" : "create"}
-                student={editRow}
+                mode="create"
+                student={null}
                 onSuccess={() => {
-                    toast.success(
-                        editRow ? "Aluno atualizado." : "Aluno cadastrado.",
-                    );
+                    toast.success("Aluno cadastrado.");
                     refresh();
                 }}
+            />
+
+            <StudentEditSheet
+                open={editOpen}
+                onOpenChange={(open) => {
+                    setEditOpen(open);
+                    if (!open) setEditRow(null);
+                }}
+                clientId={clientId}
+                student={editRow}
+                onSuccess={() => {
+                    toast.success("Aluno atualizado.");
+                    refresh();
+                }}
+                onLinksChanged={() => refresh()}
             />
         </>
     );

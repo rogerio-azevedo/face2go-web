@@ -7,6 +7,7 @@ import { SyncAllProgressModal } from "@/components/registrations/SyncAllProgress
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type {
     ClientRegistrationListRow,
+    PaginatedResponse,
     PickupAuthorizationRow,
     RegistrationLinkListRow,
     ResponsibleRow,
@@ -15,6 +16,7 @@ import type {
     StudentRow,
     VehicleRow,
 } from "@/types/domain";
+import { emptyPaginated } from "@/lib/pagination";
 
 export type ClientDetailTabsProps = {
     clientId: string;
@@ -23,11 +25,11 @@ export type ClientDetailTabsProps = {
     initialRows: ClientRegistrationListRow[];
     /** Só quando `clientType === "school"`: dados carregados no servidor */
     initialSchoolClasses?: SchoolClassRow[];
-    initialSchoolStudents?: StudentRow[];
-    initialSchoolResponsibles?: ResponsibleRow[];
+    initialSchoolStudents?: PaginatedResponse<StudentRow>;
+    initialSchoolResponsibles?: PaginatedResponse<ResponsibleRow>;
     initialSchoolShifts?: ShiftRow[];
     initialSchoolPickupAuthorizations?: PickupAuthorizationRow[];
-    initialSchoolVehicles?: VehicleRow[];
+    initialSchoolVehicles?: PaginatedResponse<VehicleRow>;
 };
 
 export function ClientDetailTabs({
@@ -36,11 +38,11 @@ export function ClientDetailTabs({
     initialLinks,
     initialRows,
     initialSchoolClasses = [],
-    initialSchoolStudents = [],
-    initialSchoolResponsibles = [],
+    initialSchoolStudents = emptyPaginated<StudentRow>(),
+    initialSchoolResponsibles = emptyPaginated<ResponsibleRow>(),
     initialSchoolShifts = [],
     initialSchoolPickupAuthorizations = [],
-    initialSchoolVehicles = [],
+    initialSchoolVehicles = emptyPaginated<VehicleRow>(),
 }: ClientDetailTabsProps) {
     const isSchool = clientType === "school";
 

@@ -5,9 +5,15 @@ import { ClientDetailTabs } from "@/components/company/clientes/ClientDetailTabs
 import { PageHeader } from "@/components/shared/PageHeader";
 import { can } from "@/lib/permissions";
 import { apiFetchAuthed, parseResponseJson } from "@/lib/api-fetch";
+import {
+    buildSchoolListQuery,
+    emptyPaginated,
+    normalizePaginated,
+} from "@/lib/pagination";
 import type {
     ClientRegistrationListRow,
     ClientListRow,
+    PaginatedResponse,
     PickupAuthorizationRow,
     RegistrationLinkListRow,
     ResponsibleRow,
@@ -43,11 +49,12 @@ export default async function CompanyClientUsuariosPage({
     let links: RegistrationLinkListRow[] = [];
     let rows: ClientRegistrationListRow[] = [];
     let schoolClasses: SchoolClassRow[] = [];
-    let schoolStudents: StudentRow[] = [];
-    let schoolResponsibles: ResponsibleRow[] = [];
+    let schoolStudents: PaginatedResponse<StudentRow> = emptyPaginated();
+    let schoolResponsibles: PaginatedResponse<ResponsibleRow> =
+        emptyPaginated();
     let schoolShifts: ShiftRow[] = [];
     let schoolPickupAuthorizations: PickupAuthorizationRow[] = [];
-    let schoolVehicles: VehicleRow[] = [];
+    let schoolVehicles: PaginatedResponse<VehicleRow> = emptyPaginated();
 
     try {
         const clientRes = await apiFetchAuthed(`/api/clients/${clientId}`);
@@ -71,16 +78,23 @@ export default async function CompanyClientUsuariosPage({
         }
 
         if (clientMeta?.type === "school") {
+            const listQs = buildSchoolListQuery({ page: 1 });
             const [clsRes, stRes, prRes, shRes, pkRes, vhRes] =
                 await Promise.all([
                     apiFetchAuthed(`/api/clients/${clientId}/school-classes`),
-                    apiFetchAuthed(`/api/clients/${clientId}/students`),
-                    apiFetchAuthed(`/api/clients/${clientId}/responsibles`),
+                    apiFetchAuthed(
+                        `/api/clients/${clientId}/students?${listQs}`,
+                    ),
+                    apiFetchAuthed(
+                        `/api/clients/${clientId}/responsibles?${listQs}`,
+                    ),
                     apiFetchAuthed(`/api/clients/${clientId}/shifts`),
                     apiFetchAuthed(
                         `/api/clients/${clientId}/pickup-authorizations`,
                     ),
-                    apiFetchAuthed(`/api/clients/${clientId}/vehicles`),
+                    apiFetchAuthed(
+                        `/api/clients/${clientId}/vehicles?${listQs}`,
+                    ),
                 ]);
             if (clsRes.ok) {
                 schoolClasses = (await parseResponseJson(
@@ -88,14 +102,14 @@ export default async function CompanyClientUsuariosPage({
                 )) as SchoolClassRow[];
             }
             if (stRes.ok) {
-                schoolStudents = (await parseResponseJson(
-                    stRes,
-                )) as StudentRow[];
+                schoolStudents = normalizePaginated<StudentRow>(
+                    await parseResponseJson(stRes),
+                );
             }
             if (prRes.ok) {
-                schoolResponsibles = (await parseResponseJson(
-                    prRes,
-                )) as ResponsibleRow[];
+                schoolResponsibles = normalizePaginated<ResponsibleRow>(
+                    await parseResponseJson(prRes),
+                );
             }
             if (shRes.ok) {
                 schoolShifts = (await parseResponseJson(shRes)) as ShiftRow[];
@@ -110,22 +124,20 @@ export default async function CompanyClientUsuariosPage({
                 }
             }
             if (vhRes.ok) {
-                const parsed = (await parseResponseJson(vhRes)) as
-                    | VehicleRow[]
-                    | null;
-                schoolVehicles =
-                    parsed && Array.isArray(parsed) ? parsed : [];
+                schoolVehicles = normalizePaginated<VehicleRow>(
+                    await parseResponseJson(vhRes),
+                );
             }
         }
     } catch {
         links = [];
         rows = [];
         schoolClasses = [];
-        schoolStudents = [];
-        schoolResponsibles = [];
+        schoolStudents = emptyPaginated();
+        schoolResponsibles = emptyPaginated();
         schoolShifts = [];
         schoolPickupAuthorizations = [];
-        schoolVehicles = [];
+        schoolVehicles = emptyPaginated();
     }
 
     const clientName = clientMeta?.name ?? null;

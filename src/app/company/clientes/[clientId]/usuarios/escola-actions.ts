@@ -10,6 +10,11 @@ import {
     parseResponseJson,
 } from "@/lib/api-fetch";
 import {
+    buildSchoolListQuery,
+    normalizePaginated,
+    type SchoolListParams,
+} from "@/lib/pagination";
+import {
     createResponsibleSchema,
     createSchoolClassSchema,
     createStudentSchema,
@@ -20,8 +25,12 @@ import {
     updateStudentSchema,
 } from "@/lib/validations/school";
 import type {
+    PaginatedResponse,
     PickupAuthorizationRow,
+    ResponsibleRow,
     ResponsibleStudentLinkWithStudent,
+    StudentResponsibleLinkWithResponsible,
+    StudentRow,
 } from "@/types/domain";
 
 function zodFirstMessage(error: unknown): string {
@@ -39,6 +48,62 @@ function revalidateSchoolRoutes(clientId: string) {
 const ids = z.object({
     clientId: z.string().uuid(),
 });
+
+export async function listStudentsAction(
+    clientId: string,
+    params: SchoolListParams = {},
+): Promise<
+    | { success: true; result: PaginatedResponse<StudentRow> }
+    | { error: string }
+> {
+    try {
+        const c = ids.safeParse({ clientId });
+        if (!c.success) return { error: "Cliente inválido." };
+        const qs = buildSchoolListQuery(params);
+        const res = await apiFetchAuthed(
+            `/api/clients/${c.data.clientId}/students?${qs}`,
+        );
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { error: nestErrorMessage(data) };
+        }
+        const parsed = await parseResponseJson(res);
+        return {
+            success: true,
+            result: normalizePaginated<StudentRow>(parsed),
+        };
+    } catch {
+        return { error: "Sem permissão." };
+    }
+}
+
+export async function listResponsiblesAction(
+    clientId: string,
+    params: SchoolListParams = {},
+): Promise<
+    | { success: true; result: PaginatedResponse<ResponsibleRow> }
+    | { error: string }
+> {
+    try {
+        const c = ids.safeParse({ clientId });
+        if (!c.success) return { error: "Cliente inválido." };
+        const qs = buildSchoolListQuery(params);
+        const res = await apiFetchAuthed(
+            `/api/clients/${c.data.clientId}/responsibles?${qs}`,
+        );
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { error: nestErrorMessage(data) };
+        }
+        const parsed = await parseResponseJson(res);
+        return {
+            success: true,
+            result: normalizePaginated<ResponsibleRow>(parsed),
+        };
+    } catch {
+        return { error: "Sem permissão." };
+    }
+}
 
 export async function listResponsibleStudentLinksAction(
     clientId: string,
@@ -63,6 +128,50 @@ export async function listResponsibleStudentLinksAction(
         const items =
             (await parseResponseJson(res)) as ResponsibleStudentLinkWithStudent[];
         return { success: true, items: Array.isArray(items) ? items : [] };
+    } catch {
+        return { error: "Sem permissão." };
+    }
+}
+
+export async function getStudentByIdAction(
+    clientId: string,
+    studentId: string,
+): Promise<{ success: true; student: StudentRow } | { error: string }> {
+    try {
+        const c = ids.safeParse({ clientId });
+        const s = z.string().uuid().safeParse(studentId);
+        if (!c.success || !s.success) return { error: "Dados inválidos." };
+        const res = await apiFetchAuthed(
+            `/api/clients/${c.data.clientId}/students/${s.data}`,
+        );
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { error: nestErrorMessage(data) };
+        }
+        const student = (await parseResponseJson(res)) as StudentRow;
+        return { success: true, student };
+    } catch {
+        return { error: "Sem permissão." };
+    }
+}
+
+export async function getResponsibleByIdAction(
+    clientId: string,
+    responsibleId: string,
+): Promise<{ success: true; responsible: ResponsibleRow } | { error: string }> {
+    try {
+        const c = ids.safeParse({ clientId });
+        const p = z.string().uuid().safeParse(responsibleId);
+        if (!c.success || !p.success) return { error: "Dados inválidos." };
+        const res = await apiFetchAuthed(
+            `/api/clients/${c.data.clientId}/responsibles/${p.data}`,
+        );
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { error: nestErrorMessage(data) };
+        }
+        const responsible = (await parseResponseJson(res)) as ResponsibleRow;
+        return { success: true, responsible };
     } catch {
         return { error: "Sem permissão." };
     }
@@ -253,6 +362,7 @@ export async function updateResponsibleAction(
 
         if (
             d.name === undefined &&
+            d.email === undefined &&
             d.phone === undefined &&
             d.document === undefined &&
             d.password === undefined &&
@@ -348,6 +458,34 @@ export async function updateResponsibleStudentLinkAction(
 
         revalidateSchoolRoutes(clientId);
         return { success: true };
+    } catch {
+        return { error: "Sem permissão." };
+    }
+}
+
+export async function listStudentResponsiblesAction(
+    clientId: string,
+    studentId: string,
+): Promise<
+    | { success: true; items: StudentResponsibleLinkWithResponsible[] }
+    | { error: string }
+> {
+    try {
+        const c = ids.safeParse({ clientId });
+        const s = z.string().uuid().safeParse(studentId);
+        if (!c.success || !s.success) {
+            return { error: "Dados inválidos." };
+        }
+        const res = await apiFetchAuthed(
+            `/api/clients/${c.data.clientId}/students/${s.data}/responsibles`,
+        );
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { error: nestErrorMessage(data) };
+        }
+        const items =
+            (await parseResponseJson(res)) as StudentResponsibleLinkWithResponsible[];
+        return { success: true, items: Array.isArray(items) ? items : [] };
     } catch {
         return { error: "Sem permissão." };
     }
