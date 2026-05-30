@@ -42,15 +42,15 @@ export function SchoolTab({
     return (
         <div className="space-y-4">
             <p className="text-muted-foreground max-w-xl text-sm">
-                Cadastre turmas, turnos de acesso, alunos e responsáveis. Na
+                Cadastre horários de acesso, turmas, alunos e responsáveis. Na
                 aba Veículos, gerencie placas para LPR vinculadas aos
                 responsáveis. Os responsáveis podem usar o app conforme suas
                 permissões.
             </p>
-            <Tabs defaultValue="classes">
+            <Tabs defaultValue="shifts">
                 <TabsList className="h-auto w-full flex-wrap justify-start gap-1 md:w-fit">
+                    <TabsTrigger value="shifts">Horários</TabsTrigger>
                     <TabsTrigger value="classes">Turmas</TabsTrigger>
-                    <TabsTrigger value="shifts">Turnos</TabsTrigger>
                     <TabsTrigger value="students">Alunos</TabsTrigger>
                     <TabsTrigger value="parents">Responsáveis</TabsTrigger>
                     <TabsTrigger value="pickups">
@@ -58,17 +58,17 @@ export function SchoolTab({
                     </TabsTrigger>
                     <TabsTrigger value="vehicles">Veículos</TabsTrigger>
                 </TabsList>
+                <TabsContent value="shifts" className="pt-4">
+                    <ShiftsSection
+                        clientId={clientId}
+                        initialShifts={initialShifts}
+                    />
+                </TabsContent>
                 <TabsContent value="classes" className="pt-4">
                     <SchoolClassesSection
                         clientId={clientId}
                         initialClasses={initialClasses}
                         shifts={initialShifts}
-                    />
-                </TabsContent>
-                <TabsContent value="shifts" className="pt-4">
-                    <ShiftsSection
-                        clientId={clientId}
-                        initialShifts={initialShifts}
                     />
                 </TabsContent>
                 <TabsContent value="students" className="pt-4">

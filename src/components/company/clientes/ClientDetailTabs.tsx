@@ -44,28 +44,28 @@ export function ClientDetailTabs({
 }: ClientDetailTabsProps) {
     const isSchool = clientType === "school";
 
+    if (isSchool) {
+        return (
+            <SchoolTab
+                clientId={clientId}
+                initialClasses={initialSchoolClasses}
+                initialStudents={initialSchoolStudents}
+                initialResponsibles={initialSchoolResponsibles}
+                initialShifts={initialSchoolShifts}
+                initialPickupAuthorizations={initialSchoolPickupAuthorizations}
+                initialVehicles={initialSchoolVehicles}
+            />
+        );
+    }
+
     return (
-        <Tabs defaultValue="links">
+        <Tabs defaultValue="requests">
             <TabsList className="w-full justify-start md:w-fit">
-                <TabsTrigger value="links">Links de cadastro</TabsTrigger>
                 <TabsTrigger value="requests">
                     Solicitações recebidas
                 </TabsTrigger>
-                {isSchool ? (
-                    <TabsTrigger value="school">Escola</TabsTrigger>
-                ) : null}
+                <TabsTrigger value="links">Links de cadastro</TabsTrigger>
             </TabsList>
-
-            <TabsContent value="links" className="space-y-4">
-                <p className="text-muted-foreground text-sm">
-                    Gere links públicos e copie quando precisar. As solicitações
-                    ficam na aba &quot;Solicitações recebidas&quot;.
-                </p>
-                <CompanyClientRegistrationLinksPanel
-                    clientId={clientId}
-                    initialLinks={initialLinks}
-                />
-            </TabsContent>
 
             <TabsContent value="requests" className="space-y-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
@@ -81,21 +81,16 @@ export function ClientDetailTabs({
                 />
             </TabsContent>
 
-            {isSchool ? (
-                <TabsContent value="school" className="space-y-6">
-                    <SchoolTab
-                        clientId={clientId}
-                        initialClasses={initialSchoolClasses}
-                        initialStudents={initialSchoolStudents}
-                        initialResponsibles={initialSchoolResponsibles}
-                        initialShifts={initialSchoolShifts}
-                        initialPickupAuthorizations={
-                            initialSchoolPickupAuthorizations
-                        }
-                        initialVehicles={initialSchoolVehicles}
-                    />
-                </TabsContent>
-            ) : null}
+            <TabsContent value="links" className="space-y-4">
+                <p className="text-muted-foreground text-sm">
+                    Gere links públicos e copie quando precisar. As solicitações
+                    ficam na aba &quot;Solicitações recebidas&quot;.
+                </p>
+                <CompanyClientRegistrationLinksPanel
+                    clientId={clientId}
+                    initialLinks={initialLinks}
+                />
+            </TabsContent>
         </Tabs>
     );
 }

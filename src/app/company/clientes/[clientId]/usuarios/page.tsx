@@ -2,9 +2,7 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import { ClientDetailTabs } from "@/components/company/clientes/ClientDetailTabs";
-import { CompanyClientInvitePanel } from "@/components/company/clientes/CompanyClientInvitePanel";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { ClientSystemUsersTable } from "@/components/shared/ClientSystemUsersTable";
 import { can } from "@/lib/permissions";
 import { apiFetchAuthed, parseResponseJson } from "@/lib/api-fetch";
 import type {
@@ -50,14 +48,6 @@ export default async function CompanyClientUsuariosPage({
     let schoolShifts: ShiftRow[] = [];
     let schoolPickupAuthorizations: PickupAuthorizationRow[] = [];
     let schoolVehicles: VehicleRow[] = [];
-    let clientSystemUsers: {
-        clientUserId: string;
-        userId: string;
-        email: string;
-        name: string | null;
-        role: "client_admin" | "client_operator";
-        isActive: boolean;
-    }[] = [];
 
     try {
         const clientRes = await apiFetchAuthed(`/api/clients/${clientId}`);
@@ -78,16 +68,6 @@ export default async function CompanyClientUsuariosPage({
         }
         if (regRes.ok) {
             rows = (await parseResponseJson(regRes)) as ClientRegistrationListRow[];
-        }
-
-        const clientUsersRes = await apiFetchAuthed(
-            `/api/clients/${clientId}/client-users`,
-        );
-        if (clientUsersRes.ok) {
-            const data = (await parseResponseJson(clientUsersRes)) as {
-                users: typeof clientSystemUsers;
-            };
-            clientSystemUsers = data.users ?? [];
         }
 
         if (clientMeta?.type === "school") {
@@ -158,20 +138,12 @@ export default async function CompanyClientUsuariosPage({
                         ? `${clientName} — Gerenciar`
                         : "Gerenciar cliente"
                 }
-                description="Cadastro via link e solicitações. Escolas: turmas, turnos, alunos, responsáveis, veículos (LPR) e mais na aba Escola."
+                description={
+                    clientMeta?.type === "school"
+                        ? "Gerencie horários, turmas, alunos, responsáveis e veículos da escola."
+                        : "Cadastro via link e solicitações."
+                }
             />
-            <section className="space-y-4 rounded-lg border p-4">
-                <div className="space-y-1">
-                    <h2 className="text-lg font-semibold">
-                        Usuários do sistema
-                    </h2>
-                    <p className="text-sm text-muted-foreground">
-                        Convites para administradores e operadores deste cliente.
-                    </p>
-                </div>
-                <CompanyClientInvitePanel clientId={clientId} />
-                <ClientSystemUsersTable users={clientSystemUsers} />
-            </section>
             <ClientDetailTabs
                 clientId={clientId}
                 clientType={clientMeta?.type ?? "other"}
