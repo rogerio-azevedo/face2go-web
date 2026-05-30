@@ -2,16 +2,17 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm, type Resolver, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 
 import {
     createStudentAction,
+    listSchoolClassesAction,
     updateStudentAction,
 } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
-import type { StudentRow } from "@/types/domain";
+import type { SchoolClassRow, StudentRow } from "@/types/domain";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,8 +24,10 @@ import {
     SheetTitle,
 } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
+import { SearchableMultiSelect } from "@/components/ui/searchable-multi-select";
 import {
     createStudentSchema,
+    schoolClassTurnLabel,
     updateStudentSchema,
 } from "@/lib/validations/school";
 
@@ -33,6 +36,11 @@ type FormCreate = z.infer<typeof createStudentSchema>;
 function toDateInput(api: string | null | undefined): string {
     if (!api) return "";
     return typeof api === "string" ? api.slice(0, 10) : "";
+}
+
+function formatClassOptionLabel(row: SchoolClassRow) {
+    const turn = schoolClassTurnLabel(row);
+    return `${row.name} — ${turn} / ${row.year}`;
 }
 
 export function StudentForm({
@@ -51,6 +59,24 @@ export function StudentForm({
     onSuccess?: () => void;
 }) {
     const [busy, setBusy] = useState(false);
+    const [classOptions, setClassOptions] = useState<SchoolClassRow[]>([]);
+    const [classOptionsLoading, setClassOptionsLoading] = useState(false);
+    const [pickClassIds, setPickClassIds] = useState<string[]>([]);
+
+    const loadClassOptions = useCallback(async () => {
+        setClassOptionsLoading(true);
+        try {
+            const r = await listSchoolClassesAction(clientId);
+            if ("error" in r) {
+                toast.error(r.error);
+                setClassOptions([]);
+                return;
+            }
+            setClassOptions(r.items.filter((c) => c.isActive));
+        } finally {
+            setClassOptionsLoading(false);
+        }
+    }, [clientId]);
 
     const resolver = mode === "create" ? createStudentSchema : updateStudentSchema;
 
@@ -96,8 +122,21 @@ export function StudentForm({
     useEffect(() => {
         if (open) {
             form.reset(defaults as FormCreate);
+            setPickClassIds([]);
+            if (mode === "create") {
+                void loadClassOptions();
+            }
         }
-    }, [open, defaults, form]);
+    }, [open, defaults, form, mode, loadClassOptions]);
+
+    const classSelectOptions = useMemo(
+        () =>
+            classOptions.map((c) => ({
+                value: c.id,
+                label: formatClassOptionLabel(c),
+            })),
+        [classOptions],
+    );
 
     async function submit(values: FormCreate) {
         setBusy(true);
@@ -108,7 +147,10 @@ export function StudentForm({
                     toast.error(parsed.error.issues[0]?.message ?? "Erro.");
                     return;
                 }
-                const r = await createStudentAction(clientId, parsed.data);
+                const r = await createStudentAction(clientId, {
+                    ...parsed.data,
+                    ...(pickClassIds.length > 0 ? { classIds: pickClassIds } : {}),
+                });
                 if ("error" in r) {
                     toast.error(r.error);
                     return;
@@ -172,6 +214,27 @@ export function StudentForm({
                             </p>
                         ) : null}
                     </div>
+
+                    {mode === "create" ? (
+                        <div className="space-y-2">
+                            <Label htmlFor="st-class">Turmas (opcional)</Label>
+                            <SearchableMultiSelect
+                                id="st-class"
+                                options={classSelectOptions}
+                                value={pickClassIds}
+                                onChange={setPickClassIds}
+                                placeholder={
+                                    classOptionsLoading
+                                        ? "Carregando turmas..."
+                                        : classSelectOptions.length === 0
+                                          ? "Nenhuma turma disponível"
+                                          : "Selecionar turmas..."
+                                }
+                                isDisabled={busy || classOptionsLoading}
+                                noOptionsMessage="Nenhuma turma encontrada"
+                            />
+                        </div>
+                    ) : null}
 
                     {mode === "edit" && activeClasses.length > 0 ? (
                         <div className="space-y-2">

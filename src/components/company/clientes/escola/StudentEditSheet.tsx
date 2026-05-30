@@ -22,6 +22,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { updateStudentSchema } from "@/lib/validations/school";
 
+import { StudentLinkedClassesPanel } from "./StudentLinkedClassesPanel";
 import { StudentLinkedResponsiblesPanel } from "./StudentLinkedResponsiblesPanel";
 
 type FormEdit = z.infer<typeof updateStudentSchema>;
@@ -82,11 +83,6 @@ export function StudentEditSheet({
         defaultValue: defaults.isActive === false ? false : true,
     });
 
-    const activeClasses = useMemo(
-        () => (student?.classes ?? []).filter((c) => c.isActive),
-        [student],
-    );
-
     useEffect(() => {
         if (open && student) {
             form.reset(defaults as FormEdit);
@@ -128,72 +124,65 @@ export function StudentEditSheet({
                 </SheetHeader>
 
                 <div className="grid flex-1 grid-cols-1 gap-6 overflow-y-auto px-6 py-6 lg:grid-cols-[2fr_3fr]">
-                    <form
-                        className="flex min-w-0 flex-col gap-4"
-                        onSubmit={form.handleSubmit(submit)}
-                    >
-                        <h3 className="text-sm font-medium">Dados cadastrais</h3>
-                        <div className="space-y-2">
-                            <Label htmlFor="st-name">Nome</Label>
-                            <Input id="st-name" {...form.register("name")} />
-                            {form.formState.errors.name ? (
-                                <p className="text-destructive text-xs">
-                                    {form.formState.errors.name.message}
-                                </p>
-                            ) : null}
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="st-enrollment">Matrícula</Label>
-                            <Input
-                                id="st-enrollment"
-                                {...form.register("enrollment")}
-                                disabled
-                            />
-                        </div>
-
-                        {activeClasses.length > 0 ? (
+                    <div className="flex min-w-0 flex-col gap-6">
+                        <form
+                            id="student-edit-form"
+                            className="flex flex-col gap-4"
+                            onSubmit={form.handleSubmit(submit)}
+                        >
+                            <h3 className="text-sm font-medium">Dados cadastrais</h3>
                             <div className="space-y-2">
-                                <Label>Turmas (integração IENH)</Label>
-                                <ul className="text-muted-foreground list-inside list-disc text-sm">
-                                    {activeClasses.map((c) => (
-                                        <li key={c.id}>
-                                            {c.className} ({c.year})
-                                        </li>
-                                    ))}
-                                </ul>
-                                <p className="text-muted-foreground text-xs">
-                                    Vínculos com turmas são atualizados pela
-                                    sincronização IENH.
-                                </p>
+                                <Label htmlFor="st-name">Nome</Label>
+                                <Input id="st-name" {...form.register("name")} />
+                                {form.formState.errors.name ? (
+                                    <p className="text-destructive text-xs">
+                                        {form.formState.errors.name.message}
+                                    </p>
+                                ) : null}
                             </div>
-                        ) : null}
 
-                        <div className="space-y-2">
-                            <Label htmlFor="st-doc">Documento (opcional)</Label>
-                            <Input id="st-doc" {...form.register("document")} />
-                        </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="st-enrollment">Matrícula</Label>
+                                <Input
+                                    id="st-enrollment"
+                                    {...form.register("enrollment")}
+                                    disabled
+                                />
+                            </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="st-birth">
-                                Data de nascimento (opcional)
-                            </Label>
-                            <Input
-                                id="st-birth"
-                                type="date"
-                                {...form.register("birthDate")}
-                            />
-                        </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="st-doc">Documento (opcional)</Label>
+                                <Input id="st-doc" {...form.register("document")} />
+                            </div>
 
-                        <div className="flex items-center gap-2">
-                            <Switch
-                                checked={studentIsActiveToggle !== false}
-                                onCheckedChange={(v) =>
-                                    form.setValue("isActive", v === true)
-                                }
-                            />
-                            <Label>Aluno ativo</Label>
-                        </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="st-birth">
+                                    Data de nascimento (opcional)
+                                </Label>
+                                <Input
+                                    id="st-birth"
+                                    type="date"
+                                    {...form.register("birthDate")}
+                                />
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <Switch
+                                    checked={studentIsActiveToggle !== false}
+                                    onCheckedChange={(v) =>
+                                        form.setValue("isActive", v === true)
+                                    }
+                                />
+                                <Label>Aluno ativo</Label>
+                            </div>
+                        </form>
+
+                        <StudentLinkedClassesPanel
+                            clientId={clientId}
+                            student={student}
+                            active={open}
+                            onChanged={onLinksChanged}
+                        />
 
                         <SheetFooter className="mt-auto flex-row gap-2 px-0 sm:justify-end">
                             <Button
@@ -203,7 +192,7 @@ export function StudentEditSheet({
                             >
                                 Cancelar
                             </Button>
-                            <Button type="submit" disabled={busy}>
+                            <Button type="submit" form="student-edit-form" disabled={busy}>
                                 {busy ? (
                                     <Loader2 className="size-4 animate-spin" />
                                 ) : (
@@ -211,7 +200,7 @@ export function StudentEditSheet({
                                 )}
                             </Button>
                         </SheetFooter>
-                    </form>
+                    </div>
 
                     <div className="min-w-0">
                         <StudentLinkedResponsiblesPanel

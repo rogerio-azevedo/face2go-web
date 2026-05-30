@@ -103,6 +103,7 @@ export const createStudentSchema = z.object({
         .transform((v) => (v === "" ? undefined : v)),
     accessSchedule: accessScheduleSchema,
     isActive: z.boolean().optional().default(true),
+    classIds: z.array(z.string().uuid("Turma inválida.")).optional(),
 });
 
 export const updateStudentSchema = createStudentSchema.partial();
@@ -179,6 +180,10 @@ export const linkResponsibleStudentSchema = z.object({
     studentId: z.string().uuid(),
     relationshipType: responsibleRelationshipSchema,
     isAuthorizedPickup: z.boolean().optional().default(true),
+});
+
+export const linkStudentClassSchema = z.object({
+    classId: z.string().uuid("Turma inválida."),
 });
 
 /** PATCH vínculo (espelho do servidor — ao menos um campo no cliente ao salvar edição). */

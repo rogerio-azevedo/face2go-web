@@ -19,6 +19,7 @@ import {
     createSchoolClassSchema,
     createStudentSchema,
     linkResponsibleStudentSchema,
+    linkStudentClassSchema,
     updateResponsibleSchema,
     updateResponsibleStudentLinkSchema,
     updateSchoolClassSchema,
@@ -29,6 +30,7 @@ import type {
     PickupAuthorizationRow,
     ResponsibleRow,
     ResponsibleStudentLinkWithStudent,
+    SchoolClassRow,
     StudentResponsibleLinkWithResponsible,
     StudentRow,
 } from "@/types/domain";
@@ -172,6 +174,91 @@ export async function getResponsibleByIdAction(
         }
         const responsible = (await parseResponseJson(res)) as ResponsibleRow;
         return { success: true, responsible };
+    } catch {
+        return { error: "Sem permissão." };
+    }
+}
+
+export async function listSchoolClassesAction(
+    clientId: string,
+): Promise<
+    | { success: true; items: SchoolClassRow[] }
+    | { error: string }
+> {
+    try {
+        const c = ids.safeParse({ clientId });
+        if (!c.success) return { error: "Cliente inválido." };
+        const res = await apiFetchAuthed(
+            `/api/clients/${c.data.clientId}/school-classes`,
+        );
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { error: nestErrorMessage(data) };
+        }
+        const items = (await parseResponseJson(res)) as SchoolClassRow[];
+        return { success: true, items: Array.isArray(items) ? items : [] };
+    } catch {
+        return { error: "Sem permissão." };
+    }
+}
+
+export async function linkStudentClassAction(
+    clientId: string,
+    studentId: string,
+    input: unknown,
+): Promise<{ success: true } | { error: string }> {
+    try {
+        const cid = ids.safeParse({ clientId });
+        const sid = z.string().uuid().safeParse(studentId);
+        if (!cid.success || !sid.success) {
+            return { error: "Dados inválidos." };
+        }
+
+        const parsed = linkStudentClassSchema.safeParse(input);
+        if (!parsed.success) {
+            return { error: zodFirstMessage(parsed.error) };
+        }
+
+        const res = await apiFetchAuthed(
+            `/api/clients/${clientId}/students/${studentId}/classes`,
+            { method: "POST", body: JSON.stringify(parsed.data) },
+        );
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { error: nestErrorMessage(data) };
+        }
+
+        revalidateSchoolRoutes(clientId);
+        return { success: true };
+    } catch {
+        return { error: "Sem permissão." };
+    }
+}
+
+export async function unlinkStudentClassAction(
+    clientId: string,
+    studentId: string,
+    classId: string,
+): Promise<{ success: true } | { error: string }> {
+    try {
+        const cid = ids.safeParse({ clientId });
+        const sid = z.string().uuid().safeParse(studentId);
+        const cid2 = z.string().uuid().safeParse(classId);
+        if (!cid.success || !sid.success || !cid2.success) {
+            return { error: "Dados inválidos." };
+        }
+
+        const res = await apiFetchAuthed(
+            `/api/clients/${clientId}/students/${studentId}/classes/${classId}`,
+            { method: "DELETE" },
+        );
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { error: nestErrorMessage(data) };
+        }
+
+        revalidateSchoolRoutes(clientId);
+        return { success: true };
     } catch {
         return { error: "Sem permissão." };
     }
