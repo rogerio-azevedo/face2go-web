@@ -117,40 +117,37 @@ export function StudentsSection({
 
     return (
         <>
-            <div className="mb-2 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
-                <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-                    <div className="flex w-full flex-col gap-2 sm:w-auto">
-                        <Label htmlFor="filter-class" className="text-muted-foreground">
-                            Filtrar por turma
-                        </Label>
-                        <select
-                            id="filter-class"
-                            className="border-input bg-background ring-offset-background focus-visible:ring-ring h-10 w-full min-w-[200px] rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none sm:w-72"
-                            value={filterClassId}
-                            disabled={tableBusy}
-                            onChange={(e) => onClassFilterChange(e.target.value)}
-                        >
-                            <option value="">Todas</option>
-                            {classes.map((c) => (
-                                <option key={c.id} value={c.id}>
-                                    {c.name} — {schoolClassTurnLabel(c)} / {c.year}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <SearchInput
-                        id="search-students"
-                        value={search}
-                        onValueChange={onSearchChange}
-                        placeholder="Buscar por nome…"
+            <div className="mb-2 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+                <div className="flex w-full flex-col gap-2 sm:w-auto">
+                    <Label htmlFor="filter-class" className="text-muted-foreground">
+                        Filtrar por turma
+                    </Label>
+                    <select
+                        id="filter-class"
+                        className="border-input bg-background ring-offset-background focus-visible:ring-ring h-10 w-full min-w-[200px] rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none sm:w-72"
+                        value={filterClassId}
                         disabled={tableBusy}
-                        className="sm:flex-1"
-                    />
+                        onChange={(e) => onClassFilterChange(e.target.value)}
+                    >
+                        <option value="">Todas</option>
+                        {classes.map((c) => (
+                            <option key={c.id} value={c.id}>
+                                {c.name} — {schoolClassTurnLabel(c)} / {c.year}
+                            </option>
+                        ))}
+                    </select>
                 </div>
+                <SearchInput
+                    id="search-students"
+                    value={search}
+                    onValueChange={onSearchChange}
+                    placeholder="Buscar por nome…"
+                    disabled={tableBusy}
+                    className="sm:flex-1"
+                />
                 <Button
                     type="button"
                     size="default"
-                    className="self-end"
                     onClick={() => setCreateOpen(true)}
                 >
                     Novo aluno

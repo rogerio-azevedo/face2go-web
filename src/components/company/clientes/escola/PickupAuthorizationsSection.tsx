@@ -159,10 +159,6 @@ export function PickupAuthorizationsSection({
             <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                     <p className="font-medium">Autorizações temporárias de retirada</p>
-                    <p className="text-muted-foreground text-sm max-w-2xl">
-                        Criadas pelos responsáveis no app. A portaria pode marcar
-                        como utilizadas; a escola pode cancelar.
-                    </p>
                 </div>
                 <Button
                     type="button"
@@ -204,23 +200,23 @@ export function PickupAuthorizationsSection({
                                 );
                                 const picker = row.authorizedResponsibleId
                                     ? responsibleById.get(
-                                          row.authorizedResponsibleId,
-                                      )?.name ??
-                                      `Responsável ${row.authorizedResponsibleId.slice(
-                                          0,
-                                          8,
-                                      )}…`
+                                        row.authorizedResponsibleId,
+                                    )?.name ??
+                                    `Responsável ${row.authorizedResponsibleId.slice(
+                                        0,
+                                        8,
+                                    )}…`
                                     : [
-                                          row.guestName,
-                                          row.guestDocument,
-                                          row.guestPhone,
-                                      ]
-                                          .filter(
-                                              (p): p is string =>
-                                                  typeof p === "string" &&
-                                                  p.trim().length > 0,
-                                          )
-                                          .join(" · ");
+                                        row.guestName,
+                                        row.guestDocument,
+                                        row.guestPhone,
+                                    ]
+                                        .filter(
+                                            (p): p is string =>
+                                                typeof p === "string" &&
+                                                p.trim().length > 0,
+                                        )
+                                        .join(" · ");
 
                                 const canAct = row.effectiveStatus === "active";
 

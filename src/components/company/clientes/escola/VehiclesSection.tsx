@@ -119,10 +119,6 @@ export function VehiclesSection({
     return (
         <>
             <div className="mb-4 space-y-4">
-                <p className="text-muted-foreground max-w-xl text-sm">
-                    Veículos cadastrados para liberação por placa (LPR). Cadastre
-                    a placa vinculada ao condutor (responsável).
-                </p>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
                     <SearchInput
                         id="search-vehicles"
