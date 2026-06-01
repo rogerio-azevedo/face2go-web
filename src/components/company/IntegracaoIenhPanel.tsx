@@ -64,6 +64,12 @@ type IenhSseEvt =
           studentsUpdated: number;
       }
     | { type: "deactivate_start" }
+    | {
+          type: "deactivate_progress";
+          processed: number;
+          total: number;
+      }
+    | { type: "heartbeat" }
     | { type: "done"; result: IenhSyncResult }
     | { type: "error"; message: string };
 
@@ -184,6 +190,13 @@ export function IntegracaoIenhPanel({
                             break;
                         case "deactivate_start":
                             appendLine("Desativando alunos ausentes no ERP…");
+                            break;
+                        case "deactivate_progress":
+                            appendLine(
+                                `  Limpeza ${d.processed}/${d.total} aluno(s)…`,
+                            );
+                            break;
+                        case "heartbeat":
                             break;
                         case "done": {
                             setSyncResult(d.result);
@@ -489,6 +502,10 @@ export function IntegracaoIenhPanel({
                                     {syncResult.classLinksDeduped}
                                 </Badge>
                             ) : null}
+                            <Badge variant="secondary">
+                                Contas de login criadas:{" "}
+                                {syncResult.accountsCreated ?? 0}
+                            </Badge>
                             <Badge variant="secondary">
                                 Vínculos responsável: {syncResult.linksCreated}
                             </Badge>

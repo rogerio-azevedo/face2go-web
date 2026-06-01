@@ -176,6 +176,29 @@ export const updateResponsibleSchema = z.object({
     isActive: z.boolean().optional(),
 });
 
+/** Validação de edição quando o responsável ainda não tem conta de login. */
+export function updateResponsibleSchemaForEdit(hasAccount: boolean) {
+    return updateResponsibleSchema.superRefine((data, ctx) => {
+        if (hasAccount) return;
+        const hasEmail = Boolean(data.email?.trim());
+        const hasPassword = Boolean(data.password?.trim());
+        if (hasEmail && !hasPassword) {
+            ctx.addIssue({
+                code: "custom",
+                message: "Informe a senha para criar a conta de login.",
+                path: ["password"],
+            });
+        }
+        if (hasPassword && !hasEmail) {
+            ctx.addIssue({
+                code: "custom",
+                message: "Informe o e-mail para criar a conta de login.",
+                path: ["email"],
+            });
+        }
+    });
+}
+
 export const linkResponsibleStudentSchema = z.object({
     studentId: z.string().uuid(),
     relationshipType: responsibleRelationshipSchema,

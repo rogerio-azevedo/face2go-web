@@ -20,11 +20,11 @@ import {
     SheetTitle,
 } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
-import { updateResponsibleSchema } from "@/lib/validations/school";
+import { updateResponsibleSchemaForEdit } from "@/lib/validations/school";
 
 import { ParentLinkedStudentsPanel } from "./ParentLinkedStudentsPanel";
 
-type EditVals = z.infer<typeof updateResponsibleSchema>;
+type EditVals = z.infer<ReturnType<typeof updateResponsibleSchemaForEdit>>;
 
 export function ParentEditSheet({
     open,
@@ -42,6 +42,13 @@ export function ParentEditSheet({
     onLinksChanged?: () => void;
 }) {
     const [busy, setBusy] = useState(false);
+
+    const hasAccount = Boolean(parent?.userId);
+
+    const editSchema = useMemo(
+        () => updateResponsibleSchemaForEdit(hasAccount),
+        [hasAccount],
+    );
 
     const editFormDefaults = useMemo((): EditVals => {
         if (!parent) {
@@ -65,9 +72,7 @@ export function ParentEditSheet({
     }, [parent]);
 
     const editForm = useForm<EditVals>({
-        resolver: zodResolver(
-            updateResponsibleSchema,
-        ) as Resolver<EditVals>,
+        resolver: zodResolver(editSchema) as Resolver<EditVals>,
         defaultValues: editFormDefaults,
     });
 
@@ -83,7 +88,7 @@ export function ParentEditSheet({
     useEffect(() => {
         if (!open || !parent) return;
         editForm.reset(editFormDefaults);
-    }, [open, parent, editForm, editFormDefaults]);
+    }, [open, parent, editForm, editFormDefaults, editSchema]);
 
     async function submitEdit(vals: EditVals) {
         setBusy(true);
@@ -116,14 +121,15 @@ export function ParentEditSheet({
 
                 <div className="grid flex-1 grid-cols-1 gap-6 overflow-y-auto px-6 py-6 lg:grid-cols-[2fr_3fr]">
                     <form
+                        key={`${parent.id}-${parent.userId ?? "no-account"}`}
                         className="flex min-w-0 flex-col gap-4"
                         onSubmit={editForm.handleSubmit(submitEdit)}
                     >
                         <h3 className="text-sm font-medium">Dados cadastrais</h3>
                         {!parent.userId ? (
                             <p className="text-muted-foreground rounded-md border border-dashed px-3 py-2 text-sm">
-                                Sem conta de login. Cadastre e-mail e senha na
-                                criação ou vincule um usuário no sistema.
+                                Informe e-mail e senha para criar uma conta de
+                                acesso ao app.
                             </p>
                         ) : (
                             <p className="text-muted-foreground text-sm">
@@ -144,19 +150,19 @@ export function ParentEditSheet({
                                 id="ep-email"
                                 type="email"
                                 autoComplete="off"
-                                disabled={!parent.userId}
                                 {...editForm.register("email")}
                             />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="ep-pw">
-                                Nova senha (opcional, mín. 8 caracteres)
+                                {parent.userId
+                                    ? "Nova senha (opcional, mín. 8 caracteres)"
+                                    : "Senha (mín. 8 caracteres)"}
                             </Label>
                             <Input
                                 id="ep-pw"
                                 type="password"
                                 autoComplete="new-password"
-                                disabled={!parent.userId}
                                 {...editForm.register("password")}
                             />
                         </div>
