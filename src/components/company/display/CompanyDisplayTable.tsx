@@ -1,10 +1,11 @@
 'use client';
 
-import { MonitorPlay } from 'lucide-react';
+import { MonitorPlay, Settings2 } from 'lucide-react';
 import { useState } from 'react';
 
 import type { ClientListRow } from '@/types/domain';
 import { ClientTvDisplaySheet } from '@/components/company/clientes/ClientTvDisplaySheet';
+import { DisplayDeviceConfigSheet } from '@/components/company/display/DisplayDeviceConfigSheet';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,6 +27,7 @@ export function CompanyDisplayTable({
     clients: ClientListRow[];
 }) {
     const [tvClient, setTvClient] = useState<ClientListRow | null>(null);
+    const [configClient, setConfigClient] = useState<ClientListRow | null>(null);
 
     return (
         <>
@@ -69,19 +71,36 @@ export function CompanyDisplayTable({
                                         ] ?? row.type}
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            className="gap-1.5"
-                                            onClick={() => setTvClient(row)}
-                                        >
-                                            <MonitorPlay
-                                                className="size-4 shrink-0"
-                                                aria-hidden
-                                            />
-                                            Abrir URL
-                                        </Button>
+                                        <div className="flex flex-wrap justify-end gap-2">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="gap-1.5"
+                                                onClick={() =>
+                                                    setConfigClient(row)
+                                                }
+                                            >
+                                                <Settings2
+                                                    className="size-4 shrink-0"
+                                                    aria-hidden
+                                                />
+                                                Configurar
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="gap-1.5"
+                                                onClick={() => setTvClient(row)}
+                                            >
+                                                <MonitorPlay
+                                                    className="size-4 shrink-0"
+                                                    aria-hidden
+                                                />
+                                                Abrir URL
+                                            </Button>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -99,6 +118,18 @@ export function CompanyDisplayTable({
                 open={tvClient !== null}
                 onOpenChange={(o) => {
                     if (!o) setTvClient(null);
+                }}
+            />
+
+            <DisplayDeviceConfigSheet
+                client={
+                    configClient
+                        ? { id: configClient.id, name: configClient.name }
+                        : null
+                }
+                open={configClient !== null}
+                onOpenChange={(o) => {
+                    if (!o) setConfigClient(null);
                 }}
             />
         </>

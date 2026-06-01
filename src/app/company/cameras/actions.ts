@@ -60,6 +60,7 @@ function buildNestCreateCameraBody(
     if (d.location) body.location = d.location;
     if (d.deviceId !== undefined && d.deviceId !== null && d.deviceId !== '')
         body.deviceId = d.deviceId;
+    if (d.direction) body.direction = d.direction;
 
     const u = d.username.trim();
     if (u) body.username = u;
@@ -136,6 +137,7 @@ export async function updateCameraAction(
             d.model === undefined &&
             d.location === undefined &&
             d.deviceId === undefined &&
+            d.direction === undefined &&
             d.isActive === undefined &&
             d.username === undefined &&
             d.password === undefined
@@ -155,6 +157,7 @@ export async function updateCameraAction(
         if (d.model !== undefined) body.model = d.model;
         if (d.location !== undefined) body.location = d.location;
         if (d.deviceId !== undefined) body.deviceId = d.deviceId;
+        if (d.direction !== undefined) body.direction = d.direction;
         if (d.isActive !== undefined) body.isActive = d.isActive;
         if (d.username !== undefined) {
             body.username =

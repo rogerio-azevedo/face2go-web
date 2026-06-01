@@ -30,7 +30,9 @@ import {
 import {
     CAMERA_BRAND_LABELS,
     CAMERA_TYPE_LABELS,
+    CAMERA_DIRECTION_LABELS,
     type CameraBrandSlug,
+    type CameraDirectionSlug,
     type CameraTypeSlug,
 } from "@/lib/validations/cameras";
 
@@ -204,7 +206,7 @@ export function CamerasTable({
         });
     }
 
-    const colSpan = canManage ? 10 : 9;
+    const colSpan = canManage ? 11 : 10;
 
     return (
         <>
@@ -265,6 +267,7 @@ export function CamerasTable({
                             <TableHead>Cliente</TableHead>
                             <TableHead>Nome</TableHead>
                             <TableHead>Tipo</TableHead>
+                            <TableHead>Sentido</TableHead>
                             <TableHead>Marca</TableHead>
                             <TableHead>Endereço</TableHead>
                             <TableHead>Stream</TableHead>
@@ -303,6 +306,28 @@ export function CamerasTable({
                                                 row.type as CameraTypeSlug
                                             ] ?? row.type}
                                         </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        {row.type === "lpr" && row.direction ? (
+                                            <Badge variant="outline">
+                                                {
+                                                    CAMERA_DIRECTION_LABELS[
+                                                        row.direction as CameraDirectionSlug
+                                                    ]
+                                                }
+                                            </Badge>
+                                        ) : (
+                                            <span
+                                                className="text-muted-foreground text-sm"
+                                                title={
+                                                    row.type === "lpr"
+                                                        ? "Defina no formulário de edição"
+                                                        : undefined
+                                                }
+                                            >
+                                                —
+                                            </span>
+                                        )}
                                     </TableCell>
                                     <TableCell>
                                         <Badge variant="outline">

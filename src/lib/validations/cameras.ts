@@ -43,10 +43,19 @@ export const CAMERA_BRAND_LABELS: Record<CameraBrandSlug, string> = {
     intelbras: "Intelbras",
 };
 
+export const CAMERA_DIRECTIONS = ["in", "out"] as const;
+export type CameraDirectionSlug = (typeof CAMERA_DIRECTIONS)[number];
+
+export const CAMERA_DIRECTION_LABELS: Record<CameraDirectionSlug, string> = {
+    in: "Entrada",
+    out: "Saída",
+};
+
 /** Objeto base — permite `.partial()` no PATCH. */
 const cameraFields = z.object({
     clientId: z.string().uuid("Cliente inválido."),
     type: z.enum(CAMERA_TYPES, { message: "Tipo inválido." }),
+    direction: z.union([z.literal(""), z.enum(CAMERA_DIRECTIONS)]),
     brand: z.enum(CAMERA_BRANDS, { message: "Marca inválida." }),
     name: z
         .string()
@@ -100,10 +109,32 @@ export const cameraFormSchema = cameraFields.refine(
     },
 );
 
-export type CameraFormPayload = z.infer<typeof cameraFormSchema>;
+export type CameraFormPayload = {
+    clientId: string;
+    type: CameraTypeSlug;
+    direction: "" | CameraDirectionSlug;
+    brand: CameraBrandSlug;
+    name: string;
+    description?: string;
+    ip: string;
+    port: number;
+    serialNumber?: string;
+    model?: string;
+    location?: string;
+    deviceId?: string;
+    username: string;
+    password: string;
+    isActive: boolean;
+};
+
+const cameraCreateApiFields = cameraFields
+    .omit({ direction: true })
+    .extend({
+        direction: z.enum(CAMERA_DIRECTIONS).optional(),
+    });
 
 /** POST na API Nest. */
-export const createCameraSchema = cameraFields
+export const createCameraSchema = cameraCreateApiFields
     .refine((d) => passwordLengthOk(d.password), {
         message: "Senha deve ter entre 4 e 256 caracteres",
         path: ["password"],
@@ -120,4 +151,8 @@ export const createCameraSchema = cameraFields
     );
 
 /** PATCH — body parcial válido antes do envio. */
-export const updateCameraSchema = cameraFields.partial();
+export const updateCameraSchema = cameraFields
+    .partial()
+    .extend({
+        direction: z.enum(CAMERA_DIRECTIONS).nullable().optional(),
+    });

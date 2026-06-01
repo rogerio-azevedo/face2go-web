@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from 'react';
 
-import type { ArrivalSseArrivalPayload } from '@/components/arrivals/arrival-types';
+import type {
+    ArrivalSseArrivalPayload,
+    ArrivalSseDequeuePayload,
+} from '@/components/arrivals/arrival-types';
 import { getApiBaseUrl } from '@/lib/api-fetch';
 
 export const MAX_ARRIVALS = 100;
@@ -59,6 +62,18 @@ export function useArrivalStream(params: { clientId: string; token: string }) {
                     const data = JSON.parse(ev.data as string) as {
                         type?: string;
                     };
+                    if (data?.type === 'dequeue') {
+                        const evt = data as ArrivalSseDequeuePayload;
+                        if (typeof evt.responsibleId !== 'string') {
+                            return;
+                        }
+                        setArrivals((prev) =>
+                            prev.filter(
+                                (a) => a.responsibleId !== evt.responsibleId,
+                            ),
+                        );
+                        return;
+                    }
                     if (data?.type === 'arrival') {
                         const raw = data as ArrivalSseArrivalPayload;
                         /** Display só lista responsáveis — acesso facial do aluno não entra na fila. */
@@ -67,6 +82,7 @@ export function useArrivalStream(params: { clientId: string; token: string }) {
                         }
                         const evt: ArrivalSseArrivalPayload = {
                             ...raw,
+                            responsibleId: raw.responsibleId ?? null,
                             vehiclePlate: raw.vehiclePlate ?? null,
                             students: (raw.students ?? []).map((s) => ({
                                 name: s.name,

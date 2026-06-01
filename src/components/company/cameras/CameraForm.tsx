@@ -29,6 +29,8 @@ import {
     CAMERA_BRAND_LABELS,
     CAMERA_TYPES,
     CAMERA_TYPE_LABELS,
+    CAMERA_DIRECTIONS,
+    CAMERA_DIRECTION_LABELS,
     cameraFormSchema,
     type CameraFormPayload,
 } from "@/lib/validations/cameras";
@@ -40,6 +42,30 @@ const controlClass =
     "shadow-sm aria-invalid:border-destructive aria-invalid:ring-destructive/25 sm:h-10";
 const hintClass =
     "font-normal lowercase normal-case tracking-normal text-muted-foreground";
+
+function toCreateApiBody(data: CameraFormPayload) {
+    const body: Record<string, unknown> = {
+        clientId: data.clientId,
+        type: data.type,
+        brand: data.brand,
+        name: data.name,
+        description: data.description,
+        ip: data.ip,
+        port: data.port,
+        serialNumber: data.serialNumber,
+        model: data.model,
+        location: data.location,
+        deviceId: data.deviceId,
+        isActive: data.isActive,
+    };
+    if (data.type === "lpr" && data.direction !== "") {
+        body.direction = data.direction;
+    }
+    const u = data.username.trim();
+    if (u) body.username = u;
+    if (data.password.length > 0) body.password = data.password;
+    return body;
+}
 
 function toUpdateCameraPayload(
     data: CameraFormPayload,
@@ -59,6 +85,11 @@ function toUpdateCameraPayload(
         isActive: data.isActive,
         username: data.username.trim() ? data.username.trim() : null,
     };
+    if (data.type === "lpr") {
+        body.direction = data.direction === "" ? null : data.direction;
+    } else {
+        body.direction = null;
+    }
     if (data.password.length > 0) body.password = data.password;
     return body;
 }
@@ -88,6 +119,7 @@ export function CameraForm({
         () => ({
             clientId: defaultClientId,
             type: "lpr",
+            direction: "",
             brand: "intelbras",
             name: "",
             description: undefined,
@@ -114,6 +146,7 @@ export function CameraForm({
             return {
                 clientId: camera.clientId,
                 type: camera.type,
+                direction: camera.direction ?? "",
                 brand,
                 name: camera.name,
                 description: camera.description ?? undefined,
@@ -141,8 +174,11 @@ export function CameraForm({
         handleSubmit,
         control,
         reset,
+        watch,
         formState: { errors },
     } = form;
+
+    const cameraType = watch("type");
 
     useEffect(() => {
         if (open) {
@@ -155,7 +191,7 @@ export function CameraForm({
         setIsSubmitting(true);
         try {
             if (mode === "create") {
-                const result = await createCameraAction(data);
+                const result = await createCameraAction(toCreateApiBody(data));
                 if ("error" in result) {
                     toast.error(result.error);
                     return;
@@ -314,6 +350,43 @@ export function CameraForm({
                                     ) : null}
                                 </div>
                             </div>
+
+                            {cameraType === "lpr" ? (
+                                <div className="min-w-0 space-y-2">
+                                    <Label
+                                        htmlFor="camera-direction"
+                                        className={fieldLabel}
+                                    >
+                                        Sentido{" "}
+                                        <span className={hintClass}>
+                                            (opcional)
+                                        </span>
+                                    </Label>
+                                    <select
+                                        id="camera-direction"
+                                        className={cn(
+                                            "border-input bg-card text-foreground flex h-10 w-full rounded-md border px-3 py-2 text-sm shadow-sm",
+                                            "focus-visible:border-ring outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50",
+                                            errors.direction &&
+                                                "border-destructive ring-2 ring-destructive/20",
+                                        )}
+                                        aria-invalid={!!errors.direction}
+                                        {...register("direction")}
+                                    >
+                                        <option value="">Não definido</option>
+                                        {CAMERA_DIRECTIONS.map((dir) => (
+                                            <option key={dir} value={dir}>
+                                                {CAMERA_DIRECTION_LABELS[dir]}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    {errors.direction ? (
+                                        <p className="text-destructive text-xs">
+                                            {errors.direction.message}
+                                        </p>
+                                    ) : null}
+                                </div>
+                            ) : null}
 
                             <div className="min-w-0 space-y-2">
                                 <Label

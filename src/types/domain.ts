@@ -100,11 +100,14 @@ export type ReaderListRow = {
 /** Câmera LPR/PTZ (área empresa) — JSON `GET /api/cameras`. */
 export type CameraType = 'lpr' | 'ptz' | 'general';
 
+export type CameraDirection = 'in' | 'out';
+
 export type CameraListRow = {
     id: string;
     clientId: string;
     clientName: string;
     type: CameraType;
+    direction: CameraDirection | null;
     brand: string;
     name: string;
     description: string | null;

@@ -6,6 +6,7 @@ export type ArrivalSseArrivalPayload = {
     type: 'arrival';
     kind: 'responsible' | 'student';
     accessId: string;
+    responsibleId: string | null;
     personName: string | null;
     personPhotoUrl: string | null;
     readerName: string;
@@ -16,6 +17,11 @@ export type ArrivalSseArrivalPayload = {
         photoUrl: string | null;
         className: string | null;
     }[];
+};
+
+export type ArrivalSseDequeuePayload = {
+    type: 'dequeue';
+    responsibleId: string;
 };
 
 export type ArrivalSseConnectedPayload = {
@@ -30,5 +36,6 @@ export type ArrivalSseHeartbeatPayload = {
 
 export type ArrivalSseEnvelope =
     | ArrivalSseArrivalPayload
+    | ArrivalSseDequeuePayload
     | ArrivalSseConnectedPayload
     | ArrivalSseHeartbeatPayload;
