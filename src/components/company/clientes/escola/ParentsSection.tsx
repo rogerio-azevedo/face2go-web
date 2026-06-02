@@ -27,6 +27,7 @@ import {
 import { ParentEditSheet } from "./ParentEditSheet";
 import { ParentForm } from "./ParentForm";
 import { DeviceSyncStatusBadge } from "./DeviceSyncStatusBadge";
+import { FaceGlobalSyncModal } from "./FaceGlobalSyncModal";
 import {
     FaceSyncResultModal,
     type FaceSyncModalState,
@@ -141,6 +142,11 @@ export function ParentsSection({
                 >
                     Novo responsável
                 </Button>
+                <FaceGlobalSyncModal
+                    clientId={clientId}
+                    kind="responsibles"
+                    disabled={tableBusy}
+                />
             </div>
 
             <div className="relative rounded-md border">

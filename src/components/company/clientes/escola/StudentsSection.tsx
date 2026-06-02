@@ -26,6 +26,7 @@ import { schoolClassTurnLabel } from "@/lib/validations/school";
 import { StudentEditSheet } from "./StudentEditSheet";
 import { StudentForm } from "./StudentForm";
 import { DeviceSyncStatusBadge } from "./DeviceSyncStatusBadge";
+import { FaceGlobalSyncModal } from "./FaceGlobalSyncModal";
 import {
     FaceSyncResultModal,
     type FaceSyncModalState,
@@ -188,6 +189,11 @@ export function StudentsSection({
                 >
                     Novo aluno
                 </Button>
+                <FaceGlobalSyncModal
+                    clientId={clientId}
+                    kind="students"
+                    disabled={tableBusy}
+                />
             </div>
 
             <div className="relative rounded-md border">

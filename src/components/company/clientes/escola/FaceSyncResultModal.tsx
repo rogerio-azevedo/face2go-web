@@ -81,43 +81,44 @@ export function FaceSyncResultModal({
                             <AlertDialogTitle>
                                 Sincronizando {state.name}
                             </AlertDialogTitle>
-                            <AlertDialogDescription asChild>
-                                <div className="w-full space-y-3 text-left">
-                                    <p className="text-muted-foreground text-sm">
-                                        Enviando dados para os leitores
-                                        faciais. Aguarde…
-                                    </p>
-                                    <ol className="space-y-2 text-sm">
-                                        {FACE_SYNC_STEPS.map((step, index) => {
-                                            const done = index < activeStep;
-                                            const current = index === activeStep;
-                                            return (
-                                                <li
-                                                    key={step}
-                                                    className={cn(
-                                                        "flex items-center gap-2",
-                                                        done && "text-muted-foreground",
-                                                        current &&
-                                                            "text-foreground font-medium",
-                                                        !done &&
-                                                            !current &&
-                                                            "text-muted-foreground/60",
-                                                    )}
-                                                >
-                                                    {done ? (
-                                                        <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
-                                                    ) : current ? (
-                                                        <Loader2 className="size-4 shrink-0 animate-spin" />
-                                                    ) : (
-                                                        <span className="bg-muted size-4 shrink-0 rounded-full" />
-                                                    )}
-                                                    {step}
-                                                </li>
-                                            );
-                                        })}
-                                    </ol>
-                                </div>
+                            <AlertDialogDescription className="sr-only">
+                                Sincronização facial em andamento.
                             </AlertDialogDescription>
+                            <div className="w-full space-y-3 text-left">
+                                <p className="text-muted-foreground text-sm">
+                                    Enviando dados para os leitores faciais.
+                                    Aguarde…
+                                </p>
+                                <ol className="space-y-2 text-sm">
+                                    {FACE_SYNC_STEPS.map((step, index) => {
+                                        const done = index < activeStep;
+                                        const current = index === activeStep;
+                                        return (
+                                            <li
+                                                key={step}
+                                                className={cn(
+                                                    "flex items-center gap-2",
+                                                    done && "text-muted-foreground",
+                                                    current &&
+                                                        "text-foreground font-medium",
+                                                    !done &&
+                                                        !current &&
+                                                        "text-muted-foreground/60",
+                                                )}
+                                            >
+                                                {done ? (
+                                                    <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
+                                                ) : current ? (
+                                                    <Loader2 className="size-4 shrink-0 animate-spin" />
+                                                ) : (
+                                                    <span className="bg-muted size-4 shrink-0 rounded-full" />
+                                                )}
+                                                {step}
+                                            </li>
+                                        );
+                                    })}
+                                </ol>
+                            </div>
                         </AlertDialogHeader>
                     </>
                 ) : state.phase === "done" ? (
@@ -149,39 +150,37 @@ export function FaceSyncResultModal({
                                       ? "Sincronização parcial"
                                       : "Falha na sincronização"}
                             </AlertDialogTitle>
-                            <AlertDialogDescription asChild>
-                                <div className="w-full space-y-2 text-left">
-                                    <p className="text-foreground text-sm font-medium">
-                                        {state.name}
-                                    </p>
-                                    {outcome === "success" ? (
-                                        <p className="text-muted-foreground text-sm">
-                                            Face sincronizada com sucesso em
-                                            todos os leitores.
-                                        </p>
-                                    ) : null}
-                                    {outcome === "partial" ? (
-                                        <>
-                                            <p className="text-sm text-amber-800 dark:text-amber-200">
-                                                {state.error}
-                                            </p>
-                                            <p className="text-muted-foreground text-sm">
-                                                Um ou mais leitores estão
-                                                offline ou inacessíveis no
-                                                momento. A face foi enviada aos
-                                                leitores disponíveis.
-                                            </p>
-                                        </>
-                                    ) : null}
-                                    {outcome === "failed" ? (
-                                        <p className="text-muted-foreground text-sm">
-                                            {humanizeDeviceSyncError(
-                                                state.error,
-                                            )}
-                                        </p>
-                                    ) : null}
-                                </div>
+                            <AlertDialogDescription className="sr-only">
+                                Resultado da sincronização facial.
                             </AlertDialogDescription>
+                            <div className="w-full space-y-2 text-left">
+                                <p className="text-foreground text-sm font-medium">
+                                    {state.name}
+                                </p>
+                                {outcome === "success" ? (
+                                    <p className="text-muted-foreground text-sm">
+                                        Face sincronizada com sucesso em todos
+                                        os leitores.
+                                    </p>
+                                ) : null}
+                                {outcome === "partial" ? (
+                                    <>
+                                        <p className="text-sm text-amber-800 dark:text-amber-200">
+                                            {state.error}
+                                        </p>
+                                        <p className="text-muted-foreground text-sm">
+                                            Um ou mais leitores estão offline ou
+                                            inacessíveis no momento. A face foi
+                                            enviada aos leitores disponíveis.
+                                        </p>
+                                    </>
+                                ) : null}
+                                {outcome === "failed" ? (
+                                    <p className="text-muted-foreground text-sm">
+                                        {humanizeDeviceSyncError(state.error)}
+                                    </p>
+                                ) : null}
+                            </div>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                             <AlertDialogAction onClick={onClose}>

@@ -4,8 +4,11 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { ZodError } from "zod";
 
+import { auth } from "@/auth";
+
 import {
     apiFetchAuthed,
+    getApiBaseUrl,
     nestErrorMessage,
     parseResponseJson,
 } from "@/lib/api-fetch";
@@ -761,5 +764,39 @@ export async function syncResponsibleFaceAction(
         };
     } catch {
         return { error: "Sem permissão." };
+    }
+}
+
+export async function getStudentsGlobalFaceSyncSseUrlAction(
+    clientId: string,
+): Promise<{ url: string } | { error: string }> {
+    const cid = z.string().uuid().safeParse(clientId);
+    if (!cid.success) return { error: "Cliente inválido." };
+    try {
+        const session = await auth();
+        const token = session?.accessToken;
+        if (!token) return { error: "Não autenticado." };
+        const base = getApiBaseUrl();
+        const url = `${base}/api/clients/${cid.data}/students/face/global-sync/progress?token=${encodeURIComponent(token)}`;
+        return { url };
+    } catch {
+        return { error: "Não autenticado." };
+    }
+}
+
+export async function getResponsiblesGlobalFaceSyncSseUrlAction(
+    clientId: string,
+): Promise<{ url: string } | { error: string }> {
+    const cid = z.string().uuid().safeParse(clientId);
+    if (!cid.success) return { error: "Cliente inválido." };
+    try {
+        const session = await auth();
+        const token = session?.accessToken;
+        if (!token) return { error: "Não autenticado." };
+        const base = getApiBaseUrl();
+        const url = `${base}/api/clients/${cid.data}/responsibles/face/global-sync/progress?token=${encodeURIComponent(token)}`;
+        return { url };
+    } catch {
+        return { error: "Não autenticado." };
     }
 }
