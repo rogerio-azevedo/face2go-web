@@ -423,6 +423,10 @@ export type ResponsibleRow = {
     document: string | null;
     photoKey: string | null;
     photoUrl: string | null;
+    faceId: number | null;
+    deviceSyncStatus: DeviceSyncStatus | null;
+    deviceSyncedAt: string | null;
+    deviceSyncError: string | null;
     isActive: boolean;
     createdAt: string;
     updatedAt: string;

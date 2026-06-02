@@ -1,11 +1,14 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import { listResponsiblesAction } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
+import {
+    listResponsiblesAction,
+    syncResponsibleFaceAction,
+} from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
 import type { PaginatedResponse, ResponsibleRow } from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +26,11 @@ import {
 
 import { ParentEditSheet } from "./ParentEditSheet";
 import { ParentForm } from "./ParentForm";
+import { DeviceSyncStatusBadge } from "./DeviceSyncStatusBadge";
+import {
+    FaceSyncResultModal,
+    type FaceSyncModalState,
+} from "./FaceSyncResultModal";
 
 export function ParentsSection({
     clientId,
@@ -40,6 +48,10 @@ export function ParentsSection({
     const [createOpen, setCreateOpen] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
     const [editRow, setEditRow] = useState<ResponsibleRow | null>(null);
+    const [syncingId, setSyncingId] = useState<string | null>(null);
+    const [syncModalState, setSyncModalState] = useState<FaceSyncModalState>({
+        phase: "idle",
+    });
 
     const fetchList = useCallback(
         async (nextPage: number, nextSearch: string) => {
@@ -79,6 +91,33 @@ export function ParentsSection({
     function onSearchChange(value: string) {
         setSearch(value);
         setPage(1);
+    }
+
+    async function handleSync(row: ResponsibleRow) {
+        setSyncingId(row.id);
+        setSyncModalState({ phase: "syncing", name: row.name });
+        try {
+            const res = await syncResponsibleFaceAction(clientId, row.id);
+            if ("error" in res) {
+                toast.error(res.error);
+                setSyncModalState({ phase: "idle" });
+                return;
+            }
+            setSyncModalState({
+                phase: "done",
+                name: row.name,
+                status: res.deviceSyncStatus,
+                error: res.deviceSyncError,
+            });
+            refresh();
+        } finally {
+            setSyncingId(null);
+        }
+    }
+
+    function handleSyncModalClose() {
+        setSyncModalState({ phase: "idle" });
+        refresh();
     }
 
     const tableBusy = loading || isPending;
@@ -122,6 +161,7 @@ export function ParentsSection({
                             <TableHead>Documento</TableHead>
                             <TableHead>Acesso login</TableHead>
                             <TableHead>Status</TableHead>
+                            <TableHead>Leitor</TableHead>
                             <TableHead className="text-right">Ações</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -129,7 +169,7 @@ export function ParentsSection({
                         {list.data.length === 0 ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={7}
+                                    colSpan={8}
                                     className="text-muted-foreground py-10 text-center"
                                 >
                                     {search
@@ -170,18 +210,52 @@ export function ParentsSection({
                                             </Badge>
                                         )}
                                     </TableCell>
+                                    <TableCell>
+                                        <DeviceSyncStatusBadge
+                                            status={row.deviceSyncStatus}
+                                            hasFace={row.faceId != null}
+                                            error={row.deviceSyncError}
+                                        />
+                                    </TableCell>
                                     <TableCell className="text-right">
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => {
-                                                setEditRow(row);
-                                                setEditOpen(true);
-                                            }}
-                                        >
-                                            Editar
-                                        </Button>
+                                        <div className="flex justify-end gap-2">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                disabled={
+                                                    row.faceId == null ||
+                                                    syncingId === row.id ||
+                                                    tableBusy
+                                                }
+                                                title={
+                                                    row.faceId == null
+                                                        ? "Cadastre uma foto antes de sincronizar"
+                                                        : "Sincronizar face com os leitores"
+                                                }
+                                                onClick={() => void handleSync(row)}
+                                            >
+                                                {syncingId === row.id ? (
+                                                    <Loader2 className="size-4 animate-spin" />
+                                                ) : (
+                                                    <RefreshCw className="size-4" />
+                                                )}
+                                                <span className="sr-only sm:not-sr-only sm:ml-1.5">
+                                                    Sincronizar
+                                                </span>
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => {
+                                                    setEditRow(row);
+                                                    setEditOpen(true);
+                                                }}
+                                            >
+                                                Editar
+                                            </Button>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -221,6 +295,11 @@ export function ParentsSection({
                     refresh();
                 }}
                 onLinksChanged={() => refresh()}
+            />
+
+            <FaceSyncResultModal
+                state={syncModalState}
+                onClose={handleSyncModalClose}
             />
         </>
     );

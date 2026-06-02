@@ -693,3 +693,73 @@ function stripUndefined<T extends Record<string, unknown>>(obj: T): T {
     }
     return out;
 }
+
+export async function syncStudentFaceAction(
+    clientId: string,
+    studentId: string,
+): Promise<
+    | {
+          success: true;
+          deviceSyncStatus: string;
+          deviceSyncError: string | null;
+      }
+    | { error: string }
+> {
+    const cid = z.string().uuid().safeParse(clientId);
+    const sid = z.string().uuid().safeParse(studentId);
+    if (!cid.success || !sid.success) return { error: "ID inválido." };
+    try {
+        const res = await apiFetchAuthed(
+            `/api/clients/${cid.data}/students/${sid.data}/face/sync`,
+            { method: "POST" },
+        );
+        const data = (await parseResponseJson(res)) as {
+            deviceSyncStatus?: string;
+            deviceSyncError?: string | null;
+        };
+        if (!res.ok) return { error: nestErrorMessage(data) };
+        revalidateSchoolRoutes(clientId);
+        return {
+            success: true,
+            deviceSyncStatus: String(data.deviceSyncStatus ?? ""),
+            deviceSyncError: data.deviceSyncError ?? null,
+        };
+    } catch {
+        return { error: "Sem permissão." };
+    }
+}
+
+export async function syncResponsibleFaceAction(
+    clientId: string,
+    responsibleId: string,
+): Promise<
+    | {
+          success: true;
+          deviceSyncStatus: string;
+          deviceSyncError: string | null;
+      }
+    | { error: string }
+> {
+    const cid = z.string().uuid().safeParse(clientId);
+    const rid = z.string().uuid().safeParse(responsibleId);
+    if (!cid.success || !rid.success) return { error: "ID inválido." };
+    try {
+        const res = await apiFetchAuthed(
+            `/api/clients/${cid.data}/responsibles/${rid.data}/face/sync`,
+            { method: "POST" },
+        );
+        const data = (await parseResponseJson(res)) as {
+            deviceSyncStatus?: string;
+            deviceSyncError?: string | null;
+        };
+        if (!res.ok) return { error: nestErrorMessage(data) };
+        revalidateSchoolRoutes(clientId);
+        return {
+            success: true,
+            deviceSyncStatus: String(data.deviceSyncStatus ?? ""),
+            deviceSyncError: data.deviceSyncError ?? null,
+        };
+    } catch {
+        return { error: "Sem permissão." };
+    }
+}
