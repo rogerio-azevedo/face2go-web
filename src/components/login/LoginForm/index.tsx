@@ -25,7 +25,7 @@ import {
     establishSessionFromContext,
     establishSessionFromLegacyLogin,
     isLegacyLoginResponse,
-    loginWithEmail,
+    loginWithIdentifier,
     selectContextWithToken,
 } from "@/lib/auth-contexts";
 import { getDashboardPathForRole } from "@/lib/dashboard-path";
@@ -60,7 +60,7 @@ export function LoginForm() {
         formState: { errors },
     } = useForm<LoginInput>({
         resolver: zodResolver(loginSchema),
-        defaultValues: { email: "", password: "" },
+        defaultValues: { identifier: "", password: "" },
     });
 
     const completeLogin = async (
@@ -91,8 +91,8 @@ export function LoginForm() {
     const onSubmit = handleSubmit(async (data) => {
         setIsSubmitting(true);
         try {
-            const payload = await loginWithEmail(
-                data.email,
+            const payload = await loginWithIdentifier(
+                data.identifier,
                 data.password,
             );
 
@@ -119,7 +119,7 @@ export function LoginForm() {
             toast.error(
                 error instanceof Error
                     ? error.message
-                    : "E-mail ou senha inválidos.",
+                    : "E-mail/CPF ou senha inválidos.",
             );
         } finally {
             setIsSubmitting(false);
@@ -180,18 +180,18 @@ export function LoginForm() {
             <form onSubmit={onSubmit}>
                 <CardContent className="flex flex-col gap-4">
                     <div className="grid gap-2">
-                        <Label htmlFor="email">E-mail</Label>
+                        <Label htmlFor="identifier">E-mail ou CPF</Label>
                         <Input
-                            id="email"
-                            type="email"
+                            id="identifier"
+                            type="text"
                             autoComplete="username"
-                            placeholder="voce@empresa.com.br"
-                            aria-invalid={!!errors.email}
-                            {...register("email")}
+                            placeholder="voce@empresa.com ou 000.000.000-00"
+                            aria-invalid={!!errors.identifier}
+                            {...register("identifier")}
                         />
-                        {errors.email ? (
+                        {errors.identifier ? (
                             <p className="text-xs text-destructive">
-                                {errors.email.message}
+                                {errors.identifier.message}
                             </p>
                         ) : null}
                     </div>
@@ -243,7 +243,13 @@ export function LoginForm() {
                     >
                         {isSubmitting ? "Entrando..." : "Entrar no sistema"}
                     </Button>
-                    <nav className="flex flex-col gap-2 text-center sm:flex-row sm:justify-center sm:gap-6">
+                    <nav className="flex flex-col gap-2 text-center sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-6 sm:gap-y-2">
+                        <Link
+                            href="/recuperar-senha"
+                            className="text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
+                        >
+                            Esqueci minha senha
+                        </Link>
                         <Link
                             href="/register"
                             className="text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"

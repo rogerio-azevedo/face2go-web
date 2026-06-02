@@ -70,6 +70,7 @@ export async function updateClientAction(
             d.phone === undefined &&
             d.email === undefined &&
             d.logoUrl === undefined &&
+            d.primaryColor === undefined &&
             d.timezoneOffsetMinutes === undefined &&
             d.isActive === undefined
         ) {

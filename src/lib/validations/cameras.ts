@@ -151,8 +151,53 @@ export const createCameraSchema = cameraCreateApiFields
     );
 
 /** PATCH — body parcial válido antes do envio. */
-export const updateCameraSchema = cameraFields
-    .partial()
-    .extend({
-        direction: z.enum(CAMERA_DIRECTIONS).nullable().optional(),
-    });
+export const updateCameraSchema = cameraFields.partial().extend({
+    direction: z.enum(CAMERA_DIRECTIONS).nullable().optional(),
+    description: z
+        .string()
+        .nullable()
+        .optional()
+        .transform((v) => {
+            if (v == null) return undefined;
+            const t = v.trim();
+            return t === "" ? undefined : t;
+        }),
+    serialNumber: z
+        .string()
+        .nullable()
+        .optional()
+        .transform((v) => {
+            if (v == null) return undefined;
+            const t = v.trim();
+            return t === "" ? undefined : t;
+        }),
+    model: z
+        .string()
+        .nullable()
+        .optional()
+        .transform((v) => {
+            if (v == null) return undefined;
+            const t = v.trim();
+            return t === "" ? undefined : t;
+        }),
+    location: z
+        .string()
+        .nullable()
+        .optional()
+        .transform((v) => {
+            if (v == null) return undefined;
+            const t = v.trim();
+            return t === "" ? undefined : t;
+        }),
+    deviceId: z
+        .string()
+        .max(64, "Device ID muito longo")
+        .nullable()
+        .optional()
+        .transform((v) => {
+            if (v == null) return undefined;
+            const t = v.trim();
+            return t === "" ? undefined : t;
+        }),
+    username: z.string().max(120, "Usuário muito longo").nullable().optional(),
+});

@@ -49,6 +49,20 @@ export const authConfig = {
                 return true;
             }
 
+            if (
+                path === "/recuperar-senha" ||
+                path.startsWith("/recuperar-senha/") ||
+                path === "/redefinir-senha" ||
+                path.startsWith("/redefinir-senha/")
+            ) {
+                if (isLoggedIn) {
+                    return Response.redirect(
+                        new URL(getDashboardPathForRole(role), nextUrl)
+                    );
+                }
+                return true;
+            }
+
             if (path === "/register" || path.startsWith("/register/")) {
                 if (isLoggedIn) {
                     return Response.redirect(

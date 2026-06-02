@@ -94,31 +94,6 @@ function StreamConnectionBadge({
     );
 }
 
-function SnapBadge({
-    device,
-}: {
-    device: CameraMonitorDeviceApiRow | undefined;
-}) {
-    if (!device?.streamSupported || !device.hasCredentials) {
-        return (
-            <span className="text-muted-foreground text-xs tabular-nums">—</span>
-        );
-    }
-    if (device.connected) {
-        return (
-            <span className="text-xs tabular-nums text-emerald-700">Snap ok</span>
-        );
-    }
-    return (
-        <span
-            className="cursor-help text-xs tabular-nums text-amber-700"
-            title={device.lastConnectionError ?? "Snap indisponível"}
-        >
-            Snap off
-        </span>
-    );
-}
-
 export function CamerasTable({
     cameras,
     clients,
@@ -206,7 +181,7 @@ export function CamerasTable({
         });
     }
 
-    const colSpan = canManage ? 11 : 10;
+    const colSpan = canManage ? 10 : 9;
 
     return (
         <>
@@ -271,7 +246,6 @@ export function CamerasTable({
                             <TableHead>Marca</TableHead>
                             <TableHead>Endereço</TableHead>
                             <TableHead>Stream</TableHead>
-                            <TableHead>Snap</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead>Listagem</TableHead>
                             {canManage ? (
@@ -345,13 +319,6 @@ export function CamerasTable({
                                                 monitorByCameraId[row.id]
                                             }
                                             loading={monitorLoading}
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <SnapBadge
-                                            device={
-                                                monitorByCameraId[row.id]
-                                            }
                                         />
                                     </TableCell>
                                     <TableCell>

@@ -56,6 +56,18 @@ export function loadActiveContext(): UserContext | null {
     }
 }
 
+/** Logo do tenant ativo (empresa ou cliente), quando configurada. */
+export function contextLogoUrl(context: UserContext | null | undefined): string | null {
+    if (!context) return null;
+    if (context.type === "company") {
+        return context.logoUrl;
+    }
+    if (context.type === "client" || context.type === "responsible") {
+        return context.branding.logoUrl;
+    }
+    return null;
+}
+
 export function clearContextStorage(): void {
     if (typeof window === "undefined") return;
     localStorage.removeItem(CONTEXTS_STORAGE_KEY);
@@ -81,20 +93,47 @@ export function isLegacyLoginResponse(
     return "accessToken" in data && !("identityToken" in data);
 }
 
-export async function loginWithEmail(
-    email: string,
+export async function loginWithIdentifier(
+    identifier: string,
     password: string,
 ): Promise<LoginApiResponse> {
     const res = await fetch(`${getApiBaseUrl()}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), password }),
+        body: JSON.stringify({ identifier: identifier.trim(), password }),
     });
     const data = await parseResponseJson(res);
     if (!res.ok) {
         throw new Error(nestErrorMessage(data));
     }
     return data as LoginApiResponse;
+}
+
+export async function requestPasswordReset(identifier: string): Promise<void> {
+    const res = await fetch(`${getApiBaseUrl()}/api/auth/request-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: identifier.trim() }),
+    });
+    const data = await parseResponseJson(res);
+    if (!res.ok) {
+        throw new Error(nestErrorMessage(data));
+    }
+}
+
+export async function resetPasswordWithToken(
+    token: string,
+    password: string,
+): Promise<void> {
+    const res = await fetch(`${getApiBaseUrl()}/api/auth/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, password }),
+    });
+    const data = await parseResponseJson(res);
+    if (!res.ok) {
+        throw new Error(nestErrorMessage(data));
+    }
 }
 
 export async function establishSessionFromLegacyLogin(

@@ -34,6 +34,7 @@ export type ClientListRow = {
     phone: string | null;
     email: string | null;
     logoUrl: string | null;
+    primaryColor: string | null;
     timezoneOffsetMinutes: number;
     ienhFilialCode?: number | null;
     isActive: boolean;

@@ -28,6 +28,8 @@ import {
 import { NavMain, type NavMainItem } from "./nav-main";
 import { NavUser, type NavSidebarUser } from "./nav-user";
 import { ContextSwitcher } from "@/components/shared/Header/ContextSwitcher";
+import { contextLogoUrl } from "@/lib/auth-contexts";
+import { useAuthContexts } from "@/hooks/use-auth-contexts";
 
 export type { NavMainItem };
 
@@ -234,31 +236,52 @@ export function AppSidebar({
         image: user?.image ?? null,
     };
 
+    const { activeContext } = useAuthContexts();
+    const tenantLogoUrl = contextLogoUrl(activeContext);
+
     return (
         <Sidebar collapsible="icon" {...props}>
             <SidebarHeader className="group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center">
                 <div className="flex items-center gap-2 py-0">
                     {/* Ícone visível apenas no estado colapsado */}
                     <div className="hidden group-data-[collapsible=icon]:flex">
-                        <Image
-                            src="/icone.png"
-                            alt={productName}
-                            width={32}
-                            height={32}
-                            priority
-                            className="h-auto w-8"
-                        />
+                        {tenantLogoUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                                src={tenantLogoUrl}
+                                alt={productName}
+                                className="h-auto max-h-8 w-8 object-contain"
+                            />
+                        ) : (
+                            <Image
+                                src="/icone.png"
+                                alt={productName}
+                                width={32}
+                                height={32}
+                                priority
+                                className="h-auto w-8"
+                            />
+                        )}
                     </div>
                     {/* Logo completo visível no estado expandido */}
                     <div className="group-data-[collapsible=icon]:hidden">
-                        <Image
-                            src="/face2go_dark.svg"
-                            alt={productName}
-                            width={160}
-                            height={45}
-                            priority
-                            className="dark:invert h-auto w-[160px] max-w-full"
-                        />
+                        {tenantLogoUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                                src={tenantLogoUrl}
+                                alt={productName}
+                                className="h-auto max-h-11 w-[160px] max-w-full object-contain object-left"
+                            />
+                        ) : (
+                            <Image
+                                src="/face2go_dark.svg"
+                                alt={productName}
+                                width={160}
+                                height={45}
+                                priority
+                                className="dark:invert h-auto w-[160px] max-w-full"
+                            />
+                        )}
                         {productSubtitle ? (
                             <span className="block truncate text-xs text-muted-foreground">
                                 {productSubtitle}

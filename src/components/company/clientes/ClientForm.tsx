@@ -11,6 +11,7 @@ import {
     createClientAction,
     updateClientAction,
 } from "@/app/company/clientes/actions";
+import { ClientBrandingPreview } from "@/components/company/clientes/ClientBrandingPreview";
 import type { ClientListRow } from "@/types/domain";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +58,7 @@ const emptyDefaults: ClientFormInput = {
     phone: undefined,
     email: undefined,
     logoUrl: undefined,
+    primaryColor: undefined,
     timezoneOffsetMinutes: 0,
     isActive: true,
 };
@@ -108,6 +110,7 @@ export function ClientForm({
                 phone: client.phone ?? undefined,
                 email: client.email ?? undefined,
                 logoUrl: client.logoUrl ?? undefined,
+                primaryColor: client.primaryColor ?? undefined,
                 timezoneOffsetMinutes:
                     typeof client.timezoneOffsetMinutes === "number"
                         ? client.timezoneOffsetMinutes
@@ -123,8 +126,11 @@ export function ClientForm({
         defaultValues,
     });
 
-    const { register, handleSubmit, control, reset, formState: { errors } } =
+    const { register, handleSubmit, control, reset, watch, formState: { errors } } =
         form;
+
+    const watchedLogoUrl = watch("logoUrl");
+    const watchedPrimaryColor = watch("primaryColor");
 
     useEffect(() => {
         if (open) {
@@ -237,7 +243,7 @@ export function ClientForm({
                         </div>
 
                         <div className="space-y-4">
-                            <SectionStep step={2} title="Contato e marca" />
+                            <SectionStep step={2} title="Contato" />
                             <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div className="min-w-0 space-y-2 sm:col-span-2">
                                     <Label htmlFor="client-cnpj" className={fieldLabel}>
@@ -310,26 +316,6 @@ export function ClientForm({
                                 </div>
 
                                 <div className="min-w-0 space-y-2 sm:col-span-2">
-                                    <Label htmlFor="client-logoUrl" className={fieldLabel}>
-                                        URL da logo{" "}
-                                        <span className={hintClass}>(opcional)</span>
-                                    </Label>
-                                    <Input
-                                        id="client-logoUrl"
-                                        type="url"
-                                        className={cn("bg-card h-10 px-3", controlClass)}
-                                        aria-invalid={!!errors.logoUrl}
-                                        {...register("logoUrl")}
-                                        placeholder="https://exemplo.com/logo.png"
-                                    />
-                                    {errors.logoUrl ? (
-                                        <p className="text-destructive text-xs">
-                                            {errors.logoUrl.message}
-                                        </p>
-                                    ) : null}
-                                </div>
-
-                                <div className="min-w-0 space-y-2 sm:col-span-2">
                                     <Label
                                         htmlFor="client-tz-offset"
                                         className={fieldLabel}
@@ -385,7 +371,95 @@ export function ClientForm({
                         </div>
 
                         <div className="space-y-4">
-                            <SectionStep step={3} title="Situação" />
+                            <SectionStep step={3} title="Identidade visual" />
+                            <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div className="min-w-0 space-y-2 sm:col-span-2">
+                                    <Label htmlFor="client-logoUrl" className={fieldLabel}>
+                                        URL da logo{" "}
+                                        <span className={hintClass}>(opcional)</span>
+                                    </Label>
+                                    <Input
+                                        id="client-logoUrl"
+                                        type="url"
+                                        className={cn("bg-card h-10 px-3", controlClass)}
+                                        aria-invalid={!!errors.logoUrl}
+                                        {...register("logoUrl")}
+                                        placeholder="https://exemplo.com/logo.png"
+                                    />
+                                    {errors.logoUrl ? (
+                                        <p className="text-destructive text-xs">
+                                            {errors.logoUrl.message}
+                                        </p>
+                                    ) : (
+                                        <p className="text-muted-foreground text-xs">
+                                            Exibida no app mobile após login.
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="min-w-0 space-y-2">
+                                    <Label htmlFor="client-primaryColor" className={fieldLabel}>
+                                        Cor primária{" "}
+                                        <span className={hintClass}>(opcional)</span>
+                                    </Label>
+                                    <div className="flex items-center gap-3">
+                                        <Controller
+                                            name="primaryColor"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <>
+                                                    <Input
+                                                        id="client-primaryColor"
+                                                        type="color"
+                                                        className="h-10 w-14 shrink-0 cursor-pointer p-1"
+                                                        value={
+                                                            field.value &&
+                                                            /^#[0-9A-Fa-f]{6}$/.test(field.value)
+                                                                ? field.value
+                                                                : "#00c7b7"
+                                                        }
+                                                        onChange={(e) =>
+                                                            field.onChange(e.target.value)
+                                                        }
+                                                        aria-label="Selecionar cor primária"
+                                                    />
+                                                    <Input
+                                                        type="text"
+                                                        className={cn(
+                                                            "bg-card h-10 px-3 font-mono",
+                                                            controlClass,
+                                                        )}
+                                                        aria-invalid={!!errors.primaryColor}
+                                                        value={field.value ?? ""}
+                                                        onChange={field.onChange}
+                                                        placeholder="#00c7b7"
+                                                    />
+                                                </>
+                                            )}
+                                        />
+                                    </div>
+                                    {errors.primaryColor ? (
+                                        <p className="text-destructive text-xs">
+                                            {errors.primaryColor.message}
+                                        </p>
+                                    ) : (
+                                        <p className="text-muted-foreground text-xs">
+                                            Botões e destaques no app mobile.
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="min-w-0 sm:col-span-2">
+                                    <ClientBrandingPreview
+                                        logoUrl={watchedLogoUrl}
+                                        primaryColor={watchedPrimaryColor}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <SectionStep step={4} title="Situação" />
                             <Controller
                                 name="isActive"
                                 control={control}
