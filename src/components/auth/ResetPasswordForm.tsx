@@ -13,7 +13,7 @@ import {
     resetPasswordSchema,
     type ResetPasswordInput,
 } from "@/lib/validations/auth";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
     Card,
     CardContent,
@@ -82,9 +82,15 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
                     </CardDescription>
                 </CardHeader>
                 <CardFooter className="border-border/70 bg-muted/40">
-                    <Button asChild className="h-11 w-full" size="lg">
-                        <Link href="/login">Ir para o login</Link>
-                    </Button>
+                    <Link
+                        href="/login"
+                        className={buttonVariants({
+                            size: "lg",
+                            className: "h-11 w-full",
+                        })}
+                    >
+                        Ir para o login
+                    </Link>
                 </CardFooter>
             </Card>
         );

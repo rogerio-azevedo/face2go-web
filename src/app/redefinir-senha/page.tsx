@@ -9,7 +9,7 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -53,19 +53,25 @@ export default async function RedefinirSenhaPage({ searchParams }: PageProps) {
                                 </CardDescription>
                             </CardHeader>
                             <CardFooter className="flex flex-col gap-3 border-border/70 bg-muted/40">
-                                <Button asChild className="h-11 w-full" size="lg">
-                                    <Link href="/recuperar-senha">
-                                        Solicitar novo link
-                                    </Link>
-                                </Button>
-                                <Button
-                                    asChild
-                                    variant="ghost"
-                                    className="h-11 w-full"
-                                    size="lg"
+                                <Link
+                                    href="/recuperar-senha"
+                                    className={buttonVariants({
+                                        size: "lg",
+                                        className: "h-11 w-full",
+                                    })}
                                 >
-                                    <Link href="/login">Voltar ao login</Link>
-                                </Button>
+                                    Solicitar novo link
+                                </Link>
+                                <Link
+                                    href="/login"
+                                    className={buttonVariants({
+                                        variant: "ghost",
+                                        size: "lg",
+                                        className: "h-11 w-full",
+                                    })}
+                                >
+                                    Voltar ao login
+                                </Link>
                             </CardFooter>
                         </Card>
                     </div>
