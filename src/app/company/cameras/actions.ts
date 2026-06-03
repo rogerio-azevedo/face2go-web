@@ -246,6 +246,7 @@ export async function getDevicePlatesAction(
     cameraId: string,
     limit: number,
     offset: number,
+    search?: string,
 ): Promise<
     | { ok: true; data: DevicePlatesListResult }
     | { ok: false; error: string }
@@ -255,8 +256,14 @@ export async function getDevicePlatesAction(
         if (!cid.success) {
             return { ok: false, error: 'Câmera inválida.' };
         }
+        const params = new URLSearchParams({
+            limit: String(limit),
+            offset: String(offset),
+        });
+        const term = search?.trim();
+        if (term) params.set('search', term);
         const res = await apiFetchAuthed(
-            `/api/cameras/${cid.data}/device-plates?limit=${limit}&offset=${offset}`,
+            `/api/cameras/${cid.data}/device-plates?${params.toString()}`,
         );
         if (!res.ok) {
             const data = await parseResponseJson(res);

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { getDevicePlatesAction } from "@/app/company/cameras/actions";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/button";
+import { SearchInput } from "@/components/ui/search-input";
 import {
     Table,
     TableBody,
@@ -30,25 +31,39 @@ export default function DevicePlatesClient({ cameraId }: { cameraId: string }) {
     const [records, setRecords] = useState<DevicePlate[]>([]);
     const [totalFound, setTotalFound] = useState(0);
     const [offset, setOffset] = useState(0);
+    const [search, setSearch] = useState("");
     const [isLoading, setIsLoading] = useState(true);
 
-    const fetchPlates = useCallback(async (currentOffset: number) => {
-        setIsLoading(true);
-        const res = await getDevicePlatesAction(cameraId, LIMIT, currentOffset);
-        if (res.ok) {
-            setRecords(res.data.records);
-            setTotalFound(totalForPagination(res.data, currentOffset));
-        } else {
-            toast.error(res.error || "Erro ao carregar placas.");
-            setRecords([]);
-            setTotalFound(0);
-        }
-        setIsLoading(false);
-    }, [cameraId]);
+    const fetchPlates = useCallback(
+        async (currentOffset: number, searchTerm: string) => {
+            setIsLoading(true);
+            const res = await getDevicePlatesAction(
+                cameraId,
+                LIMIT,
+                currentOffset,
+                searchTerm.trim() || undefined,
+            );
+            if (res.ok) {
+                setRecords(res.data.records);
+                setTotalFound(totalForPagination(res.data, currentOffset));
+            } else {
+                toast.error(res.error || "Erro ao carregar placas.");
+                setRecords([]);
+                setTotalFound(0);
+            }
+            setIsLoading(false);
+        },
+        [cameraId],
+    );
+
+    const handleSearchChange = useCallback((value: string) => {
+        setSearch(value);
+        setOffset(0);
+    }, []);
 
     useEffect(() => {
-        void fetchPlates(offset);
-    }, [offset, fetchPlates]);
+        void fetchPlates(offset, search);
+    }, [offset, search, fetchPlates]);
 
     const handleNext = () => {
         if (offset + LIMIT < totalFound) {
@@ -80,6 +95,20 @@ export default function DevicePlatesClient({ cameraId }: { cameraId: string }) {
             </div>
 
             <div className="rounded-md border bg-card text-card-foreground">
+                <div className="flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <SearchInput
+                        value={search}
+                        onValueChange={handleSearchChange}
+                        placeholder="Buscar por placa..."
+                        disabled={isLoading}
+                        className="sm:max-w-xs"
+                    />
+                    {search.trim() ? (
+                        <p className="text-sm text-muted-foreground">
+                            Filtrando por &quot;{search.trim()}&quot;
+                        </p>
+                    ) : null}
+                </div>
                 <Table>
                     <TableHeader>
                         <TableRow>
