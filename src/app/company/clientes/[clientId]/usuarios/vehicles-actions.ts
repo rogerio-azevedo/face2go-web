@@ -157,6 +157,42 @@ export async function updateClientVehicleAction(
     }
 }
 
+export async function syncClientVehicleLprAction(
+    clientId: string,
+    vehicleId: string,
+): Promise<
+    | {
+          success: true;
+          lprSyncStatus: string;
+          lprSyncError: string | null;
+      }
+    | { error: string }
+> {
+    try {
+        const c = ids.safeParse({ clientId });
+        const vid = z.string().uuid().safeParse(vehicleId);
+        if (!c.success || !vid.success) return { error: "Dados inválidos." };
+
+        const res = await apiFetchAuthed(
+            `/api/clients/${c.data.clientId}/lpr-plates/${vid.data}/sync`,
+            { method: "POST" },
+        );
+        const data = (await parseResponseJson(res)) as {
+            lprSyncStatus?: string;
+            lprSyncError?: string | null;
+        };
+        if (!res.ok) return { error: nestErrorMessage(data) };
+        revalidateSchoolRoutes(clientId);
+        return {
+            success: true,
+            lprSyncStatus: String(data.lprSyncStatus ?? ""),
+            lprSyncError: data.lprSyncError ?? null,
+        };
+    } catch {
+        return { error: "Sem permissão." };
+    }
+}
+
 export async function deleteClientVehicleAction(
     clientId: string,
     vehicleId: string,

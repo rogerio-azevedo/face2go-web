@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -8,7 +8,10 @@ import { toast } from "sonner";
 import {
     deleteClientVehicleAction,
     listClientVehiclesAction,
+    syncClientVehicleLprAction,
 } from "@/app/company/clientes/[clientId]/usuarios/vehicles-actions";
+import { DeviceSyncStatusBadge } from "@/components/company/clientes/escola/DeviceSyncStatusBadge";
+import { isPartialSyncError } from "@/lib/face-sync-result";
 import type { PaginatedResponse, VehicleRow } from "@/types/domain";
 import {
     AlertDialog,
@@ -53,6 +56,7 @@ export function VehiclesSection({
         null,
     );
     const [deleting, setDeleting] = useState(false);
+    const [syncingId, setSyncingId] = useState<string | null>(null);
 
     const fetchList = useCallback(
         async (nextPage: number, nextSearch: string) => {
@@ -114,6 +118,32 @@ export function VehiclesSection({
         }
     }
 
+    async function handleSyncLpr(row: VehicleRow) {
+        setSyncingId(row.id);
+        try {
+            const r = await syncClientVehicleLprAction(clientId, row.id);
+            if ("error" in r) {
+                toast.error(r.error);
+                return;
+            }
+            if (r.lprSyncStatus === "sync_failed") {
+                toast.error(r.lprSyncError ?? "Falha ao sincronizar placa.");
+            } else if (
+                r.lprSyncStatus === "synced" &&
+                isPartialSyncError(r.lprSyncError)
+            ) {
+                toast.warning(
+                    r.lprSyncError ?? "Sincronizado parcialmente com as câmeras.",
+                );
+            } else {
+                toast.success("Placa sincronizada com as câmeras LPR.");
+            }
+            refresh();
+        } finally {
+            setSyncingId(null);
+        }
+    }
+
     const tableBusy = loading || isPending;
 
     return (
@@ -159,6 +189,7 @@ export function VehiclesSection({
                             <TableHead>Modelo</TableHead>
                             <TableHead>Cor</TableHead>
                             <TableHead>Condutor</TableHead>
+                            <TableHead>LPR</TableHead>
                             <TableHead className="text-right">
                                 Ações
                             </TableHead>
@@ -168,7 +199,7 @@ export function VehiclesSection({
                         {list.data.length === 0 ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={6}
+                                    colSpan={7}
                                     className="text-muted-foreground py-10 text-center"
                                 >
                                     {search
@@ -186,8 +217,40 @@ export function VehiclesSection({
                                     <TableCell>{row.model}</TableCell>
                                     <TableCell>{row.color}</TableCell>
                                     <TableCell>{row.driverName}</TableCell>
+                                    <TableCell>
+                                        <DeviceSyncStatusBadge
+                                            status={
+                                                row.lprSyncStatus ??
+                                                "pending_sync"
+                                            }
+                                            hasFace
+                                            error={row.lprSyncError}
+                                        />
+                                    </TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex flex-wrap justify-end gap-2">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                disabled={
+                                                    syncingId === row.id ||
+                                                    tableBusy
+                                                }
+                                                title="Sincronizar placa com as câmeras LPR"
+                                                onClick={() =>
+                                                    void handleSyncLpr(row)
+                                                }
+                                            >
+                                                {syncingId === row.id ? (
+                                                    <Loader2 className="size-4 animate-spin" />
+                                                ) : (
+                                                    <RefreshCw className="size-4" />
+                                                )}
+                                                <span className="sr-only sm:not-sr-only sm:ml-1.5">
+                                                    Sincronizar
+                                                </span>
+                                            </Button>
                                             <Button
                                                 type="button"
                                                 variant="outline"

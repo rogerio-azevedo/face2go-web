@@ -275,3 +275,44 @@ export async function getDevicePlatesAction(
         return { ok: false, error: 'Erro de comunicação.' };
     }
 }
+
+export async function removeDevicePlateAction(
+    cameraId: string,
+    recNo: number | null,
+    plate: string,
+): Promise<{ success: true } | { error: string }> {
+    try {
+        const cid = z.string().uuid().safeParse(cameraId);
+        if (!cid.success) {
+            return { error: 'Câmera inválida.' };
+        }
+        const plateTrim = plate.trim();
+        const rec =
+            recNo != null && Number.isFinite(recNo) && recNo > 0
+                ? String(recNo)
+                : '0';
+        const params = new URLSearchParams();
+        if (!recNo || recNo < 1) {
+            if (!plateTrim) {
+                return {
+                    error: 'RecNo ou placa é obrigatório para remover da câmera.',
+                };
+            }
+            params.set('plate', plateTrim);
+        } else if (plateTrim) {
+            params.set('plate', plateTrim);
+        }
+        const qs = params.toString();
+        const res = await apiFetchAuthed(
+            `/api/cameras/${cid.data}/device-plates/${rec}${qs ? `?${qs}` : ''}`,
+            { method: 'DELETE' },
+        );
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { error: nestErrorMessage(data) };
+        }
+        return { success: true };
+    } catch {
+        return { error: 'Erro de comunicação.' };
+    }
+}

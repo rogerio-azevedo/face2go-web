@@ -1,11 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { getDevicePlatesAction } from "@/app/company/cameras/actions";
+import {
+    getDevicePlatesAction,
+    removeDevicePlateAction,
+} from "@/app/company/cameras/actions";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
@@ -33,6 +36,7 @@ export default function DevicePlatesClient({ cameraId }: { cameraId: string }) {
     const [offset, setOffset] = useState(0);
     const [search, setSearch] = useState("");
     const [isLoading, setIsLoading] = useState(true);
+    const [pending, startTransition] = useTransition();
 
     const fetchPlates = useCallback(
         async (currentOffset: number, searchTerm: string) => {
@@ -77,6 +81,35 @@ export default function DevicePlatesClient({ cameraId }: { cameraId: string }) {
         }
     };
 
+    const handleDelete = (row: DevicePlate) => {
+        const plateLabel =
+            row.plateNumber.trim() !== "" ? row.plateNumber.trim() : "esta placa";
+        if (
+            !confirm(
+                `Remover ${plateLabel} DIRETAMENTE da câmera LPR? Isso não exclui o veículo no sistema, apenas da lista de permissão do equipamento.`,
+            )
+        ) {
+            return;
+        }
+
+        startTransition(async () => {
+            const res = await removeDevicePlateAction(
+                cameraId,
+                row.recNo,
+                row.plateNumber,
+            );
+            if ("error" in res) {
+                toast.error(res.error);
+                return;
+            }
+            toast.success("Placa removida da câmera.");
+            void fetchPlates(offset, search);
+        });
+    };
+
+    const canRemoveRow = (row: DevicePlate) =>
+        (row.recNo != null && row.recNo > 0) || row.plateNumber.trim() !== "";
+
     const rangeEndLabel =
         totalFound <= 0
             ? "0"
@@ -116,13 +149,14 @@ export default function DevicePlatesClient({ cameraId }: { cameraId: string }) {
                             <TableHead>Placa</TableHead>
                             <TableHead>Proprietário</TableHead>
                             <TableHead className="text-right">RecNo</TableHead>
+                            <TableHead className="text-right">Ações</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {isLoading ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={4}
+                                    colSpan={5}
                                     className="py-10 text-center text-muted-foreground"
                                 >
                                     Consultando câmera...
@@ -131,7 +165,7 @@ export default function DevicePlatesClient({ cameraId }: { cameraId: string }) {
                         ) : records.length === 0 ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={4}
+                                    colSpan={5}
                                     className="py-10 text-center text-muted-foreground"
                                 >
                                     Nenhuma placa retornada nesta página ou lista vazia.
@@ -155,6 +189,22 @@ export default function DevicePlatesClient({ cameraId }: { cameraId: string }) {
                                     </TableCell>
                                     <TableCell className="text-right tabular-nums">
                                         {row.recNo ?? "—"}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="text-red-500 hover:bg-red-50 hover:text-red-600"
+                                            disabled={
+                                                pending ||
+                                                isLoading ||
+                                                !canRemoveRow(row)
+                                            }
+                                            onClick={() => handleDelete(row)}
+                                            title="Excluir da câmera"
+                                        >
+                                            <Trash2 className="size-4" />
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             ))

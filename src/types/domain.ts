@@ -445,6 +445,8 @@ export type VehicleRow = {
     driverName: string;
     createdAt: string;
     updatedAt: string;
+    lprSyncStatus: DeviceSyncStatus | null;
+    lprSyncError: string | null;
 };
 
 /** Item de `GET /api/clients/:clientId/vehicles/driver-options`. */
