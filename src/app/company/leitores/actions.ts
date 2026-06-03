@@ -165,6 +165,7 @@ export type DeviceUser = {
 };
 
 export type DeviceUsersListResult = {
+    totalCount: number;
     found: number;
     records: DeviceUser[];
 };
@@ -173,10 +174,17 @@ export async function getDeviceUsersAction(
     readerId: string,
     limit: number,
     offset: number,
+    search?: string,
 ): Promise<{ ok: true; data: DeviceUsersListResult } | { ok: false; error: string }> {
     try {
+        const params = new URLSearchParams({
+            limit: String(limit),
+            offset: String(offset),
+        });
+        const term = search?.trim();
+        if (term) params.set('search', term);
         const res = await apiFetchAuthed(
-            `/api/readers/${readerId}/device-users?limit=${limit}&offset=${offset}`,
+            `/api/readers/${readerId}/device-users?${params.toString()}`,
         );
         if (!res.ok) {
             const data = await parseResponseJson(res);
