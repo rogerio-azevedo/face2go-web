@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import { listStudentsAction, syncStudentFaceAction } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
+import { listStudentsAction } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
+import { useFaceSyncOffer } from "@/lib/use-face-sync-offer";
 import type { PaginatedResponse, SchoolClassRow, StudentRow } from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,10 +28,8 @@ import { StudentEditSheet } from "./StudentEditSheet";
 import { StudentForm } from "./StudentForm";
 import { DeviceSyncStatusBadge } from "./DeviceSyncStatusBadge";
 import { FaceGlobalSyncModal } from "./FaceGlobalSyncModal";
-import {
-    FaceSyncResultModal,
-    type FaceSyncModalState,
-} from "./FaceSyncResultModal";
+import { FaceSyncOfferModal } from "./FaceSyncOfferModal";
+import { FaceSyncResultModal } from "./FaceSyncResultModal";
 
 function classesLabel(
     classes: SchoolClassRow[],
@@ -68,8 +67,11 @@ export function StudentsSection({
     const [editOpen, setEditOpen] = useState(false);
     const [editRow, setEditRow] = useState<StudentRow | null>(null);
     const [syncingId, setSyncingId] = useState<string | null>(null);
-    const [syncModalState, setSyncModalState] = useState<FaceSyncModalState>({
-        phase: "idle",
+
+    const faceSyncOffer = useFaceSyncOffer({
+        clientId,
+        kind: "student",
+        onAfterSync: () => refresh(),
     });
 
     const fetchList = useCallback(
@@ -120,29 +122,15 @@ export function StudentsSection({
 
     async function handleSync(row: StudentRow) {
         setSyncingId(row.id);
-        setSyncModalState({ phase: "syncing", name: row.name });
         try {
-            const res = await syncStudentFaceAction(clientId, row.id);
-            if ("error" in res) {
-                toast.error(res.error);
-                setSyncModalState({ phase: "idle" });
-                return;
-            }
-            setSyncModalState({
-                phase: "done",
-                name: row.name,
-                status: res.deviceSyncStatus,
-                error: res.deviceSyncError,
-            });
-            refresh();
+            await faceSyncOffer.runSync(row.id, row.name);
         } finally {
             setSyncingId(null);
         }
     }
 
     function handleSyncModalClose() {
-        setSyncModalState({ phase: "idle" });
-        refresh();
+        faceSyncOffer.closeSyncResult();
     }
 
     const rows = list.data.map((s) => ({
@@ -341,15 +329,24 @@ export function StudentsSection({
                 }}
                 clientId={clientId}
                 student={editRow}
-                onSuccess={() => {
+                onSuccess={(hint) => {
                     toast.success("Aluno atualizado.");
                     refresh();
+                    faceSyncOffer.promptFromSave(hint);
                 }}
                 onLinksChanged={() => refresh()}
+                onFaceSyncOffer={faceSyncOffer.promptFromLinkChange}
+            />
+
+            <FaceSyncOfferModal
+                open={faceSyncOffer.offerTarget != null}
+                personName={faceSyncOffer.offerTarget?.name ?? ""}
+                onConfirm={() => void faceSyncOffer.confirmOffer()}
+                onDismiss={faceSyncOffer.dismissOffer}
             />
 
             <FaceSyncResultModal
-                state={syncModalState}
+                state={faceSyncOffer.syncModalState}
                 onClose={handleSyncModalClose}
             />
         </>

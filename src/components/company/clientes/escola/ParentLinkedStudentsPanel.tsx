@@ -30,6 +30,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { buildFaceSyncSaveHint, type FaceSyncSaveHint } from "@/lib/face-sync-after-edit";
 import {
     RESPONSIBLE_RELATIONSHIP_VALUES,
     RELATIONSHIP_TYPE_LABELS,
@@ -40,11 +41,13 @@ export function ParentLinkedStudentsPanel({
     parent,
     active,
     onChanged,
+    onFaceSyncOffer,
 }: {
     clientId: string;
     parent: ResponsibleRow;
     active: boolean;
     onChanged?: () => void;
+    onFaceSyncOffer?: (hint?: FaceSyncSaveHint) => void;
 }) {
     const [loading, setLoading] = useState(false);
     const [busy, setBusy] = useState(false);
@@ -149,6 +152,7 @@ export function ParentLinkedStudentsPanel({
             toast.success("Vínculo removido.");
             await load();
             onChanged?.();
+            onFaceSyncOffer?.(buildFaceSyncSaveHint(parent, true));
         } finally {
             setBusy(false);
         }
@@ -208,6 +212,7 @@ export function ParentLinkedStudentsPanel({
             }
             await load();
             onChanged?.();
+            onFaceSyncOffer?.(buildFaceSyncSaveHint(parent, true));
         } finally {
             setBusy(false);
         }

@@ -9,6 +9,11 @@ import type { z } from "zod";
 
 import { updateResponsibleAction } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
 import type { ResponsibleRow } from "@/types/domain";
+import {
+    buildFaceSyncSaveHint,
+    responsibleCadastralEditRequiresFaceSync,
+    type FaceSyncSaveHint,
+} from "@/lib/face-sync-after-edit";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,13 +38,15 @@ export function ParentEditSheet({
     parent,
     onSuccess,
     onLinksChanged,
+    onFaceSyncOffer,
 }: {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     clientId: string;
     parent: ResponsibleRow | null;
-    onSuccess?: () => void;
+    onSuccess?: (hint?: FaceSyncSaveHint) => void;
     onLinksChanged?: () => void;
+    onFaceSyncOffer?: (hint?: FaceSyncSaveHint) => void;
 }) {
     const [busy, setBusy] = useState(false);
 
@@ -103,8 +110,13 @@ export function ParentEditSheet({
                 toast.error(r.error);
                 return;
             }
+            const requiresFaceSync = responsibleCadastralEditRequiresFaceSync(
+                { name: parent.name, isActive: parent.isActive },
+                body,
+            );
+            const hint = buildFaceSyncSaveHint(parent, requiresFaceSync);
             onOpenChange(false);
-            onSuccess?.();
+            onSuccess?.(hint);
         } finally {
             setBusy(false);
         }
@@ -213,6 +225,7 @@ export function ParentEditSheet({
                             parent={parent}
                             active={open}
                             onChanged={onLinksChanged}
+                            onFaceSyncOffer={onFaceSyncOffer}
                         />
                     </div>
                 </div>

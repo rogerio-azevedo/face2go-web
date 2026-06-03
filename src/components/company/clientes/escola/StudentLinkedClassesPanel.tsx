@@ -22,6 +22,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { buildFaceSyncSaveHint, type FaceSyncSaveHint } from "@/lib/face-sync-after-edit";
 import { schoolClassTurnLabel } from "@/lib/validations/school";
 
 function formatClassLabel(row: {
@@ -44,11 +45,13 @@ export function StudentLinkedClassesPanel({
     student,
     active,
     onChanged,
+    onFaceSyncOffer,
 }: {
     clientId: string;
     student: StudentRow;
     active: boolean;
     onChanged?: () => void;
+    onFaceSyncOffer?: (hint?: FaceSyncSaveHint) => void;
 }) {
     const [loading, setLoading] = useState(false);
     const [busy, setBusy] = useState(false);
@@ -127,6 +130,7 @@ export function StudentLinkedClassesPanel({
             toast.success("Turma desvinculada.");
             await load();
             onChanged?.();
+            onFaceSyncOffer?.(buildFaceSyncSaveHint(student, true));
         } finally {
             setBusy(false);
         }
@@ -162,6 +166,7 @@ export function StudentLinkedClassesPanel({
             setPickClassIds([]);
             await load();
             onChanged?.();
+            onFaceSyncOffer?.(buildFaceSyncSaveHint(student, true));
         } finally {
             setBusy(false);
         }

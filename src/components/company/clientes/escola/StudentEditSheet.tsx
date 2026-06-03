@@ -9,6 +9,11 @@ import type { z } from "zod";
 
 import { updateStudentAction } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
 import type { StudentRow } from "@/types/domain";
+import {
+    buildFaceSyncSaveHint,
+    studentCadastralEditRequiresFaceSync,
+    type FaceSyncSaveHint,
+} from "@/lib/face-sync-after-edit";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,13 +44,15 @@ export function StudentEditSheet({
     student,
     onSuccess,
     onLinksChanged,
+    onFaceSyncOffer,
 }: {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     clientId: string;
     student: StudentRow | null;
-    onSuccess?: () => void;
+    onSuccess?: (hint?: FaceSyncSaveHint) => void;
     onLinksChanged?: () => void;
+    onFaceSyncOffer?: (hint?: FaceSyncSaveHint) => void;
 }) {
     const [busy, setBusy] = useState(false);
 
@@ -107,8 +114,17 @@ export function StudentEditSheet({
                 toast.error(r.error);
                 return;
             }
+            const requiresFaceSync = studentCadastralEditRequiresFaceSync(
+                {
+                    name: student.name,
+                    isActive: student.isActive,
+                    accessSchedule: student.accessSchedule,
+                },
+                parsed.data,
+            );
+            const hint = buildFaceSyncSaveHint(student, requiresFaceSync);
             onOpenChange(false);
-            onSuccess?.();
+            onSuccess?.(hint);
         } finally {
             setBusy(false);
         }
@@ -182,6 +198,7 @@ export function StudentEditSheet({
                             student={student}
                             active={open}
                             onChanged={onLinksChanged}
+                            onFaceSyncOffer={onFaceSyncOffer}
                         />
 
                         <SheetFooter className="mt-auto flex-row gap-2 px-0 sm:justify-end">
