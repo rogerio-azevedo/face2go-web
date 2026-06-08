@@ -360,10 +360,11 @@ export type ShiftRow = {
 };
 
 export type ResponsibleRelationshipType =
-    | "father"
-    | "mother"
-    | "grandfather"
-    | "grandmother"
+    | "parent"
+    | "grandparent"
+    | "aunt_uncle"
+    | "sibling"
+    | "godparent"
     | "guardian"
     | "other";
 
@@ -488,16 +489,39 @@ export type PickupAuthorizationStatus =
     | "expired"
     | "cancelled";
 
+export type PickupAuthorizationStudent = {
+    studentId: string;
+    name: string;
+};
+
+export type PickupAuthorizationVehicle = {
+    plate: string;
+    brand: string;
+    model: string;
+    color: string;
+    lprSyncStatus: DeviceSyncStatus | null;
+    lprSyncedAt: string | null;
+    lprSyncError: string | null;
+} | null;
+
 /** Resposta da API de autorizações temporárias (inclui `effectiveStatus`). */
 export type PickupAuthorizationRow = {
     id: string;
     clientId: string;
-    studentId: string;
     requestedByResponsibleId: string;
-    authorizedResponsibleId: string | null;
-    guestName: string | null;
-    guestDocument: string | null;
+    linkedResponsibleId: string | null;
+    linkedResponsibleName: string | null;
+    guestName: string;
+    guestDocument: string;
     guestPhone: string | null;
+    guestLinkCode: string | null;
+    guestApprovalStatus:
+        | "pending_face"
+        | "submitted"
+        | "approved"
+        | "rejected";
+    guestFaceSyncStatus: DeviceSyncStatus | null;
+    guestFaceSyncError: string | null;
     status: PickupAuthorizationStatus;
     effectiveStatus: PickupAuthorizationStatus;
     validFrom: string;
@@ -506,4 +530,8 @@ export type PickupAuthorizationRow = {
     usedAt: string | null;
     createdAt: string;
     updatedAt: string;
+    students: PickupAuthorizationStudent[];
+    vehicle: PickupAuthorizationVehicle;
+    guestRegistrationUrl: string | null;
+    authorizedPhotoUrl: string | null;
 };

@@ -109,24 +109,44 @@ export const createStudentSchema = z.object({
 export const updateStudentSchema = createStudentSchema.partial();
 
 export const RESPONSIBLE_RELATIONSHIP_VALUES = [
-    "father",
-    "mother",
-    "grandfather",
-    "grandmother",
+    "parent",
+    "grandparent",
+    "aunt_uncle",
+    "sibling",
+    "godparent",
     "guardian",
     "other",
 ] as const;
 export type ResponsibleRelationshipValue = (typeof RESPONSIBLE_RELATIONSHIP_VALUES)[number];
 
-export const RELATIONSHIP_TYPE_LABELS: Record<ResponsibleRelationshipValue, string> =
+/** Chaves aceitas na exibição (inclui legados da API). */
+export type ResponsibleRelationshipLabelKey =
+    | ResponsibleRelationshipValue
+    | "father"
+    | "mother"
+    | "grandfather"
+    | "grandmother";
+
+export const RELATIONSHIP_TYPE_LABELS: Record<ResponsibleRelationshipLabelKey, string> =
     {
-        father: "Pai",
-        mother: "Mãe",
-        grandfather: "Avô",
-        grandmother: "Avó",
+        parent: "Pai/Mãe",
+        grandparent: "Avô/Avó",
+        aunt_uncle: "Tio/Tia",
+        sibling: "Irmão/Irmã",
+        godparent: "Padrinhos",
         guardian: "Responsável legal",
         other: "Outro",
+        father: "Pai/Mãe",
+        mother: "Pai/Mãe",
+        grandfather: "Avô/Avó",
+        grandmother: "Avô/Avó",
     };
+
+export function relationshipTypeLabel(type: string): string {
+    return (
+        RELATIONSHIP_TYPE_LABELS[type as ResponsibleRelationshipLabelKey] ?? type
+    );
+}
 
 const responsibleRelationshipSchema = z.enum(RESPONSIBLE_RELATIONSHIP_VALUES, {
     message: "Selecione o parentesco.",

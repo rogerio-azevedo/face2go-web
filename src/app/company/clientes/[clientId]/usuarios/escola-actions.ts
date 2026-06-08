@@ -687,6 +687,32 @@ export async function cancelPickupAuthorizationAction(
     }
 }
 
+export async function deletePickupAuthorizationAction(
+    clientId: string,
+    authorizationId: string,
+): Promise<{ success: true } | { error: string }> {
+    try {
+        const c = ids.safeParse({ clientId });
+        const a = z.string().uuid().safeParse(authorizationId);
+        if (!c.success || !a.success) {
+            return { error: "Dados inválidos." };
+        }
+        const res = await apiFetchAuthed(
+            `/api/clients/${c.data.clientId}/pickup-authorizations/${a.data}`,
+            { method: "DELETE" },
+        );
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { error: nestErrorMessage(data) };
+        }
+
+        revalidateSchoolRoutes(clientId);
+        return { success: true };
+    } catch {
+        return { error: "Sem permissão." };
+    }
+}
+
 function stripUndefined<T extends Record<string, unknown>>(obj: T): T {
     const out = { ...obj };
     for (const k of Object.keys(out)) {
