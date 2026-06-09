@@ -216,7 +216,8 @@ export function PickupAuthorizationsSection({
                                     .join(", ");
                                 const canDelete =
                                     row.effectiveStatus === "cancelled" ||
-                                    row.effectiveStatus === "expired";
+                                    row.effectiveStatus === "expired" ||
+                                    row.effectiveStatus === "used";
 
                                 return (
                                     <TableRow key={row.id}>

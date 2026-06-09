@@ -9,12 +9,23 @@ import { useFaceLiveCamera } from "@/hooks/use-face-live-camera";
 import { getApiBaseUrl } from "@/lib/api-fetch";
 import { compressFaceForRegistrationUpload } from "@/lib/cadastro-face";
 
+export type PickupGuestProfile = {
+    guestName: string;
+    guestDocument: string;
+    guestPhone?: string | null;
+};
+
 type PickupFaceStepProps = {
     code: string;
+    guestProfile?: PickupGuestProfile | null;
     onCompleted: () => void;
 };
 
-export function PickupFaceStep({ code, onCompleted }: PickupFaceStepProps) {
+export function PickupFaceStep({
+    code,
+    guestProfile = null,
+    onCompleted,
+}: PickupFaceStepProps) {
     const [faceImageKey, setFaceImageKey] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
 
@@ -73,7 +84,16 @@ export function PickupFaceStep({ code, onCompleted }: PickupFaceStepProps) {
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ faceImageKey }),
+                    body: JSON.stringify({
+                        faceImageKey,
+                        ...(guestProfile
+                            ? {
+                                  guestName: guestProfile.guestName,
+                                  guestDocument: guestProfile.guestDocument,
+                                  guestPhone: guestProfile.guestPhone ?? null,
+                              }
+                            : {}),
+                    }),
                 },
             );
             const data = (await res.json()) as {
