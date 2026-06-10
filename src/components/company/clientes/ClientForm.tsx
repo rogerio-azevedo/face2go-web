@@ -59,6 +59,7 @@ const emptyDefaults: ClientFormInput = {
     email: undefined,
     logoUrl: undefined,
     primaryColor: undefined,
+    privacyPolicyUrl: undefined,
     timezoneOffsetMinutes: 0,
     isActive: true,
 };
@@ -111,6 +112,7 @@ export function ClientForm({
                 email: client.email ?? undefined,
                 logoUrl: client.logoUrl ?? undefined,
                 primaryColor: client.primaryColor ?? undefined,
+                privacyPolicyUrl: client.privacyPolicyUrl ?? undefined,
                 timezoneOffsetMinutes:
                     typeof client.timezoneOffsetMinutes === "number"
                         ? client.timezoneOffsetMinutes
@@ -393,6 +395,30 @@ export function ClientForm({
                                     ) : (
                                         <p className="text-muted-foreground text-xs">
                                             Exibida no app mobile após login.
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="min-w-0 space-y-2 sm:col-span-2">
+                                    <Label htmlFor="client-privacyPolicyUrl" className={fieldLabel}>
+                                        URL da Política de Privacidade{" "}
+                                        <span className={hintClass}>(opcional)</span>
+                                    </Label>
+                                    <Input
+                                        id="client-privacyPolicyUrl"
+                                        type="url"
+                                        className={cn("bg-card h-10 px-3", controlClass)}
+                                        aria-invalid={!!errors.privacyPolicyUrl}
+                                        {...register("privacyPolicyUrl")}
+                                        placeholder="https://exemplo.com/politica-de-privacidade"
+                                    />
+                                    {errors.privacyPolicyUrl ? (
+                                        <p className="text-destructive text-xs">
+                                            {errors.privacyPolicyUrl.message}
+                                        </p>
+                                    ) : (
+                                        <p className="text-muted-foreground text-xs">
+                                            Exibida no app mobile junto à política da Face2Go.
                                         </p>
                                     )}
                                 </div>
