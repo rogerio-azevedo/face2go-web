@@ -72,6 +72,7 @@ export async function updateClientAction(
             d.logoUrl === undefined &&
             d.primaryColor === undefined &&
             d.privacyPolicyUrl === undefined &&
+            d.privacyAlias === undefined &&
             d.timezoneOffsetMinutes === undefined &&
             d.isActive === undefined
         ) {

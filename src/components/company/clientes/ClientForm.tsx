@@ -60,6 +60,7 @@ const emptyDefaults: ClientFormInput = {
     logoUrl: undefined,
     primaryColor: undefined,
     privacyPolicyUrl: undefined,
+    privacyAlias: undefined,
     timezoneOffsetMinutes: 0,
     isActive: true,
 };
@@ -113,6 +114,7 @@ export function ClientForm({
                 logoUrl: client.logoUrl ?? undefined,
                 primaryColor: client.primaryColor ?? undefined,
                 privacyPolicyUrl: client.privacyPolicyUrl ?? undefined,
+                privacyAlias: client.privacyAlias ?? undefined,
                 timezoneOffsetMinutes:
                     typeof client.timezoneOffsetMinutes === "number"
                         ? client.timezoneOffsetMinutes
@@ -419,6 +421,32 @@ export function ClientForm({
                                     ) : (
                                         <p className="text-muted-foreground text-xs">
                                             Exibida no app mobile junto à política da Face2Go.
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="min-w-0 space-y-2 sm:col-span-2">
+                                    <Label htmlFor="client-privacyAlias" className={fieldLabel}>
+                                        Alias da política de privacidade{" "}
+                                        <span className={hintClass}>(opcional)</span>
+                                    </Label>
+                                    <Input
+                                        id="client-privacyAlias"
+                                        type="text"
+                                        className={cn("bg-card h-10 px-3", controlClass)}
+                                        aria-invalid={!!errors.privacyAlias}
+                                        {...register("privacyAlias")}
+                                        placeholder="IENH"
+                                    />
+                                    {errors.privacyAlias ? (
+                                        <p className="text-destructive text-xs">
+                                            {errors.privacyAlias.message}
+                                        </p>
+                                    ) : (
+                                        <p className="text-muted-foreground text-xs">
+                                            Nome curto exibido no link da política no app mobile. Se
+                                            vazio, usa o nome do cliente. Útil quando várias unidades
+                                            compartilham a mesma política.
                                         </p>
                                     )}
                                 </div>
