@@ -64,7 +64,7 @@ export function VehicleForm({
     const defaults = useMemo((): VehicleFormInput => {
         if (mode === "edit" && vehicle) {
             return {
-                driverResponsibleId: vehicle.responsibleId,
+                driverResponsibleId: vehicle.responsibleId ?? "",
                 plate: vehicle.plate,
                 brand: vehicle.brand,
                 model: vehicle.model,

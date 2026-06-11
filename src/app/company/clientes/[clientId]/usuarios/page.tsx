@@ -13,10 +13,12 @@ import {
 import type {
     ClientRegistrationListRow,
     ClientListRow,
+    ClientRoleRow,
     PaginatedResponse,
     PickupAuthorizationRow,
     RegistrationLinkListRow,
     ResponsibleRow,
+    MemberRow,
     SchoolClassRow,
     ShiftRow,
     StudentRow,
@@ -52,6 +54,8 @@ export default async function CompanyClientUsuariosPage({
     let schoolStudents: PaginatedResponse<StudentRow> = emptyPaginated();
     let schoolResponsibles: PaginatedResponse<ResponsibleRow> =
         emptyPaginated();
+    let schoolMembers: PaginatedResponse<MemberRow> = emptyPaginated();
+    let schoolRoles: ClientRoleRow[] = [];
     let schoolShifts: ShiftRow[] = [];
     let schoolPickupAuthorizations: PickupAuthorizationRow[] = [];
     let schoolVehicles: PaginatedResponse<VehicleRow> = emptyPaginated();
@@ -79,7 +83,7 @@ export default async function CompanyClientUsuariosPage({
 
         if (clientMeta?.type === "school") {
             const listQs = buildSchoolListQuery({ page: 1 });
-            const [clsRes, stRes, prRes, shRes, pkRes, vhRes] =
+            const [clsRes, stRes, prRes, mbRes, rolesRes, shRes, pkRes, vhRes] =
                 await Promise.all([
                     apiFetchAuthed(`/api/clients/${clientId}/school-classes`),
                     apiFetchAuthed(
@@ -88,6 +92,10 @@ export default async function CompanyClientUsuariosPage({
                     apiFetchAuthed(
                         `/api/clients/${clientId}/responsibles?${listQs}`,
                     ),
+                    apiFetchAuthed(
+                        `/api/clients/${clientId}/members?${listQs}`,
+                    ),
+                    apiFetchAuthed(`/api/clients/${clientId}/roles`),
                     apiFetchAuthed(`/api/clients/${clientId}/shifts`),
                     apiFetchAuthed(
                         `/api/clients/${clientId}/pickup-authorizations`,
@@ -110,6 +118,16 @@ export default async function CompanyClientUsuariosPage({
                 schoolResponsibles = normalizePaginated<ResponsibleRow>(
                     await parseResponseJson(prRes),
                 );
+            }
+            if (mbRes.ok) {
+                schoolMembers = normalizePaginated<MemberRow>(
+                    await parseResponseJson(mbRes),
+                );
+            }
+            if (rolesRes.ok) {
+                schoolRoles = (await parseResponseJson(
+                    rolesRes,
+                )) as ClientRoleRow[];
             }
             if (shRes.ok) {
                 schoolShifts = (await parseResponseJson(shRes)) as ShiftRow[];
@@ -135,6 +153,8 @@ export default async function CompanyClientUsuariosPage({
         schoolClasses = [];
         schoolStudents = emptyPaginated();
         schoolResponsibles = emptyPaginated();
+        schoolMembers = emptyPaginated();
+        schoolRoles = [];
         schoolShifts = [];
         schoolPickupAuthorizations = [];
         schoolVehicles = emptyPaginated();
@@ -152,7 +172,7 @@ export default async function CompanyClientUsuariosPage({
                 }
                 description={
                     clientMeta?.type === "school"
-                        ? "Gerencie horários, turmas, alunos, responsáveis e veículos da escola."
+                        ? "Gerencie horários, turmas, alunos, responsáveis, membros e veículos da escola."
                         : "Cadastro via link e solicitações."
                 }
             />
@@ -165,6 +185,8 @@ export default async function CompanyClientUsuariosPage({
                 initialSchoolClasses={schoolClasses}
                 initialSchoolStudents={schoolStudents}
                 initialSchoolResponsibles={schoolResponsibles}
+                initialSchoolMembers={schoolMembers}
+                initialSchoolRoles={schoolRoles}
                 initialSchoolShifts={schoolShifts}
                 initialSchoolPickupAuthorizations={schoolPickupAuthorizations}
                 initialSchoolVehicles={schoolVehicles}

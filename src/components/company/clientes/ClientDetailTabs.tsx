@@ -7,10 +7,12 @@ import { SyncAllProgressModal } from "@/components/registrations/SyncAllProgress
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type {
     ClientRegistrationListRow,
+    ClientRoleRow,
     PaginatedResponse,
     PickupAuthorizationRow,
     RegistrationLinkListRow,
     ResponsibleRow,
+    MemberRow,
     SchoolClassRow,
     ShiftRow,
     StudentRow,
@@ -28,6 +30,8 @@ export type ClientDetailTabsProps = {
     initialSchoolClasses?: SchoolClassRow[];
     initialSchoolStudents?: PaginatedResponse<StudentRow>;
     initialSchoolResponsibles?: PaginatedResponse<ResponsibleRow>;
+    initialSchoolMembers?: PaginatedResponse<MemberRow>;
+    initialSchoolRoles?: ClientRoleRow[];
     initialSchoolShifts?: ShiftRow[];
     initialSchoolPickupAuthorizations?: PickupAuthorizationRow[];
     initialSchoolVehicles?: PaginatedResponse<VehicleRow>;
@@ -42,6 +46,8 @@ export function ClientDetailTabs({
     initialSchoolClasses = [],
     initialSchoolStudents = emptyPaginated<StudentRow>(),
     initialSchoolResponsibles = emptyPaginated<ResponsibleRow>(),
+    initialSchoolMembers = emptyPaginated<MemberRow>(),
+    initialSchoolRoles = [],
     initialSchoolShifts = [],
     initialSchoolPickupAuthorizations = [],
     initialSchoolVehicles = emptyPaginated<VehicleRow>(),
@@ -56,6 +62,8 @@ export function ClientDetailTabs({
                 initialClasses={initialSchoolClasses}
                 initialStudents={initialSchoolStudents}
                 initialResponsibles={initialSchoolResponsibles}
+                initialMembers={initialSchoolMembers}
+                initialRoles={initialSchoolRoles}
                 initialShifts={initialSchoolShifts}
                 initialPickupAuthorizations={initialSchoolPickupAuthorizations}
                 initialVehicles={initialSchoolVehicles}

@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
+import { syncMemberFaceAction } from "@/app/company/clientes/[clientId]/usuarios/members-actions";
 import {
     syncResponsibleFaceAction,
     syncStudentFaceAction,
@@ -14,7 +15,7 @@ type FaceSyncOfferTarget = { id: string; name: string };
 
 export function useFaceSyncOffer(params: {
     clientId: string;
-    kind: "student" | "responsible";
+    kind: "student" | "responsible" | "member";
     onAfterSync?: () => void;
 }) {
     const { clientId, kind, onAfterSync } = params;
@@ -54,7 +55,9 @@ export function useFaceSyncOffer(params: {
                 const res =
                     kind === "student"
                         ? await syncStudentFaceAction(clientId, id)
-                        : await syncResponsibleFaceAction(clientId, id);
+                        : kind === "member"
+                          ? await syncMemberFaceAction(clientId, id)
+                          : await syncResponsibleFaceAction(clientId, id);
                 if ("error" in res) {
                     toast.error(res.error);
                     setSyncModalState({ phase: "idle" });

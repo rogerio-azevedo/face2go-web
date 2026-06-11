@@ -1,9 +1,11 @@
 "use client";
 
 import type {
+    ClientRoleRow,
     PaginatedResponse,
     PickupAuthorizationRow,
     ResponsibleRow,
+    MemberRow,
     SchoolClassRow,
     ShiftRow,
     StudentRow,
@@ -17,6 +19,7 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs";
 
+import { MembersSection } from "./MembersSection";
 import { ParentsSection } from "./ParentsSection";
 import { PickupAuthorizationsSection } from "./PickupAuthorizationsSection";
 import { SchoolClassesSection } from "./SchoolClassesSection";
@@ -30,6 +33,8 @@ export function SchoolTab({
     initialClasses,
     initialStudents,
     initialResponsibles,
+    initialMembers,
+    initialRoles,
     initialShifts,
     initialPickupAuthorizations = [],
     initialVehicles = emptyPaginated<VehicleRow>(),
@@ -39,6 +44,8 @@ export function SchoolTab({
     initialClasses: SchoolClassRow[];
     initialStudents: PaginatedResponse<StudentRow>;
     initialResponsibles: PaginatedResponse<ResponsibleRow>;
+    initialMembers: PaginatedResponse<MemberRow>;
+    initialRoles: ClientRoleRow[];
     initialShifts: ShiftRow[];
     initialPickupAuthorizations?: PickupAuthorizationRow[];
     initialVehicles?: PaginatedResponse<VehicleRow>;
@@ -51,6 +58,7 @@ export function SchoolTab({
                     <TabsTrigger value="classes">Turmas</TabsTrigger>
                     <TabsTrigger value="students">Alunos</TabsTrigger>
                     <TabsTrigger value="parents">Responsáveis</TabsTrigger>
+                    <TabsTrigger value="members">Membros</TabsTrigger>
                     <TabsTrigger value="pickups">
                         Autorizações retirada
                     </TabsTrigger>
@@ -82,6 +90,14 @@ export function SchoolTab({
                         clientId={clientId}
                         isAdmin={isAdmin}
                         initialResponsibles={initialResponsibles}
+                    />
+                </TabsContent>
+                <TabsContent value="members" className="pt-4">
+                    <MembersSection
+                        clientId={clientId}
+                        isAdmin={isAdmin}
+                        roles={initialRoles}
+                        initialMembers={initialMembers}
                     />
                 </TabsContent>
                 <TabsContent value="pickups" className="pt-4">

@@ -440,11 +440,47 @@ export type ResponsibleRow = {
     updatedAt: string;
 };
 
+/** Item de `GET /api/clients/:clientId/roles`. */
+export type ClientRoleRow = {
+    id: string;
+    clientId: string;
+    name: string;
+    slug: string;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+};
+
+/** Item de `GET /api/clients/:clientId/members`. */
+export type MemberRow = {
+    id: string;
+    clientId: string;
+    roleId: string;
+    roleName: string;
+    roleSlug: string;
+    userId: string | null;
+    name: string;
+    email?: string | null;
+    phone: string | null;
+    document: string | null;
+    birthDate: string | null;
+    photoKey: string | null;
+    photoUrl: string | null;
+    faceId: number | null;
+    deviceSyncStatus: DeviceSyncStatus | null;
+    deviceSyncedAt: string | null;
+    deviceSyncError: string | null;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+};
+
 /** Item de `GET /api/clients/:clientId/vehicles` (datas ISO). */
 export type VehicleRow = {
     id: string;
     clientId: string;
-    responsibleId: string;
+    responsibleId: string | null;
+    memberId: string | null;
     plate: string;
     brand: string;
     model: string;
