@@ -43,12 +43,25 @@ type IenhSseEvt =
     | {
           type: "start";
           perlet: string;
+          perlets?: string[];
           totalFiliais: number;
           fromSnapshot?: boolean;
           file?: string;
       }
     | { type: "filial_start"; filial: number; filialName: string }
-    | { type: "filial_fetched"; filial: number; count: number }
+    | { type: "perlet_start"; filial: number; perlet: string }
+    | {
+          type: "perlet_fetched";
+          filial: number;
+          perlet: string;
+          count: number;
+      }
+    | {
+          type: "filial_fetched";
+          filial: number;
+          count: number;
+          mergedCount?: number;
+      }
     | {
           type: "snapshot_saved";
           file: string;
@@ -157,8 +170,12 @@ export function IntegracaoIenhPanel({
                                     `Re-sincronizando do snapshot ${d.file} (PERLET=${d.perlet}).`,
                                 );
                             } else {
+                                const perletList =
+                                    d.perlets && d.perlets.length > 1
+                                        ? d.perlets.join(", ")
+                                        : d.perlet;
                                 appendLine(
-                                    `Iniciando sincronização (PERLET=${d.perlet}, ${d.totalFiliais} filial(is)).`,
+                                    `Iniciando sincronização (PERLET=${perletList}, ${d.totalFiliais} filial(is)).`,
                                 );
                             }
                             break;
@@ -167,9 +184,21 @@ export function IntegracaoIenhPanel({
                                 `Buscando TOTVS: ${d.filialName} (filial ${d.filial})…`,
                             );
                             break;
+                        case "perlet_start":
+                            appendLine(
+                                `  PERLET ${d.perlet} (filial ${d.filial})…`,
+                            );
+                            break;
+                        case "perlet_fetched":
+                            appendLine(
+                                `    → ${d.count} registro(s) em PERLET ${d.perlet}.`,
+                            );
+                            break;
                         case "filial_fetched":
                             appendLine(
-                                `  → ${d.count} registro(s) recebidos da filial ${d.filial}.`,
+                                d.mergedCount != null
+                                    ? `  → ${d.count} registro(s) recebidos; ${d.mergedCount} único(s) após merge (filial ${d.filial}).`
+                                    : `  → ${d.count} registro(s) recebidos da filial ${d.filial}.`,
                             );
                             break;
                         case "snapshot_saved":
@@ -360,8 +389,10 @@ export function IntegracaoIenhPanel({
                             disabled={isSyncing}
                         />
                         <p className="text-muted-foreground text-xs">
-                            Ex.: 2026 para educação básica; 2026/1 para técnico e
-                            graduação.
+                            Ex.: informe 2026 para buscar educação básica e,
+                            automaticamente, 2026/1 e 2026/2 (técnico e
+                            graduação). Use 2026/1 apenas se quiser sincronizar
+                            um semestre específico.
                         </p>
                     </div>
                     <Button
@@ -400,8 +431,11 @@ export function IntegracaoIenhPanel({
                                                 {s.file}
                                             </p>
                                             <p className="text-muted-foreground text-xs">
-                                                PERLET {s.perlet} ·{" "}
-                                                {s.recordCount} registros ·{" "}
+                                                PERLET{" "}
+                                                {s.perlets && s.perlets.length > 1
+                                                    ? s.perlets.join(", ")
+                                                    : s.perlet}{" "}
+                                                · {s.recordCount} registros ·{" "}
                                                 {new Date(
                                                     s.fetchedAt,
                                                 ).toLocaleString("pt-BR")}
@@ -467,6 +501,20 @@ export function IntegracaoIenhPanel({
                                 Alunos desativados:{" "}
                                 {syncResult.studentsDeactivated}
                             </Badge>
+                            {(syncResult.studentsDeactivatedByStatus ?? 0) >
+                            0 ? (
+                                <Badge variant="secondary">
+                                    Desativados (status Bloqueado):{" "}
+                                    {syncResult.studentsDeactivatedByStatus}
+                                </Badge>
+                            ) : null}
+                            {(syncResult.studentsDeactivatedByAbsence ?? 0) >
+                            0 ? (
+                                <Badge variant="secondary">
+                                    Desativados (ausentes no ERP):{" "}
+                                    {syncResult.studentsDeactivatedByAbsence}
+                                </Badge>
+                            ) : null}
                             <Badge variant="secondary">
                                 Responsáveis criados:{" "}
                                 {syncResult.responsiblesCreated}
@@ -522,6 +570,26 @@ export function IntegracaoIenhPanel({
                                         </li>
                                     ))}
                                 </ul>
+                            </div>
+                        ) : null}
+                        {(syncResult.deactivatedByAbsenceEnrollments?.length ??
+                            0) > 0 ? (
+                            <div className="space-y-2">
+                                <p className="text-sm font-medium">
+                                    Matrículas desativadas por ausência no ERP (
+                                    {syncResult.deactivatedByAbsenceEnrollments
+                                        ?.length ?? 0}
+                                    )
+                                </p>
+                                <p className="text-muted-foreground font-mono text-xs break-all">
+                                    {syncResult.deactivatedByAbsenceEnrollments
+                                        ?.slice(0, 50)
+                                        .join(", ")}
+                                    {(syncResult.deactivatedByAbsenceEnrollments
+                                        ?.length ?? 0) > 50
+                                        ? " …"
+                                        : ""}
+                                </p>
                             </div>
                         ) : null}
                     </CardContent>

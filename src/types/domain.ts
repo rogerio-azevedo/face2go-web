@@ -56,6 +56,7 @@ export type IenhSnapshotInfo = {
     recordCount: number;
     fetchedAt: string;
     perlet: string;
+    perlets?: string[];
 };
 
 export type IenhSyncResult = {
@@ -63,6 +64,9 @@ export type IenhSyncResult = {
     studentsCreated: number;
     studentsUpdated: number;
     studentsDeactivated: number;
+    studentsDeactivatedByStatus?: number;
+    studentsDeactivatedByAbsence?: number;
+    deactivatedByAbsenceEnrollments?: string[];
     responsiblesCreated: number;
     responsiblesUpdated: number;
     classesCreated: number;
