@@ -159,6 +159,7 @@ export default async function CompanyClientUsuariosPage({
             <ClientDetailTabs
                 clientId={clientId}
                 clientType={clientMeta?.type ?? "other"}
+                isAdmin={role === "company_admin"}
                 initialLinks={links}
                 initialRows={rows}
                 initialSchoolClasses={schoolClasses}

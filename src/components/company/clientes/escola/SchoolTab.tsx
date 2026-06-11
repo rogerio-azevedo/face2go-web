@@ -26,6 +26,7 @@ import { VehiclesSection } from "./VehiclesSection";
 
 export function SchoolTab({
     clientId,
+    isAdmin = false,
     initialClasses,
     initialStudents,
     initialResponsibles,
@@ -34,6 +35,7 @@ export function SchoolTab({
     initialVehicles = emptyPaginated<VehicleRow>(),
 }: {
     clientId: string;
+    isAdmin?: boolean;
     initialClasses: SchoolClassRow[];
     initialStudents: PaginatedResponse<StudentRow>;
     initialResponsibles: PaginatedResponse<ResponsibleRow>;
@@ -70,6 +72,7 @@ export function SchoolTab({
                 <TabsContent value="students" className="pt-4">
                     <StudentsSection
                         clientId={clientId}
+                        isAdmin={isAdmin}
                         classes={initialClasses}
                         initialStudents={initialStudents}
                     />
@@ -77,6 +80,7 @@ export function SchoolTab({
                 <TabsContent value="parents" className="pt-4">
                     <ParentsSection
                         clientId={clientId}
+                        isAdmin={isAdmin}
                         initialResponsibles={initialResponsibles}
                     />
                 </TabsContent>

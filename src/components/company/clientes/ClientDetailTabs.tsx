@@ -21,6 +21,7 @@ import { emptyPaginated } from "@/lib/pagination";
 export type ClientDetailTabsProps = {
     clientId: string;
     clientType: string;
+    isAdmin?: boolean;
     initialLinks: RegistrationLinkListRow[];
     initialRows: ClientRegistrationListRow[];
     /** Só quando `clientType === "school"`: dados carregados no servidor */
@@ -35,6 +36,7 @@ export type ClientDetailTabsProps = {
 export function ClientDetailTabs({
     clientId,
     clientType,
+    isAdmin = false,
     initialLinks,
     initialRows,
     initialSchoolClasses = [],
@@ -50,6 +52,7 @@ export function ClientDetailTabs({
         return (
             <SchoolTab
                 clientId={clientId}
+                isAdmin={isAdmin}
                 initialClasses={initialSchoolClasses}
                 initialStudents={initialSchoolStudents}
                 initialResponsibles={initialSchoolResponsibles}

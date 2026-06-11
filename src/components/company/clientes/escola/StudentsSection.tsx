@@ -49,10 +49,12 @@ function classesLabel(
 
 export function StudentsSection({
     clientId,
+    isAdmin = false,
     classes,
     initialStudents,
 }: {
     clientId: string;
+    isAdmin?: boolean;
     classes: SchoolClassRow[];
     initialStudents: PaginatedResponse<StudentRow>;
 }) {
@@ -328,11 +330,16 @@ export function StudentsSection({
                     if (!open) setEditRow(null);
                 }}
                 clientId={clientId}
+                isAdmin={isAdmin}
                 student={editRow}
                 onSuccess={(hint) => {
                     toast.success("Aluno atualizado.");
                     refresh();
                     faceSyncOffer.promptFromSave(hint);
+                }}
+                onDeleted={() => {
+                    toast.success("Aluno excluído.");
+                    refresh();
                 }}
                 onLinksChanged={() => refresh()}
                 onFaceSyncOffer={faceSyncOffer.promptFromLinkChange}

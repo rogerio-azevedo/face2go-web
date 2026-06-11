@@ -1,19 +1,32 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm, type Resolver, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 
-import { updateStudentAction } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
+import {
+    deleteStudentAction,
+    updateStudentAction,
+} from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
 import type { StudentRow } from "@/types/domain";
 import {
     buildFaceSyncSaveHint,
     studentCadastralEditRequiresFaceSync,
     type FaceSyncSaveHint,
 } from "@/lib/face-sync-after-edit";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,20 +54,26 @@ export function StudentEditSheet({
     open,
     onOpenChange,
     clientId,
+    isAdmin = false,
     student,
     onSuccess,
+    onDeleted,
     onLinksChanged,
     onFaceSyncOffer,
 }: {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     clientId: string;
+    isAdmin?: boolean;
     student: StudentRow | null;
     onSuccess?: (hint?: FaceSyncSaveHint) => void;
+    onDeleted?: () => void;
     onLinksChanged?: () => void;
     onFaceSyncOffer?: (hint?: FaceSyncSaveHint) => void;
 }) {
     const [busy, setBusy] = useState(false);
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
     const defaults = useMemo(() => {
         if (!student) {
@@ -95,6 +114,23 @@ export function StudentEditSheet({
             form.reset(defaults as FormEdit);
         }
     }, [open, student, defaults, form]);
+
+    async function confirmDelete() {
+        if (!student) return;
+        setDeleting(true);
+        try {
+            const r = await deleteStudentAction(clientId, student.id);
+            if ("error" in r) {
+                toast.error(r.error);
+                return;
+            }
+            setDeleteOpen(false);
+            onOpenChange(false);
+            onDeleted?.();
+        } finally {
+            setDeleting(false);
+        }
+    }
 
     async function submit(values: FormEdit) {
         setBusy(true);
@@ -201,21 +237,40 @@ export function StudentEditSheet({
                             onFaceSyncOffer={onFaceSyncOffer}
                         />
 
-                        <SheetFooter className="mt-auto flex-row gap-2 px-0 sm:justify-end">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => onOpenChange(false)}
-                            >
-                                Cancelar
-                            </Button>
-                            <Button type="submit" form="student-edit-form" disabled={busy}>
-                                {busy ? (
-                                    <Loader2 className="size-4 animate-spin" />
-                                ) : (
-                                    "Salvar"
-                                )}
-                            </Button>
+                        <SheetFooter className="mt-auto flex-row gap-2 px-0 sm:justify-between">
+                            {isAdmin ? (
+                                <Button
+                                    type="button"
+                                    variant="destructive"
+                                    disabled={busy || deleting}
+                                    onClick={() => setDeleteOpen(true)}
+                                >
+                                    <Trash2 className="size-4" />
+                                    Excluir
+                                </Button>
+                            ) : (
+                                <span />
+                            )}
+                            <div className="flex gap-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => onOpenChange(false)}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    form="student-edit-form"
+                                    disabled={busy || deleting}
+                                >
+                                    {busy ? (
+                                        <Loader2 className="size-4 animate-spin" />
+                                    ) : (
+                                        "Salvar"
+                                    )}
+                                </Button>
+                            </div>
                         </SheetFooter>
                     </div>
 
@@ -229,6 +284,39 @@ export function StudentEditSheet({
                     </div>
                 </div>
             </SheetContent>
+
+            <AlertDialog
+                open={deleteOpen}
+                onOpenChange={(next) => {
+                    if (!next && !deleting) setDeleteOpen(false);
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Excluir aluno?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {student
+                                ? `Isso remove permanentemente o aluno "${student.name}" dos leitores e desvincula turmas e responsáveis. Esta ação não pode ser desfeita.`
+                                : null}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={deleting}>
+                            Cancelar
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            disabled={deleting}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                void confirmDelete();
+                            }}
+                        >
+                            {deleting ? "Excluindo…" : "Excluir"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </Sheet>
     );
 }

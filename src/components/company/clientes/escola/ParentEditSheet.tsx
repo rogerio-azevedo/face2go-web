@@ -1,19 +1,32 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm, type Resolver, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 
-import { updateResponsibleAction } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
+import {
+    deleteResponsibleAction,
+    updateResponsibleAction,
+} from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
 import type { ResponsibleRow } from "@/types/domain";
 import {
     buildFaceSyncSaveHint,
     responsibleCadastralEditRequiresFaceSync,
     type FaceSyncSaveHint,
 } from "@/lib/face-sync-after-edit";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,20 +48,26 @@ export function ParentEditSheet({
     open,
     onOpenChange,
     clientId,
+    isAdmin = false,
     parent,
     onSuccess,
+    onDeleted,
     onLinksChanged,
     onFaceSyncOffer,
 }: {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     clientId: string;
+    isAdmin?: boolean;
     parent: ResponsibleRow | null;
     onSuccess?: (hint?: FaceSyncSaveHint) => void;
+    onDeleted?: () => void;
     onLinksChanged?: () => void;
     onFaceSyncOffer?: (hint?: FaceSyncSaveHint) => void;
 }) {
     const [busy, setBusy] = useState(false);
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
     const hasAccount = Boolean(parent?.userId);
 
@@ -96,6 +115,23 @@ export function ParentEditSheet({
         if (!open || !parent) return;
         editForm.reset(editFormDefaults);
     }, [open, parent, editForm, editFormDefaults, editSchema]);
+
+    async function confirmDelete() {
+        if (!parent) return;
+        setDeleting(true);
+        try {
+            const r = await deleteResponsibleAction(clientId, parent.id);
+            if ("error" in r) {
+                toast.error(r.error);
+                return;
+            }
+            setDeleteOpen(false);
+            onOpenChange(false);
+            onDeleted?.();
+        } finally {
+            setDeleting(false);
+        }
+    }
 
     async function submitEdit(vals: EditVals) {
         setBusy(true);
@@ -201,21 +237,36 @@ export function ParentEditSheet({
                             />
                             <Label>Ativo</Label>
                         </div>
-                        <SheetFooter className="mt-auto flex-row gap-2 px-0 sm:justify-end">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => onOpenChange(false)}
-                            >
-                                Cancelar
-                            </Button>
-                            <Button type="submit" disabled={busy}>
-                                {busy ? (
-                                    <Loader2 className="size-4 animate-spin" />
-                                ) : (
-                                    "Salvar"
-                                )}
-                            </Button>
+                        <SheetFooter className="mt-auto flex-row gap-2 px-0 sm:justify-between">
+                            {isAdmin ? (
+                                <Button
+                                    type="button"
+                                    variant="destructive"
+                                    disabled={busy || deleting}
+                                    onClick={() => setDeleteOpen(true)}
+                                >
+                                    <Trash2 className="size-4" />
+                                    Excluir
+                                </Button>
+                            ) : (
+                                <span />
+                            )}
+                            <div className="flex gap-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => onOpenChange(false)}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button type="submit" disabled={busy || deleting}>
+                                    {busy ? (
+                                        <Loader2 className="size-4 animate-spin" />
+                                    ) : (
+                                        "Salvar"
+                                    )}
+                                </Button>
+                            </div>
                         </SheetFooter>
                     </form>
 
@@ -230,6 +281,39 @@ export function ParentEditSheet({
                     </div>
                 </div>
             </SheetContent>
+
+            <AlertDialog
+                open={deleteOpen}
+                onOpenChange={(next) => {
+                    if (!next && !deleting) setDeleteOpen(false);
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Excluir responsável?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {parent
+                                ? `Isso remove permanentemente o responsável "${parent.name}" dos leitores, câmeras LPR e veículos vinculados. Esta ação não pode ser desfeita.`
+                                : null}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={deleting}>
+                            Cancelar
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            disabled={deleting}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                void confirmDelete();
+                            }}
+                        >
+                            {deleting ? "Excluindo…" : "Excluir"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </Sheet>
     );
 }

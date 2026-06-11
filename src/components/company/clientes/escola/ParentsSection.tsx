@@ -31,9 +31,11 @@ import { FaceSyncResultModal } from "./FaceSyncResultModal";
 
 export function ParentsSection({
     clientId,
+    isAdmin = false,
     initialResponsibles,
 }: {
     clientId: string;
+    isAdmin?: boolean;
     initialResponsibles: PaginatedResponse<ResponsibleRow>;
 }) {
     const router = useRouter();
@@ -280,11 +282,16 @@ export function ParentsSection({
                     if (!open) setEditRow(null);
                 }}
                 clientId={clientId}
+                isAdmin={isAdmin}
                 parent={editRow}
                 onSuccess={(hint) => {
                     toast.success("Responsável atualizado.");
                     refresh();
                     faceSyncOffer.promptFromSave(hint);
+                }}
+                onDeleted={() => {
+                    toast.success("Responsável excluído.");
+                    refresh();
                 }}
                 onLinksChanged={() => refresh()}
                 onFaceSyncOffer={faceSyncOffer.promptFromLinkChange}
