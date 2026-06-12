@@ -10,6 +10,7 @@ import type {
     ClientRoleRow,
     PaginatedResponse,
     PickupAuthorizationRow,
+    InviteRow,
     RegistrationLinkListRow,
     ResponsibleRow,
     MemberRow,
@@ -34,6 +35,7 @@ export type ClientDetailTabsProps = {
     initialSchoolRoles?: ClientRoleRow[];
     initialSchoolShifts?: ShiftRow[];
     initialSchoolPickupAuthorizations?: PickupAuthorizationRow[];
+    initialSchoolInvites?: InviteRow[];
     initialSchoolVehicles?: PaginatedResponse<VehicleRow>;
 };
 
@@ -50,6 +52,7 @@ export function ClientDetailTabs({
     initialSchoolRoles = [],
     initialSchoolShifts = [],
     initialSchoolPickupAuthorizations = [],
+    initialSchoolInvites = [],
     initialSchoolVehicles = emptyPaginated<VehicleRow>(),
 }: ClientDetailTabsProps) {
     const isSchool = clientType === "school";
@@ -66,6 +69,7 @@ export function ClientDetailTabs({
                 initialRoles={initialSchoolRoles}
                 initialShifts={initialSchoolShifts}
                 initialPickupAuthorizations={initialSchoolPickupAuthorizations}
+                initialInvites={initialSchoolInvites}
                 initialVehicles={initialSchoolVehicles}
             />
         );

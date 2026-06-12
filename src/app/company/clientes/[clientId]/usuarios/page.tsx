@@ -16,6 +16,7 @@ import type {
     ClientRoleRow,
     PaginatedResponse,
     PickupAuthorizationRow,
+    InviteRow,
     RegistrationLinkListRow,
     ResponsibleRow,
     MemberRow,
@@ -58,6 +59,7 @@ export default async function CompanyClientUsuariosPage({
     let schoolRoles: ClientRoleRow[] = [];
     let schoolShifts: ShiftRow[] = [];
     let schoolPickupAuthorizations: PickupAuthorizationRow[] = [];
+    let schoolInvites: InviteRow[] = [];
     let schoolVehicles: PaginatedResponse<VehicleRow> = emptyPaginated();
 
     try {
@@ -83,7 +85,7 @@ export default async function CompanyClientUsuariosPage({
 
         if (clientMeta?.type === "school") {
             const listQs = buildSchoolListQuery({ page: 1 });
-            const [clsRes, stRes, prRes, mbRes, rolesRes, shRes, pkRes, vhRes] =
+            const [clsRes, stRes, prRes, mbRes, rolesRes, shRes, pkRes, invRes, vhRes] =
                 await Promise.all([
                     apiFetchAuthed(`/api/clients/${clientId}/school-classes`),
                     apiFetchAuthed(
@@ -100,6 +102,7 @@ export default async function CompanyClientUsuariosPage({
                     apiFetchAuthed(
                         `/api/clients/${clientId}/pickup-authorizations`,
                     ),
+                    apiFetchAuthed(`/api/clients/${clientId}/invites`),
                     apiFetchAuthed(
                         `/api/clients/${clientId}/vehicles?${listQs}`,
                     ),
@@ -141,6 +144,13 @@ export default async function CompanyClientUsuariosPage({
                     schoolPickupAuthorizations = [];
                 }
             }
+            if (invRes.ok) {
+                schoolInvites =
+                    ((await parseResponseJson(invRes)) as InviteRow[]) ?? [];
+                if (!Array.isArray(schoolInvites)) {
+                    schoolInvites = [];
+                }
+            }
             if (vhRes.ok) {
                 schoolVehicles = normalizePaginated<VehicleRow>(
                     await parseResponseJson(vhRes),
@@ -157,6 +167,7 @@ export default async function CompanyClientUsuariosPage({
         schoolRoles = [];
         schoolShifts = [];
         schoolPickupAuthorizations = [];
+        schoolInvites = [];
         schoolVehicles = emptyPaginated();
     }
 
@@ -189,6 +200,7 @@ export default async function CompanyClientUsuariosPage({
                 initialSchoolRoles={schoolRoles}
                 initialSchoolShifts={schoolShifts}
                 initialSchoolPickupAuthorizations={schoolPickupAuthorizations}
+                initialSchoolInvites={schoolInvites}
                 initialSchoolVehicles={schoolVehicles}
             />
         </div>

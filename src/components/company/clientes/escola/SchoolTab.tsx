@@ -4,6 +4,7 @@ import type {
     ClientRoleRow,
     PaginatedResponse,
     PickupAuthorizationRow,
+    InviteRow,
     ResponsibleRow,
     MemberRow,
     SchoolClassRow,
@@ -19,6 +20,7 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs";
 
+import { InvitesSection } from "./InvitesSection";
 import { MembersSection } from "./MembersSection";
 import { ParentsSection } from "./ParentsSection";
 import { PickupAuthorizationsSection } from "./PickupAuthorizationsSection";
@@ -37,6 +39,7 @@ export function SchoolTab({
     initialRoles,
     initialShifts,
     initialPickupAuthorizations = [],
+    initialInvites = [],
     initialVehicles = emptyPaginated<VehicleRow>(),
 }: {
     clientId: string;
@@ -48,6 +51,7 @@ export function SchoolTab({
     initialRoles: ClientRoleRow[];
     initialShifts: ShiftRow[];
     initialPickupAuthorizations?: PickupAuthorizationRow[];
+    initialInvites?: InviteRow[];
     initialVehicles?: PaginatedResponse<VehicleRow>;
 }) {
     return (
@@ -62,6 +66,7 @@ export function SchoolTab({
                     <TabsTrigger value="pickups">
                         Autorizações retirada
                     </TabsTrigger>
+                    <TabsTrigger value="invites">Visitantes</TabsTrigger>
                     <TabsTrigger value="vehicles">Veículos</TabsTrigger>
                 </TabsList>
                 <TabsContent value="shifts" className="pt-4">
@@ -104,6 +109,12 @@ export function SchoolTab({
                     <PickupAuthorizationsSection
                         clientId={clientId}
                         initialAuthorizations={initialPickupAuthorizations}
+                    />
+                </TabsContent>
+                <TabsContent value="invites" className="pt-4">
+                    <InvitesSection
+                        clientId={clientId}
+                        initialInvites={initialInvites}
                     />
                 </TabsContent>
                 <TabsContent value="vehicles" className="pt-4">

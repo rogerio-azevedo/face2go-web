@@ -577,3 +577,37 @@ export type PickupAuthorizationRow = {
     guestRegistrationUrl: string | null;
     authorizedPhotoUrl: string | null;
 };
+
+export type InviteStatus = PickupAuthorizationStatus;
+
+export type InviteVehicle = PickupAuthorizationVehicle;
+
+/** Resposta da API de convites de visitantes. */
+export type InviteRow = {
+    id: string;
+    clientId: string;
+    requestedByMemberId: string;
+    requestedByMemberName: string | null;
+    guestName: string | null;
+    guestDocument: string | null;
+    guestPhone: string | null;
+    guestLinkCode: string | null;
+    guestApprovalStatus:
+        | "pending_face"
+        | "submitted"
+        | "approved"
+        | "rejected";
+    guestFaceSyncStatus: DeviceSyncStatus | null;
+    guestFaceSyncError: string | null;
+    status: InviteStatus;
+    effectiveStatus: InviteStatus;
+    validFrom: string;
+    validUntil: string;
+    notes: string | null;
+    usedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    vehicle: InviteVehicle;
+    guestRegistrationUrl: string | null;
+    authorizedPhotoUrl: string | null;
+};
