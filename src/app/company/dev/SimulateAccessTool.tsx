@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -107,6 +107,7 @@ export function SimulateAccessTool({
     const [search, setSearch] = useState('');
     const [students, setStudents] = useState<SimulatablePerson[]>([]);
     const [responsibles, setResponsibles] = useState<SimulatablePerson[]>([]);
+    const [members, setMembers] = useState<SimulatablePerson[]>([]);
     const [readers, setReaders] = useState<DevSimReaderOption[]>([]);
     const [readerId, setReaderId] = useState('');
     const [loadingList, setLoadingList] = useState(false);
@@ -114,44 +115,54 @@ export function SimulateAccessTool({
     const [simulatingId, setSimulatingId] = useState<string | null>(null);
     const [tab, setTab] = useState('students');
 
-    const reloadForClient = useCallback(async (cid: string) => {
-        if (!cid) {
-            setStudents([]);
-            setResponsibles([]);
-            setReaders([]);
-            setReaderId('');
-            return;
-        }
-        setLoadingList(true);
-        setListError(null);
-        const [peopleRes, readersRes] = await Promise.all([
-            listSimulatablePeopleAction(cid),
-            listReadersForClientAction(cid),
-        ]);
-        setLoadingList(false);
-
-        if (!('success' in peopleRes) || !peopleRes.success) {
-            setListError(
-                peopleRes && 'error' in peopleRes ? peopleRes.error : 'Erro ao carregar.',
-            );
-            setStudents([]);
-            setResponsibles([]);
-        } else {
-            setStudents(peopleRes.students);
-            setResponsibles(peopleRes.responsibles);
-        }
-
-        if (!('success' in readersRes) || !readersRes.success) {
-            setReaders([]);
-        } else {
-            setReaders(readersRes.readers);
-        }
-        setReaderId('');
-    }, []);
-
     useEffect(() => {
-        void reloadForClient(clientId);
-    }, [clientId, reloadForClient]);
+        let cancelled = false;
+
+        async function load() {
+            if (!clientId) {
+                setStudents([]);
+                setResponsibles([]);
+                setMembers([]);
+                setReaders([]);
+                setReaderId('');
+                return;
+            }
+            setLoadingList(true);
+            setListError(null);
+            const [peopleRes, readersRes] = await Promise.all([
+                listSimulatablePeopleAction(clientId),
+                listReadersForClientAction(clientId),
+            ]);
+            if (cancelled) return;
+            setLoadingList(false);
+
+            if (!('success' in peopleRes) || !peopleRes.success) {
+                setListError(
+                    peopleRes && 'error' in peopleRes ? peopleRes.error : 'Erro ao carregar.',
+                );
+                setStudents([]);
+                setResponsibles([]);
+                setMembers([]);
+            } else {
+                setStudents(peopleRes.students);
+                setResponsibles(peopleRes.responsibles);
+                setMembers(peopleRes.members);
+            }
+
+            if (!('success' in readersRes) || !readersRes.success) {
+                setReaders([]);
+            } else {
+                setReaders(readersRes.readers);
+            }
+            setReaderId('');
+        }
+
+        void load();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [clientId]);
 
     const filteredStudents = useMemo(
         () => filterPeople(students, search),
@@ -163,9 +174,14 @@ export function SimulateAccessTool({
         [responsibles, search],
     );
 
+    const filteredMembers = useMemo(
+        () => filterPeople(members, search),
+        [members, search],
+    );
+
     async function runSimulate(
         pid: string,
-        type: 'student' | 'responsible',
+        type: 'student' | 'responsible' | 'member',
         name: string,
     ) {
         if (!clientId) {
@@ -289,6 +305,9 @@ export function SimulateAccessTool({
                         <TabsTrigger value="responsibles">
                             Responsáveis ({filteredResponsibles.length})
                         </TabsTrigger>
+                        <TabsTrigger value="members">
+                            Membros ({filteredMembers.length})
+                        </TabsTrigger>
                     </TabsList>
                     <TabsContent value="students" className="mt-4 space-y-3">
                         {filteredStudents.length === 0 ? (
@@ -321,6 +340,24 @@ export function SimulateAccessTool({
                                     busy={simulatingId === p.id}
                                     onSimulate={() =>
                                         runSimulate(p.id, 'responsible', p.name)
+                                    }
+                                />
+                            ))
+                        )}
+                    </TabsContent>
+                    <TabsContent value="members" className="mt-4 space-y-3">
+                        {filteredMembers.length === 0 ? (
+                            <p className="text-muted-foreground text-sm">
+                                Nenhum membro encontrado.
+                            </p>
+                        ) : (
+                            filteredMembers.map((p) => (
+                                <PersonSimRow
+                                    key={p.id}
+                                    person={p}
+                                    busy={simulatingId === p.id}
+                                    onSimulate={() =>
+                                        runSimulate(p.id, 'member', p.name)
                                     }
                                 />
                             ))

@@ -21,7 +21,7 @@ const clientIdSchema = z.string().uuid();
 const simulateSchema = z.object({
     clientId: z.string().uuid(),
     personId: z.string().uuid(),
-    personType: z.enum(['student', 'responsible']),
+    personType: z.enum(['student', 'responsible', 'member']),
     readerId: z.string().uuid().optional(),
 });
 
@@ -80,6 +80,7 @@ export async function listSimulatablePeopleAction(
           success: true;
           students: SimulatablePerson[];
           responsibles: SimulatablePerson[];
+          members: SimulatablePerson[];
       }
     | { error: string }
 > {
@@ -100,11 +101,13 @@ export async function listSimulatablePeopleAction(
         const data = (await res.json()) as {
             students: SimulatablePerson[];
             responsibles: SimulatablePerson[];
+            members?: SimulatablePerson[];
         };
         return {
             success: true,
             students: data.students ?? [],
             responsibles: data.responsibles ?? [],
+            members: data.members ?? [],
         };
     } catch {
         return { error: 'Não foi possível carregar a lista.' };
