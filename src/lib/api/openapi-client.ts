@@ -1,7 +1,7 @@
 import createClient from 'openapi-fetch';
 
 import type { paths } from '@/types/api.generated';
-import { getApiBaseUrl } from './api-fetch';
+import { getApiBaseUrl } from '../api-fetch';
 
 export type ApiPaths = paths;
 

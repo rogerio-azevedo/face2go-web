@@ -44,7 +44,7 @@ export function FaceSyncResultModal({
     const [activeStep, setActiveStep] = useState(0);
 
     useEffect(() => {
-        let id: ReturnType<typeof setInterval> | undefined;
+        let id: number | undefined;
 
         deferInEffect(() => {
             if (state.phase !== "syncing") {
