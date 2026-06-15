@@ -93,7 +93,7 @@ export function ResponsibleRegisterFaceStep({
                 email: formData.email.trim(),
                 password: formData.password,
                 phone: formData.phone.trim() || undefined,
-                document: formData.document.trim() || undefined,
+                document: formData.document.trim(),
                 faceImageKey,
             };
             if (hasVehicle) {

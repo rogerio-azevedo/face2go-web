@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { AppProviders } from "@/components/shared/AppProviders";
+import { getAppBaseUrl } from "@/lib/responsible-register-metadata";
 
 import "./globals.css";
 
@@ -16,8 +17,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-    title: "Face2go",
-    description: "Cadastro de faces em leitores faciais",
+    metadataBase: new URL(getAppBaseUrl()),
+    title: "Face2go - Plataforma de Controle de Acesso",
+    description: "Plataforma para gestão de cadastro integrada a leitores faciais, CFTV, câmeras LPR e catracas — soluções para escolas, clínicas, empresas e escritórios.",
 };
 
 export default function RootLayout({

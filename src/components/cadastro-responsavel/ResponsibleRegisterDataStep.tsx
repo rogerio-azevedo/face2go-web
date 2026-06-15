@@ -40,6 +40,15 @@ export function ResponsibleRegisterDataStep({
             setError("Senha deve ter pelo menos 8 caracteres.");
             return;
         }
+        const cpf = normalizeCpf(form.document);
+        if (!cpf) {
+            setError("Informe o CPF.");
+            return;
+        }
+        if (cpf.length !== 11) {
+            setError("CPF inválido.");
+            return;
+        }
         const hasPartialVehicle =
             form.plate.trim() ||
             form.brand.trim() ||
@@ -58,7 +67,7 @@ export function ResponsibleRegisterDataStep({
         }
         onNext({
             ...form,
-            document: form.document ? normalizeCpf(form.document) : "",
+            document: cpf,
         });
     };
 
@@ -103,7 +112,7 @@ export function ResponsibleRegisterDataStep({
                 />
             </div>
             <div className="space-y-2">
-                <Label htmlFor="document">Documento (opcional)</Label>
+                <Label htmlFor="document">CPF</Label>
                 <Input
                     id="document"
                     value={form.document}
@@ -114,6 +123,7 @@ export function ResponsibleRegisterDataStep({
                     inputMode="numeric"
                     autoComplete="off"
                     maxLength={CPF_FORMATTED_MAX_LENGTH}
+                    required
                 />
             </div>
 
