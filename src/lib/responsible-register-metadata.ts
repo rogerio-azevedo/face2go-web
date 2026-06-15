@@ -4,6 +4,12 @@ import { getApiBaseUrl } from "@/lib/api-fetch";
 
 export type ResponsibleRegisterAppBrand = "ienh" | "face2go";
 
+export type PublicLinkAppBrand = ResponsibleRegisterAppBrand;
+
+type PublicLinkPreview = {
+    appBrand?: PublicLinkAppBrand;
+};
+
 export type ResponsibleRegisterPreview = {
     clientName: string;
     appBrand: ResponsibleRegisterAppBrand;
@@ -50,24 +56,52 @@ export function getAppBaseUrl(): string {
     return "https://www.face2go.com.br";
 }
 
-export async function fetchResponsibleRegisterPreview(
+async function fetchPublicLinkPreview<T extends PublicLinkPreview>(
+    path: string,
     code: string,
-): Promise<ResponsibleRegisterPreview | null> {
+): Promise<T | null> {
     const trimmed = code.trim();
     if (!trimmed) return null;
 
     try {
-        const url = `${getApiBaseUrl()}/api/responsible-register/${encodeURIComponent(trimmed)}`;
+        const url = `${getApiBaseUrl()}/api/${path}/${encodeURIComponent(trimmed)}`;
         const res = await fetch(url, { next: { revalidate: 60 } });
         if (!res.ok) return null;
-        return (await res.json()) as ResponsibleRegisterPreview;
+        return (await res.json()) as T;
     } catch {
         return null;
     }
+}
+
+export async function fetchResponsibleRegisterPreview(
+    code: string,
+): Promise<ResponsibleRegisterPreview | null> {
+    return fetchPublicLinkPreview<ResponsibleRegisterPreview>(
+        "responsible-register",
+        code,
+    );
+}
+
+export async function fetchInviteRegisterPreview(
+    code: string,
+): Promise<PublicLinkPreview | null> {
+    return fetchPublicLinkPreview<PublicLinkPreview>("invite-register", code);
+}
+
+export async function fetchPickupRegisterPreview(
+    code: string,
+): Promise<PublicLinkPreview | null> {
+    return fetchPublicLinkPreview<PublicLinkPreview>("pickup-register", code);
 }
 
 export function buildResponsibleRegisterMetadata(
     appBrand: ResponsibleRegisterAppBrand,
 ): Metadata {
     return BRAND_METADATA[appBrand];
+}
+
+export function buildPublicLinkMetadata(
+    appBrand: PublicLinkAppBrand = "face2go",
+): Metadata {
+    return buildResponsibleRegisterMetadata(appBrand);
 }
