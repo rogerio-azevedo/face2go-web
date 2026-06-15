@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getApiBaseUrl } from "@/lib/api-fetch";
+import { applyCpfMaskInput, CPF_FORMATTED_MAX_LENGTH, normalizeCpf } from "@/lib/utils/document";
 
 type GuestRegisterPreview = {
     clientName: string;
@@ -42,10 +43,6 @@ function formatDate(iso: string) {
         hour: "2-digit",
         minute: "2-digit",
     });
-}
-
-function normalizeCpf(value: string) {
-    return value.replace(/\D/g, "");
 }
 
 export function GuestRegisterWizard({
@@ -199,9 +196,13 @@ export function GuestRegisterWizard({
                         <Input
                             id="guestDocument"
                             value={guestDocument}
-                            onChange={(e) => setGuestDocument(e.target.value)}
+                            onChange={(e) =>
+                                setGuestDocument(applyCpfMaskInput(e.target.value))
+                            }
+                            placeholder="000.000.000-00"
                             inputMode="numeric"
                             autoComplete="off"
+                            maxLength={CPF_FORMATTED_MAX_LENGTH}
                         />
                     </div>
                     <div className="space-y-2">

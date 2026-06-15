@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { listResponsiblesAction } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import { useFaceSyncOffer } from "@/lib/use-face-sync-offer";
 import type { PaginatedResponse, ResponsibleRow } from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
@@ -77,12 +78,16 @@ export function ParentsSection({
     );
 
     useEffect(() => {
-        setList(initialResponsibles);
-        setPage(initialResponsibles.page);
+        deferInEffect(() => {
+            setList(initialResponsibles);
+            setPage(initialResponsibles.page);
+        });
     }, [initialResponsibles]);
 
     useEffect(() => {
-        void fetchList(page, search);
+        deferInEffect(() => {
+            void fetchList(page, search);
+        });
     }, [page, search, fetchList]);
 
     function refresh() {

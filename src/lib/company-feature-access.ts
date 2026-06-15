@@ -1,4 +1,5 @@
 import type { FeatureSlug, PermissionAction } from './features';
+import { getApiBaseUrl, parseResponseJson } from './api-fetch';
 
 /** Avalia permissão granular chamando o backend Nest (`/api/me/can-check`). */
 export async function evaluateCompanyFeatureAction(
@@ -8,22 +9,18 @@ export async function evaluateCompanyFeatureAction(
 ): Promise<boolean> {
     if (!accessToken) return false;
 
-    const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '');
-    if (!base) return false;
-
     try {
-        const url = new URL(`${base}/api/me/can-check`);
-        url.searchParams.set('feature', featureSlug);
-        url.searchParams.set('action', action);
+        const base = getApiBaseUrl();
+        const url = `${base}/api/me/can-check?feature=${encodeURIComponent(featureSlug)}&action=${encodeURIComponent(action)}`;
 
-        const res = await fetch(url.toString(), {
+        const res = await fetch(url, {
             headers: { Authorization: `Bearer ${accessToken}` },
             cache: 'no-store',
         });
 
         if (!res.ok) return false;
 
-        const data = (await res.json()) as { allowed?: boolean };
+        const data = (await parseResponseJson(res)) as { allowed?: boolean };
         return data.allowed === true;
     } catch {
         return false;

@@ -13,6 +13,7 @@ import {
     AlertDialogMedia,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import { cn } from "@/lib/utils";
 import {
     FACE_SYNC_STEPS,
@@ -43,19 +44,25 @@ export function FaceSyncResultModal({
     const [activeStep, setActiveStep] = useState(0);
 
     useEffect(() => {
-        if (state.phase !== "syncing") {
+        let id: ReturnType<typeof setInterval> | undefined;
+
+        deferInEffect(() => {
+            if (state.phase !== "syncing") {
+                setActiveStep(0);
+                return;
+            }
+
             setActiveStep(0);
-            return;
-        }
+            id = window.setInterval(() => {
+                setActiveStep((prev) =>
+                    prev >= FACE_SYNC_STEPS.length - 1 ? prev : prev + 1,
+                );
+            }, 1400);
+        });
 
-        setActiveStep(0);
-        const id = window.setInterval(() => {
-            setActiveStep((prev) =>
-                prev >= FACE_SYNC_STEPS.length - 1 ? prev : prev + 1,
-            );
-        }, 1400);
-
-        return () => window.clearInterval(id);
+        return () => {
+            if (id !== undefined) window.clearInterval(id);
+        };
     }, [state.phase, state.phase === "syncing" ? state.name : null]);
 
     function handleOpenChange(nextOpen: boolean) {

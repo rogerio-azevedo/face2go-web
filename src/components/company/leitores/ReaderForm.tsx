@@ -11,6 +11,7 @@ import {
     createReaderAction,
     updateReaderAction,
 } from "@/app/company/leitores/actions";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import type { ClientListRow, ReaderListRow } from "@/types/domain";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -157,10 +158,12 @@ export function ReaderForm({
     } = form;
 
     useEffect(() => {
-        if (open) {
-            reset(defaultValues);
-            setShowPassword(false);
-        }
+        deferInEffect(() => {
+            if (open) {
+                reset(defaultValues);
+                setShowPassword(false);
+            }
+        });
     }, [open, defaultValues, reset]);
 
     async function submit(data: ReaderFormPayload) {

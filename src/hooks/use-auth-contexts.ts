@@ -56,7 +56,7 @@ export function useAuthContexts() {
         }
 
         return null;
-    }, [session?.activeContext, contexts]);
+    }, [session, contexts]);
 
     const displayLabel =
         activeContext?.label ??

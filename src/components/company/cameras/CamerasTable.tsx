@@ -10,6 +10,7 @@ import {
     fetchCamerasMonitorStatusAction,
     toggleCameraActiveAction,
 } from "@/app/company/cameras/actions";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import type {
     CameraListRow,
     CameraMonitorDeviceApiRow,
@@ -143,7 +144,9 @@ export function CamerasTable({
     );
 
     useEffect(() => {
-        void refreshMonitor();
+        deferInEffect(() => {
+            void refreshMonitor();
+        });
         const id = window.setInterval(
             () => void refreshMonitor({ silent: true }),
             10_000,

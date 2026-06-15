@@ -17,6 +17,7 @@ import type {
     ResponsibleStudentLinkWithStudent,
     StudentRow,
 } from "@/types/domain";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -84,13 +85,15 @@ export function ParentLinkedStudentsPanel({
     }, [active, load]);
 
     useEffect(() => {
-        if (!active) {
-            setEditingStudentId(null);
-            setPickStudentId("");
-            setRelType("other");
-            setAuthorizedPickup(true);
-            setLinkSearch("");
-        }
+        deferInEffect(() => {
+            if (!active) {
+                setEditingStudentId(null);
+                setPickStudentId("");
+                setRelType("other");
+                setAuthorizedPickup(true);
+                setLinkSearch("");
+            }
+        });
     }, [active]);
 
     useEffect(() => {

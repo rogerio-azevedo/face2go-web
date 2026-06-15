@@ -12,7 +12,6 @@ export function FaceCirclePhoto(props: FaceCirclePhotoProps) {
         props.nameHint?.trim()?.charAt(0)?.toUpperCase() ?? "?";
     return (
         <div className={props.className}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             {props.photoUrl ? (
                 <img
                     alt=""

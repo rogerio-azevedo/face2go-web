@@ -77,6 +77,7 @@ export function MemberEditSheet({
                 document: "",
                 password: "",
                 isActive: true,
+                canEnrollStudentFace: false,
             };
         }
         return {
@@ -87,6 +88,7 @@ export function MemberEditSheet({
             document: member.document ?? "",
             password: "",
             isActive: member.isActive,
+            canEnrollStudentFace: member.canEnrollStudentFace,
         };
     }, [member, roles]);
 
@@ -102,6 +104,11 @@ export function MemberEditSheet({
             typeof editFormDefaults.isActive === "boolean"
                 ? editFormDefaults.isActive
                 : true,
+    });
+    const editCanEnrollStudentFaceToggle = useWatch({
+        control: editForm.control,
+        name: "canEnrollStudentFace",
+        defaultValue: editFormDefaults.canEnrollStudentFace === true,
     });
 
     useEffect(() => {
@@ -130,7 +137,10 @@ export function MemberEditSheet({
         setBusy(true);
         try {
             if (!member) return;
-            const body = { ...vals };
+            const body = {
+                ...vals,
+                canEnrollStudentFace: editCanEnrollStudentFaceToggle === true,
+            };
             if (body.password === "" || body.password === undefined) {
                 delete body.password;
             }
@@ -238,6 +248,23 @@ export function MemberEditSheet({
                             />
                             <Label>Ativo</Label>
                         </div>
+                        <div className="flex items-center gap-2">
+                            <Switch
+                                checked={editCanEnrollStudentFaceToggle === true}
+                                onCheckedChange={(v) =>
+                                    editForm.setValue(
+                                        "canEnrollStudentFace",
+                                        v === true,
+                                        { shouldDirty: true, shouldValidate: true },
+                                    )
+                                }
+                            />
+                            <Label>Pode fotografar alunos</Label>
+                        </div>
+                        <input
+                            type="hidden"
+                            {...editForm.register("canEnrollStudentFace")}
+                        />
 
                         <SheetFooter className="mt-auto flex-col gap-2 sm:flex-row sm:justify-between">
                             {isAdmin ? (

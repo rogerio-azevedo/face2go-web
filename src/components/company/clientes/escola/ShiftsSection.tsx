@@ -118,7 +118,7 @@ export function ShiftsSection({
                 toast.error(r.error);
                 return;
             }
-            toast.success("Turno removido.");
+            toast.success("Horário removido.");
             setPendingDelete(null);
             refresh();
         } finally {
@@ -137,7 +137,7 @@ export function ShiftsSection({
                         setSheetOpen(true);
                     }}
                 >
-                    Novo turno
+                    Novo horário
                 </Button>
             </div>
 
@@ -162,7 +162,7 @@ export function ShiftsSection({
                                     colSpan={4}
                                     className="text-muted-foreground py-10 text-center"
                                 >
-                                    Nenhum turno cadastrado.
+                                    Nenhum horário cadastrado.
                                 </TableCell>
                             </TableRow>
                         ) : (
@@ -230,7 +230,7 @@ export function ShiftsSection({
                 shift={editRow}
                 onSuccess={() => {
                     toast.success(
-                        editRow ? "Turno atualizado." : "Turno criado.",
+                        editRow ? "Horário atualizado." : "Horário criado.",
                     );
                     refresh();
                 }}
@@ -244,10 +244,10 @@ export function ShiftsSection({
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Excluir turno?</AlertDialogTitle>
+                        <AlertDialogTitle>Excluir horário?</AlertDialogTitle>
                         <AlertDialogDescription>
                             {pendingDelete
-                                ? `Isso remove o turno "${pendingDelete.name}". Esta ação não pode ser desfeita.`
+                                ? `Isso remove o horário "${pendingDelete.name}". Esta ação não pode ser desfeita.`
                                 : null}
                         </AlertDialogDescription>
                     </AlertDialogHeader>

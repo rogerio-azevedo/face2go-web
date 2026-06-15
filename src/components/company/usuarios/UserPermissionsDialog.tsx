@@ -7,9 +7,9 @@ import { toast } from "sonner";
 import {
     updateCompanyMemberPermissionsAction,
 } from "@/app/company/usuarios/actions";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import {
     Sheet,
     SheetContent,
@@ -57,9 +57,11 @@ export function UserPermissionsDialog({
     const [pending, startTransition] = useTransition();
 
     useEffect(() => {
-        if (open) {
-            setState(buildStateFromRows(initialRows));
-        }
+        deferInEffect(() => {
+            if (open) {
+                setState(buildStateFromRows(initialRows));
+            }
+        });
     }, [open, initialRows]);
 
     function toggleAction(

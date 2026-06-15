@@ -10,6 +10,7 @@ import {
     removeDevicePlateAction,
 } from "@/app/company/cameras/actions";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
 import {
@@ -66,7 +67,9 @@ export default function DevicePlatesClient({ cameraId }: { cameraId: string }) {
     }, []);
 
     useEffect(() => {
-        void fetchPlates(offset, search);
+        deferInEffect(() => {
+            void fetchPlates(offset, search);
+        });
     }, [offset, search, fetchPlates]);
 
     const handleNext = () => {

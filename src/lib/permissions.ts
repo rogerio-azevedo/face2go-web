@@ -1,5 +1,6 @@
 import { auth } from '@/auth';
 
+import { apiFetchAuthed, parseResponseJson } from '@/lib/api-fetch';
 import type { FeatureSlug, PermissionAction } from './features';
 
 export async function can(
@@ -11,22 +12,14 @@ export async function can(
 
     if (!session?.user?.companyId || !token) return false;
 
-    const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '');
-    if (!base) return false;
-
     try {
-        const url = new URL(`${base}/api/me/can-check`);
-        url.searchParams.set('feature', featureSlug);
-        url.searchParams.set('action', action);
-
-        const res = await fetch(url.toString(), {
-            headers: { Authorization: `Bearer ${token}` },
-            cache: 'no-store',
-        });
+        const res = await apiFetchAuthed(
+            `/api/me/can-check?feature=${encodeURIComponent(featureSlug)}&action=${encodeURIComponent(action)}`,
+        );
 
         if (!res.ok) return false;
 
-        const data = (await res.json()) as { allowed?: boolean };
+        const data = (await parseResponseJson(res)) as { allowed?: boolean };
         return data.allowed === true;
     } catch {
         return false;
@@ -38,41 +31,21 @@ export async function getSidebarNavAccess(): Promise<{
 }> {
     const session = await auth();
     const token = session?.accessToken;
-    const user = session?.user;
 
-    if (!user) {
+    if (!session?.user?.companyId || !token) {
         return { mainPaths: null };
-    }
-
-    if (user.role === 'super_admin') {
-        return { mainPaths: null };
-    }
-
-    if (!user.companyId || !token) {
-        return { mainPaths: ['/company/dashboard'] };
-    }
-
-    if (user.role !== 'company_admin' && user.role !== 'company_operator') {
-        return { mainPaths: null };
-    }
-
-    const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '');
-    if (!base) {
-        return { mainPaths: ['/company/dashboard'] };
     }
 
     try {
-        const res = await fetch(`${base}/api/me/navigation`, {
-            headers: { Authorization: `Bearer ${token}` },
-            cache: 'no-store',
-        });
+        const res = await apiFetchAuthed('/api/me/sidebar-nav-access');
 
-        if (!res.ok) {
-            return { mainPaths: ['/company/dashboard'] };
-        }
+        if (!res.ok) return { mainPaths: null };
 
-        return (await res.json()) as { mainPaths: string[] | null };
+        const data = (await parseResponseJson(res)) as {
+            mainPaths?: string[] | null;
+        };
+        return { mainPaths: data.mainPaths ?? null };
     } catch {
-        return { mainPaths: ['/company/dashboard'] };
+        return { mainPaths: null };
     }
 }

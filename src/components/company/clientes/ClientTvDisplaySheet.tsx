@@ -8,6 +8,7 @@ import {
     ensureClientDisplayTokenAction,
     regenerateClientDisplayTokenAction,
 } from '@/app/company/clientes/actions';
+import { deferInEffect } from '@/lib/defer-in-effect';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -31,23 +32,25 @@ export function ClientTvDisplaySheet(props: {
     const [loading, startTransition] = useTransition();
 
     useEffect(() => {
-        if (!open || !client) {
-            setToken(null);
-            setShortCode(null);
-            return;
-        }
-        setToken(null);
-        setShortCode(null);
-        startTransition(async () => {
-            const r = await ensureClientDisplayTokenAction(client.id);
-            if ('error' in r) {
-                toast.error(r.error);
+        deferInEffect(() => {
+            if (!open || !client) {
                 setToken(null);
                 setShortCode(null);
                 return;
             }
-            setToken(r.token);
-            setShortCode(r.shortCode || null);
+            setToken(null);
+            setShortCode(null);
+            startTransition(async () => {
+                const r = await ensureClientDisplayTokenAction(client.id);
+                if ('error' in r) {
+                    toast.error(r.error);
+                    setToken(null);
+                    setShortCode(null);
+                    return;
+                }
+                setToken(r.token);
+                setShortCode(r.shortCode || null);
+            });
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps -- recarrega ao abrir o sheet / mudar cliente
     }, [open, client?.id]);

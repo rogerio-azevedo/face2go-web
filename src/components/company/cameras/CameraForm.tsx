@@ -34,65 +34,14 @@ import {
     cameraFormSchema,
     type CameraFormPayload,
 } from "@/lib/validations/cameras";
+import {
+    cameraControlClass as controlClass,
+    cameraFieldLabel as fieldLabel,
+    cameraHintClass as hintClass,
+    toCreateCameraApiBody as toCreateApiBody,
+    toUpdateCameraApiBody as toUpdateCameraPayload,
+} from "@/features/cameras/components/camera-form-utils";
 import { cn } from "@/lib/utils";
-
-const fieldLabel =
-    "text-muted-foreground text-xs font-semibold uppercase tracking-wider";
-const controlClass =
-    "shadow-sm aria-invalid:border-destructive aria-invalid:ring-destructive/25 sm:h-10";
-const hintClass =
-    "font-normal lowercase normal-case tracking-normal text-muted-foreground";
-
-function toCreateApiBody(data: CameraFormPayload) {
-    const body: Record<string, unknown> = {
-        clientId: data.clientId,
-        type: data.type,
-        brand: data.brand,
-        name: data.name,
-        description: data.description,
-        ip: data.ip,
-        port: data.port,
-        serialNumber: data.serialNumber,
-        model: data.model,
-        location: data.location,
-        deviceId: data.deviceId,
-        isActive: data.isActive,
-    };
-    if (data.type === "lpr" && data.direction !== "") {
-        body.direction = data.direction;
-    }
-    const u = data.username.trim();
-    if (u) body.username = u;
-    if (data.password.length > 0) body.password = data.password;
-    return body;
-}
-
-function toUpdateCameraPayload(
-    data: CameraFormPayload,
-): Record<string, unknown> {
-    const body: Record<string, unknown> = {
-        clientId: data.clientId,
-        type: data.type,
-        brand: data.brand,
-        name: data.name,
-        description: data.description ?? null,
-        ip: data.ip,
-        port: data.port,
-        serialNumber: data.serialNumber ?? null,
-        model: data.model ?? null,
-        location: data.location ?? null,
-        deviceId: data.deviceId ?? null,
-        isActive: data.isActive,
-        username: data.username.trim() ? data.username.trim() : null,
-    };
-    if (data.type === "lpr") {
-        body.direction = data.direction === "" ? null : data.direction;
-    } else {
-        body.direction = null;
-    }
-    if (data.password.length > 0) body.password = data.password;
-    return body;
-}
 
 export type CameraFormProps = {
     open: boolean;

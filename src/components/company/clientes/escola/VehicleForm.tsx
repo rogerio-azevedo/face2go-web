@@ -16,6 +16,7 @@ import {
     listClientVehicleDriverOptionsAction,
     updateClientVehicleAction,
 } from "@/app/company/clientes/[clientId]/usuarios/vehicles-actions";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import type { ResponsibleRelationshipType, VehicleRow } from "@/types/domain";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -97,7 +98,9 @@ export function VehicleForm({
         if (!open) return;
 
         let mounted = true;
-        setLoadingDrivers(true);
+        deferInEffect(() => {
+            setLoadingDrivers(true);
+        });
         void (async () => {
             const r = await listClientVehicleDriverOptionsAction(clientId);
             if (!mounted) return;

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { applyCpfMaskInput, CPF_FORMATTED_MAX_LENGTH, normalizeCpf } from "@/lib/utils/document";
 
 import type { ResponsibleRegisterFormData } from "./ResponsibleRegisterFaceStep";
 
@@ -55,7 +56,10 @@ export function ResponsibleRegisterDataStep({
                 return;
             }
         }
-        onNext(form);
+        onNext({
+            ...form,
+            document: form.document ? normalizeCpf(form.document) : "",
+        });
     };
 
     return (
@@ -103,7 +107,13 @@ export function ResponsibleRegisterDataStep({
                 <Input
                     id="document"
                     value={form.document}
-                    onChange={(e) => update("document", e.target.value)}
+                    onChange={(e) =>
+                        update("document", applyCpfMaskInput(e.target.value))
+                    }
+                    placeholder="000.000.000-00"
+                    inputMode="numeric"
+                    autoComplete="off"
+                    maxLength={CPF_FORMATTED_MAX_LENGTH}
                 />
             </div>
 

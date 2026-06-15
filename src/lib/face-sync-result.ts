@@ -21,7 +21,7 @@ export function humanizeDeviceSyncError(
         return "Não foi possível sincronizar com os leitores.";
     }
 
-    let t = detail
+    const t = detail
         .replace(/\bRequest failed with status code 400\b/gi, "")
         .replace(/\b(?:\d{1,3}\.){3}\d{1,3}(?::\d{2,5})?\b/g, " ")
         .replace(/\s{2,}/g, " ")

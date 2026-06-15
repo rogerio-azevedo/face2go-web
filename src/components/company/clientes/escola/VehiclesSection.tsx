@@ -12,6 +12,7 @@ import {
 } from "@/app/company/clientes/[clientId]/usuarios/vehicles-actions";
 import { DeviceSyncStatusBadge } from "@/components/company/clientes/escola/DeviceSyncStatusBadge";
 import { isPartialSyncError } from "@/lib/face-sync-result";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import type { PaginatedResponse, VehicleRow } from "@/types/domain";
 import {
     AlertDialog,
@@ -80,12 +81,16 @@ export function VehiclesSection({
     );
 
     useEffect(() => {
-        setList(initialVehicles);
-        setPage(initialVehicles.page);
+        deferInEffect(() => {
+            setList(initialVehicles);
+            setPage(initialVehicles.page);
+        });
     }, [initialVehicles]);
 
     useEffect(() => {
-        void fetchList(page, search);
+        deferInEffect(() => {
+            void fetchList(page, search);
+        });
     }, [page, search, fetchList]);
 
     function refresh() {

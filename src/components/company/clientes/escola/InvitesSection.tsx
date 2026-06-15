@@ -9,6 +9,7 @@ import {
     deleteInviteAction,
     markUsedInviteAction,
 } from "@/app/company/clientes/[clientId]/usuarios/invites-actions";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -102,7 +103,9 @@ export function InvitesSection({
     const [selectedRow, setSelectedRow] = useState<InviteRow | null>(null);
 
     useEffect(() => {
-        setRows(initialInvites);
+        deferInEffect(() => {
+            setRows(initialInvites);
+        });
     }, [initialInvites]);
 
     function refresh() {

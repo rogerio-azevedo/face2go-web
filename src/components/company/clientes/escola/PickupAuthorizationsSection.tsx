@@ -10,6 +10,7 @@ import {
     getResponsibleByIdAction,
     markUsedPickupAuthorizationAction,
 } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -113,45 +114,49 @@ export function PickupAuthorizationsSection({
     );
 
     useEffect(() => {
-        setRows(initialAuthorizations);
+        deferInEffect(() => {
+            setRows(initialAuthorizations);
+        });
     }, [initialAuthorizations]);
 
     useEffect(() => {
-        if (rows.length === 0) {
-            setResponsibleById(new Map());
-            return;
-        }
-
-        const responsibleIds = [
-            ...new Set(
-                rows.flatMap((r) =>
-                    [r.requestedByResponsibleId, r.linkedResponsibleId].filter(
-                        (id): id is string => Boolean(id),
-                    ),
-                ),
-            ),
-        ];
-
         let cancelled = false;
 
-        void (async () => {
-            const responsibleResults = await Promise.all(
-                responsibleIds.map((id) =>
-                    getResponsibleByIdAction(clientId, id),
-                ),
-            );
-
-            if (cancelled) return;
-
-            const nextResponsibles = new Map<string, ResponsibleRow>();
-            for (const r of responsibleResults) {
-                if ("success" in r) {
-                    nextResponsibles.set(r.responsible.id, r.responsible);
-                }
+        deferInEffect(() => {
+            if (rows.length === 0) {
+                setResponsibleById(new Map());
+                return;
             }
 
-            setResponsibleById(nextResponsibles);
-        })();
+            const responsibleIds = [
+                ...new Set(
+                    rows.flatMap((r) =>
+                        [r.requestedByResponsibleId, r.linkedResponsibleId].filter(
+                            (id): id is string => Boolean(id),
+                        ),
+                    ),
+                ),
+            ];
+
+            void (async () => {
+                const responsibleResults = await Promise.all(
+                    responsibleIds.map((id) =>
+                        getResponsibleByIdAction(clientId, id),
+                    ),
+                );
+
+                if (cancelled) return;
+
+                const nextResponsibles = new Map<string, ResponsibleRow>();
+                for (const r of responsibleResults) {
+                    if ("success" in r) {
+                        nextResponsibles.set(r.responsible.id, r.responsible);
+                    }
+                }
+
+                setResponsibleById(nextResponsibles);
+            })();
+        });
 
         return () => {
             cancelled = true;

@@ -10,6 +10,7 @@ import {
     registerWithInviteAction,
     type InvitePreview,
 } from "@/app/register/actions";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
     Card,
@@ -99,7 +100,9 @@ export function RegisterForm() {
     }, [inviteCode]);
 
     useEffect(() => {
-        void loadInvite();
+        deferInEffect(() => {
+            void loadInvite();
+        });
     }, [loadInvite]);
 
     function nextFromStep1() {

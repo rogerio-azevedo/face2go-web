@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useForm, type Resolver, useWatch } from "react-hook-form";
+import { useForm, type Resolver, useWatch, Controller } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { createResponsibleSchema } from "@/lib/validations/school";
+import { applyCpfMaskInput, CPF_FORMATTED_MAX_LENGTH, normalizeCpf } from "@/lib/utils/document";
 
 type CreateVals = z.infer<typeof createResponsibleSchema>;
 
@@ -69,7 +70,12 @@ export function ParentForm({
     async function submitCreate(vals: CreateVals) {
         setBusy(true);
         try {
-            const r = await createResponsibleAction(clientId, vals);
+            const r = await createResponsibleAction(clientId, {
+                ...vals,
+                document: vals.document
+                    ? normalizeCpf(vals.document)
+                    : vals.document,
+            });
             if ("error" in r) {
                 toast.error(r.error);
                 return;
@@ -120,7 +126,23 @@ export function ParentForm({
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="p-doc">Documento (opcional)</Label>
-                        <Input id="p-doc" {...createForm.register("document")} />
+                        <Controller
+                            control={createForm.control}
+                            name="document"
+                            render={({ field }) => (
+                                <Input
+                                    id="p-doc"
+                                    value={field.value ?? ""}
+                                    onChange={(e) =>
+                                        field.onChange(applyCpfMaskInput(e.target.value))
+                                    }
+                                    placeholder="000.000.000-00"
+                                    inputMode="numeric"
+                                    autoComplete="off"
+                                    maxLength={CPF_FORMATTED_MAX_LENGTH}
+                                />
+                            )}
+                        />
                     </div>
                     <div className="flex items-center gap-2">
                         <Switch

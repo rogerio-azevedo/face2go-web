@@ -9,6 +9,7 @@ import {
     saveDisplayDevicesAction,
     type DisplayDeviceListItem,
 } from '@/app/company/display/actions';
+import { deferInEffect } from '@/lib/defer-in-effect';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -120,19 +121,8 @@ export function DisplayDeviceConfigSheet(props: {
     );
 
     useEffect(() => {
-        if (!open || !client) {
-            setHasConfiguredDevices(false);
-            setLprCameras([]);
-            setFacialReaders([]);
-            setSelectedLprIds(new Set());
-            setSelectedReaderIds(new Set());
-            return;
-        }
-
-        startLoadTransition(async () => {
-            const result = await getDisplayDevicesAction(client.id);
-            if ('error' in result) {
-                toast.error(result.error);
+        deferInEffect(() => {
+            if (!open || !client) {
                 setHasConfiguredDevices(false);
                 setLprCameras([]);
                 setFacialReaders([]);
@@ -141,29 +131,42 @@ export function DisplayDeviceConfigSheet(props: {
                 return;
             }
 
-            setHasConfiguredDevices(result.hasConfiguredDevices);
-            setLprCameras(result.lprCameras);
-            setFacialReaders(result.facialReaders);
+            startLoadTransition(async () => {
+                const result = await getDisplayDevicesAction(client.id);
+                if ('error' in result) {
+                    toast.error(result.error);
+                    setHasConfiguredDevices(false);
+                    setLprCameras([]);
+                    setFacialReaders([]);
+                    setSelectedLprIds(new Set());
+                    setSelectedReaderIds(new Set());
+                    return;
+                }
 
-            if (result.hasConfiguredDevices) {
-                setSelectedLprIds(
-                    new Set(
-                        result.lprCameras
-                            .filter((d) => d.isEnabled)
-                            .map((d) => d.id),
-                    ),
-                );
-                setSelectedReaderIds(
-                    new Set(
-                        result.facialReaders
-                            .filter((d) => d.isEnabled)
-                            .map((d) => d.id),
-                    ),
-                );
-            } else {
-                setSelectedLprIds(new Set());
-                setSelectedReaderIds(new Set());
-            }
+                setHasConfiguredDevices(result.hasConfiguredDevices);
+                setLprCameras(result.lprCameras);
+                setFacialReaders(result.facialReaders);
+
+                if (result.hasConfiguredDevices) {
+                    setSelectedLprIds(
+                        new Set(
+                            result.lprCameras
+                                .filter((d) => d.isEnabled)
+                                .map((d) => d.id),
+                        ),
+                    );
+                    setSelectedReaderIds(
+                        new Set(
+                            result.facialReaders
+                                .filter((d) => d.isEnabled)
+                                .map((d) => d.id),
+                        ),
+                    );
+                } else {
+                    setSelectedLprIds(new Set());
+                    setSelectedReaderIds(new Set());
+                }
+            });
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps -- recarrega ao abrir o sheet / mudar cliente
     }, [open, client?.id]);

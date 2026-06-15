@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { listMembersAction } from "@/app/company/clientes/[clientId]/usuarios/members-actions";
 import { useFaceSyncOffer } from "@/lib/use-face-sync-offer";
 import type { ClientRoleRow, MemberRow, PaginatedResponse } from "@/types/domain";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
@@ -78,12 +79,16 @@ export function MembersSection({
     );
 
     useEffect(() => {
-        setList(initialMembers);
-        setPage(initialMembers.page);
+        deferInEffect(() => {
+            setList(initialMembers);
+            setPage(initialMembers.page);
+        });
     }, [initialMembers]);
 
     useEffect(() => {
-        void fetchList(page, search);
+        deferInEffect(() => {
+            void fetchList(page, search);
+        });
     }, [page, search, fetchList]);
 
     function refresh() {

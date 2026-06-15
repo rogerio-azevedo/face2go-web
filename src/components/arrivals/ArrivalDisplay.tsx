@@ -10,6 +10,7 @@ import {
     type SetStateAction,
 } from 'react';
 
+import { deferInEffect } from "@/lib/defer-in-effect";
 import type {
     ArrivalLayout,
     ArrivalSseArrivalPayload,
@@ -45,14 +46,16 @@ function useArrivalLayoutPreference(): [
     const skipPersistRef = useRef(true);
 
     useEffect(() => {
-        try {
-            const stored = parseStoredLayout(
-                localStorage.getItem(ARRIVAL_LAYOUT_STORAGE_KEY),
-            );
-            if (stored) setLayout(stored);
-        } catch {
-            /* ignore */
-        }
+        deferInEffect(() => {
+            try {
+                const stored = parseStoredLayout(
+                    localStorage.getItem(ARRIVAL_LAYOUT_STORAGE_KEY),
+                );
+                if (stored) setLayout(stored);
+            } catch {
+                /* ignore */
+            }
+        });
     }, []);
 
     useEffect(() => {
@@ -78,25 +81,27 @@ function useNewArrivalHighlights(arrivals: ArrivalSseArrivalPayload[]) {
     );
 
     useEffect(() => {
-        const prev = prevIdsRef.current;
-        for (const a of arrivals) {
-            if (!prev.has(a.accessId)) {
-                setHighlightedIds((s) => new Set(s).add(a.accessId));
-                const id = a.accessId;
-                const existing = timeoutMapRef.current.get(id);
-                if (existing) clearTimeout(existing);
-                const t = setTimeout(() => {
-                    timeoutMapRef.current.delete(id);
-                    setHighlightedIds((s) => {
-                        const n = new Set(s);
-                        n.delete(id);
-                        return n;
-                    });
-                }, ARRIVAL_NEW_HIGHLIGHT_MS);
-                timeoutMapRef.current.set(id, t);
+        deferInEffect(() => {
+            const prev = prevIdsRef.current;
+            for (const a of arrivals) {
+                if (!prev.has(a.accessId)) {
+                    setHighlightedIds((s) => new Set(s).add(a.accessId));
+                    const id = a.accessId;
+                    const existing = timeoutMapRef.current.get(id);
+                    if (existing) clearTimeout(existing);
+                    const t = setTimeout(() => {
+                        timeoutMapRef.current.delete(id);
+                        setHighlightedIds((s) => {
+                            const n = new Set(s);
+                            n.delete(id);
+                            return n;
+                        });
+                    }, ARRIVAL_NEW_HIGHLIGHT_MS);
+                    timeoutMapRef.current.set(id, t);
+                }
             }
-        }
-        prevIdsRef.current = new Set(arrivals.map((x) => x.accessId));
+            prevIdsRef.current = new Set(arrivals.map((x) => x.accessId));
+        });
     }, [arrivals]);
 
     useEffect(() => {

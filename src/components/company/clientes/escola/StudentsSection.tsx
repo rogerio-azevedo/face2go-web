@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { listStudentsAction } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import { useFaceSyncOffer } from "@/lib/use-face-sync-offer";
 import type { PaginatedResponse, SchoolClassRow, StudentRow } from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
@@ -99,12 +100,16 @@ export function StudentsSection({
     );
 
     useEffect(() => {
-        setList(initialStudents);
-        setPage(initialStudents.page);
+        deferInEffect(() => {
+            setList(initialStudents);
+            setPage(initialStudents.page);
+        });
     }, [initialStudents]);
 
     useEffect(() => {
-        void fetchList(page, search, filterClassId);
+        deferInEffect(() => {
+            void fetchList(page, search, filterClassId);
+        });
     }, [page, search, filterClassId, fetchList]);
 
     function refresh() {

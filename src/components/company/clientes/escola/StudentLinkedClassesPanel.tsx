@@ -10,6 +10,7 @@ import {
     listSchoolClassesAction,
     unlinkStudentClassAction,
 } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import type { SchoolClassRow, StudentClassRow, StudentRow } from "@/types/domain";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -100,9 +101,11 @@ export function StudentLinkedClassesPanel({
     }, [active, load, loadOptions]);
 
     useEffect(() => {
-        if (!active) {
-            setPickClassIds([]);
-        }
+        deferInEffect(() => {
+            if (!active) {
+                setPickClassIds([]);
+            }
+        });
     }, [active]);
 
     const linkedClassIds = useMemo(

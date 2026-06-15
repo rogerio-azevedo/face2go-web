@@ -148,7 +148,7 @@ export function SchoolClassForm({
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="sc-shift-id">Turno</Label>
+                        <Label htmlFor="sc-shift-id">Horário</Label>
                         <select
                             id="sc-shift-id"
                             className="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-50"
@@ -157,13 +157,13 @@ export function SchoolClassForm({
                         >
                             {noShifts ? (
                                 <option value="">
-                                    Cadastre turnos na aba Turnos
+                                    Cadastre horários na aba Horários
                                 </option>
                             ) : (
                                 <>
                                     {needsShiftPlaceholder ? (
                                         <option value="">
-                                            Vincule um turno cadastrado…
+                                            Vincule um horário cadastrado…
                                         </option>
                                     ) : null}
                                     {shifts.map((s) => (
@@ -182,7 +182,7 @@ export function SchoolClassForm({
                         ) : null}
                         {noShifts ? (
                             <p className="text-muted-foreground text-xs">
-                                Crie ao menos um turno antes de vincular à turma.
+                                Crie ao menos um horário antes de vincular à turma.
                             </p>
                         ) : null}
                     </div>

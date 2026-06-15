@@ -15,10 +15,6 @@ import {
 } from '@/lib/validations/companies';
 import { ZodError } from 'zod';
 
-function unauthorized(): { error: string } {
-    return { error: 'Sem permissão.' };
-}
-
 function zodFirstMessage(error: unknown): string {
     if (error instanceof ZodError && error.issues[0]?.message) {
         return error.issues[0].message;

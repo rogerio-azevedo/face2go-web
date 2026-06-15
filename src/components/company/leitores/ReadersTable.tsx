@@ -10,6 +10,7 @@ import {
     fetchReadersMonitorStatusAction,
     toggleReaderActiveAction,
 } from "@/app/company/leitores/actions";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import type {
     ClientListRow,
     ReaderListRow,
@@ -139,7 +140,9 @@ export function ReadersTable({
     );
 
     useEffect(() => {
-        void refreshMonitor();
+        deferInEffect(() => {
+            void refreshMonitor();
+        });
         const id = window.setInterval(
             () => void refreshMonitor({ silent: true }),
             10_000,

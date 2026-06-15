@@ -34,7 +34,7 @@ const features = [
     {
         title: "Catracas",
         description:
-            "Gestão de acesso físico alinhada a políticas por unidade, turno ou perfil.",
+            "Gestão de acesso físico alinhada a políticas por unidade, horário ou perfil.",
         Icon: PanelsTopBottom,
     },
 ] as const;

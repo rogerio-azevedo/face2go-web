@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useForm, type Resolver, useWatch } from "react-hook-form";
+import { useForm, type Resolver, useWatch, Controller } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 
@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { updateResponsibleSchemaForEdit } from "@/lib/validations/school";
+import { applyCpfMaskInput, CPF_FORMATTED_MAX_LENGTH, formatCpf, normalizeCpf } from "@/lib/utils/document";
 
 import { ParentLinkedStudentsPanel } from "./ParentLinkedStudentsPanel";
 
@@ -91,7 +92,7 @@ export function ParentEditSheet({
             name: parent.name,
             email: parent.email ?? "",
             phone: parent.phone ?? "",
-            document: parent.document ?? "",
+            document: parent.document ? formatCpf(parent.document) : "",
             password: "",
             isActive: parent.isActive,
         };
@@ -137,7 +138,12 @@ export function ParentEditSheet({
         setBusy(true);
         try {
             if (!parent) return;
-            const body = { ...vals };
+            const body = {
+                ...vals,
+                document: vals.document
+                    ? normalizeCpf(vals.document)
+                    : vals.document,
+            };
             if (body.password === "" || body.password === undefined) {
                 delete body.password;
             }
@@ -223,9 +229,24 @@ export function ParentEditSheet({
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="ep-doc">Documento</Label>
-                            <Input
-                                id="ep-doc"
-                                {...editForm.register("document")}
+                            <Controller
+                                control={editForm.control}
+                                name="document"
+                                render={({ field }) => (
+                                    <Input
+                                        id="ep-doc"
+                                        value={field.value ?? ""}
+                                        onChange={(e) =>
+                                            field.onChange(
+                                                applyCpfMaskInput(e.target.value),
+                                            )
+                                        }
+                                        placeholder="000.000.000-00"
+                                        inputMode="numeric"
+                                        autoComplete="off"
+                                        maxLength={CPF_FORMATTED_MAX_LENGTH}
+                                    />
+                                )}
                             />
                         </div>
                         <div className="flex items-center gap-2">

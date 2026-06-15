@@ -3,6 +3,7 @@
 import { Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { deferInEffect } from "@/lib/defer-in-effect";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +29,7 @@ export function SearchInput({
     const [draft, setDraft] = useState(value);
 
     useEffect(() => {
-        setDraft(value);
+        deferInEffect(() => setDraft(value));
     }, [value]);
 
     useEffect(() => {

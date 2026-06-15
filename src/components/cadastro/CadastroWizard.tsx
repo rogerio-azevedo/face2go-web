@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { applyCpfMaskInput, CPF_FORMATTED_MAX_LENGTH, normalizeCpf } from "@/lib/utils/document";
 
 type Preview = {
     clientName: string;
@@ -22,7 +23,7 @@ type Preview = {
 };
 
 export function CadastroWizard({ code }: { code: string }) {
-    const registrationIdRef = useRef<string>(
+    const [registrationId] = useState(() =>
         typeof crypto !== "undefined" ? crypto.randomUUID() : "",
     );
 
@@ -116,7 +117,7 @@ export function CadastroWizard({ code }: { code: string }) {
             toast.error("Envie uma foto.");
             return;
         }
-        const regId = registrationIdRef.current;
+        const regId = registrationId;
         let additionalData: Record<string, string> | undefined;
         if (needsCondo) {
             additionalData = {
@@ -137,7 +138,7 @@ export function CadastroWizard({ code }: { code: string }) {
                     body: JSON.stringify({
                         registrationId: regId,
                         name: name.trim(),
-                        document: document.trim(),
+                        document: normalizeCpf(document) || document.trim(),
                         phone: phone.trim(),
                         email: email.trim(),
                         faceImageKey,
@@ -264,7 +265,13 @@ export function CadastroWizard({ code }: { code: string }) {
                             <Input
                                 id="doc"
                                 value={document}
-                                onChange={(e) => setDocument(e.target.value)}
+                                onChange={(e) =>
+                                    setDocument(applyCpfMaskInput(e.target.value))
+                                }
+                                placeholder="000.000.000-00"
+                                inputMode="numeric"
+                                autoComplete="off"
+                                maxLength={CPF_FORMATTED_MAX_LENGTH}
                             />
                         </div>
                         <div className="space-y-1.5">
@@ -375,7 +382,7 @@ export function CadastroWizard({ code }: { code: string }) {
                     <CardContent className="space-y-3">
                         <CadastroFaceStep
                             code={code.trim()}
-                            registrationId={registrationIdRef.current}
+                            registrationId={registrationId}
                             onUploaded={(key) => setFaceImageKey(key)}
                             onUploadCleared={() => setFaceImageKey(null)}
                         />

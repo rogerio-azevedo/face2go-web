@@ -10,6 +10,7 @@ import {
     getIenhSyncSseUrlAction,
     setIenhFilialMappingAction,
 } from "@/app/company/integracao/actions";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -145,7 +146,9 @@ export function IntegracaoIenhPanel({
     }, []);
 
     useEffect(() => {
-        void loadSnapshots();
+        deferInEffect(() => {
+            void loadSnapshots();
+        });
     }, [loadSnapshots]);
 
     const runSyncWithUrl = useCallback(
@@ -470,7 +473,6 @@ export function IntegracaoIenhPanel({
                                 </span>
                             ) : (
                                 syncLines.map((line, i) => (
-                                    // eslint-disable-next-line react/no-array-index-key -- log lines
                                     <div key={i}>{line}</div>
                                 ))
                             )}

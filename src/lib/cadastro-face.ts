@@ -67,16 +67,6 @@ export async function compressFaceForRegistrationUpload(
     );
 }
 
-function isMobileTouchDevice(): boolean {
-    if (typeof navigator === "undefined") return false;
-    if (/iPad|iPhone|iPod/i.test(navigator.userAgent)) return true;
-    if (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1) {
-        return true;
-    }
-    if (/Android/i.test(navigator.userAgent)) return true;
-    return false;
-}
-
 /** Em contexto não seguro, prefere input com capture. No mobile, usamos o custom UI com máscara. */
 export function preferNativeCameraInput(): boolean {
     if (typeof window === "undefined") return false;

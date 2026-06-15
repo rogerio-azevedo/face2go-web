@@ -58,7 +58,7 @@ export function SchoolClassesSection({
                     <TableHeader>
                         <TableRow>
                             <TableHead>Nome</TableHead>
-                            <TableHead>Turno</TableHead>
+                            <TableHead>Horário</TableHead>
                             <TableHead>Ano</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead className="text-right">

@@ -17,7 +17,7 @@ export const CLASS_SHIFT_LABELS: Record<ClassShiftValue, string> = {
 };
 
 const classShiftSchema = z.enum(CLASS_SHIFT_VALUES, {
-    message: "Selecione um turno válido.",
+    message: "Selecione um período válido.",
 });
 
 /** Label para listagens (prioriza turno cadastrado na entidade `shifts`). */
@@ -46,7 +46,7 @@ export const createSchoolClassSchema = z.object({
         .trim()
         .min(1, "Informe o nome da turma.")
         .max(255, "Nome muito longo."),
-    shiftId: z.string().uuid("Selecione um turno cadastrado."),
+    shiftId: z.string().uuid("Selecione um horário cadastrado."),
     year: z.number().int().min(2000).max(2100),
     isActive: z.boolean().optional().default(true),
 });

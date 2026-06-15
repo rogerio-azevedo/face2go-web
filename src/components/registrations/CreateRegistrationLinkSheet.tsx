@@ -8,6 +8,7 @@ import {
     defaultTemporaryVigenciaLocal,
     localDateTimeRangeToIso,
 } from "@/lib/registration-link-schedule";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,12 +43,14 @@ export function CreateRegistrationLinkSheet({
     const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
-        if (open) {
-            setChoice("permanent");
-            setDateTimeFrom("");
-            setDateTimeUntil("");
-            setSubmitting(false);
-        }
+        deferInEffect(() => {
+            if (open) {
+                setChoice("permanent");
+                setDateTimeFrom("");
+                setDateTimeUntil("");
+                setSubmitting(false);
+            }
+        });
     }, [open]);
 
     function setTemporaryChoice() {

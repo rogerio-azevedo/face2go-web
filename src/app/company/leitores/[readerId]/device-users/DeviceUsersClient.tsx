@@ -22,7 +22,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import {
     Sheet,
     SheetContent,
@@ -81,7 +81,9 @@ export default function DeviceUsersClient({ readerId }: { readerId: string }) {
     }, []);
 
     useEffect(() => {
-        void fetchUsers(offset, search);
+        deferInEffect(() => {
+            void fetchUsers(offset, search);
+        });
     }, [offset, search, fetchUsers]);
 
     const handleNext = () => {

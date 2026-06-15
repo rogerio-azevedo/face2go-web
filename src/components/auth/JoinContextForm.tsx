@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { joinContextAction } from "@/app/join/actions";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import {
     getInvitePreviewAction,
     type InvitePreview,
@@ -116,7 +117,9 @@ export function JoinContextForm() {
     }, [inviteCode]);
 
     useEffect(() => {
-        void loadInvite();
+        deferInEffect(() => {
+            void loadInvite();
+        });
     }, [loadInvite]);
 
     const completeJoin = async (

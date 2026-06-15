@@ -3,7 +3,6 @@ import { signIn } from "next-auth/react";
 import type {
     LegacyLoginResponse,
     LoginApiResponse,
-    LoginResponse,
     SelectContextResponse,
     UserContext,
     UserContextType,

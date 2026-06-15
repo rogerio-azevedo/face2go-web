@@ -167,7 +167,6 @@ export function SyncAllProgressModal({
                                 </span>
                             ) : (
                                 lines.map((l, i) => (
-                                    // eslint-disable-next-line react/no-array-index-key -- log lines
                                     <div key={i}>{l}</div>
                                 ))
                             )}

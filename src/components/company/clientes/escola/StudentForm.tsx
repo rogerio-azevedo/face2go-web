@@ -12,6 +12,7 @@ import {
     listSchoolClassesAction,
     updateStudentAction,
 } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import type { SchoolClassRow, StudentRow } from "@/types/domain";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -120,13 +121,15 @@ export function StudentForm({
     );
 
     useEffect(() => {
-        if (open) {
-            form.reset(defaults as FormCreate);
-            setPickClassIds([]);
-            if (mode === "create") {
-                void loadClassOptions();
+        deferInEffect(() => {
+            if (open) {
+                form.reset(defaults as FormCreate);
+                setPickClassIds([]);
+                if (mode === "create") {
+                    void loadClassOptions();
+                }
             }
-        }
+        });
     }, [open, defaults, form, mode, loadClassOptions]);
 
     const classSelectOptions = useMemo(

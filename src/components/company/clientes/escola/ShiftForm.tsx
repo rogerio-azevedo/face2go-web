@@ -11,6 +11,7 @@ import {
     createShiftAction,
     updateShiftAction,
 } from "@/app/company/clientes/[clientId]/usuarios/shifts-actions";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -101,7 +102,7 @@ function incompleteRowMessage(slots: DaySlots): string | null {
 }
 
 const shiftBasicsSchema = z.object({
-    name: z.string().trim().min(1, "Informe o nome do turno.").max(255),
+    name: z.string().trim().min(1, "Informe o nome do horário.").max(255),
     isActive: z.boolean(),
 });
 
@@ -150,10 +151,12 @@ export function ShiftForm({
     });
 
     useEffect(() => {
-        if (open) {
-            form.reset(defaults);
-            setSlots(slotsFromSchedule(shift?.schedule));
-        }
+        deferInEffect(() => {
+            if (open) {
+                form.reset(defaults);
+                setSlots(slotsFromSchedule(shift?.schedule));
+            }
+        });
     }, [open, defaults, form, shift]);
 
     function addSlot(day: ShiftWeekday) {
@@ -242,7 +245,7 @@ export function ShiftForm({
             <SheetContent className="flex w-full flex-col overflow-hidden sm:max-w-lg">
                 <SheetHeader>
                     <SheetTitle>
-                        {mode === "create" ? "Novo turno" : "Editar turno"}
+                        {mode === "create" ? "Novo horário" : "Editar horário"}
                     </SheetTitle>
                 </SheetHeader>
 
@@ -271,7 +274,7 @@ export function ShiftForm({
                                 form.setValue("isActive", v === true)
                             }
                         />
-                        <Label>Turno ativo</Label>
+                        <Label>Horário ativo</Label>
                     </div>
 
                     <div className="space-y-3">

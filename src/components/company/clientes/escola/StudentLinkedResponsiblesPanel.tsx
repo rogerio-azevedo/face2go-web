@@ -11,6 +11,7 @@ import {
     unlinkResponsibleStudentAction,
     updateResponsibleStudentLinkAction,
 } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import type {
     ResponsibleRelationshipType,
     ResponsibleRow,
@@ -85,13 +86,15 @@ export function StudentLinkedResponsiblesPanel({
     }, [active, load]);
 
     useEffect(() => {
-        if (!active) {
-            setEditingResponsibleId(null);
-            setPickResponsibleId("");
-            setRelType("other");
-            setAuthorizedPickup(true);
-            setLinkSearch("");
-        }
+        deferInEffect(() => {
+            if (!active) {
+                setEditingResponsibleId(null);
+                setPickResponsibleId("");
+                setRelType("other");
+                setAuthorizedPickup(true);
+                setLinkSearch("");
+            }
+        });
     }, [active]);
 
     useEffect(() => {
