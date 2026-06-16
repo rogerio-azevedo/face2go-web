@@ -30,9 +30,13 @@ export const updateMemberSchema = z.object({
         .nullable()
         .optional(),
     password: z
-        .string()
-        .min(8, "Senha deve ter pelo menos 8 caracteres.")
-        .max(128)
+        .union([
+            z.literal(""),
+            z
+                .string()
+                .min(8, "Senha deve ter pelo menos 8 caracteres.")
+                .max(128),
+        ])
         .optional(),
     isActive: z.boolean().optional(),
     canEnrollStudentFace: z.boolean().optional(),
