@@ -32,14 +32,6 @@ export function ResponsibleRegisterDataStep({
             setError("Informe o nome.");
             return;
         }
-        if (!form.email.trim()) {
-            setError("Informe o e-mail.");
-            return;
-        }
-        if (form.password.length < 8) {
-            setError("Senha deve ter pelo menos 8 caracteres.");
-            return;
-        }
         const cpf = normalizeCpf(form.document);
         if (!cpf) {
             setError("Informe o CPF.");
@@ -80,26 +72,6 @@ export function ResponsibleRegisterDataStep({
                     value={form.name}
                     onChange={(e) => update("name", e.target.value)}
                     autoComplete="name"
-                />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="email">E-mail</Label>
-                <Input
-                    id="email"
-                    type="email"
-                    value={form.email}
-                    onChange={(e) => update("email", e.target.value)}
-                    autoComplete="email"
-                />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="password">Senha</Label>
-                <Input
-                    id="password"
-                    type="password"
-                    value={form.password}
-                    onChange={(e) => update("password", e.target.value)}
-                    autoComplete="new-password"
                 />
             </div>
             <div className="space-y-2">

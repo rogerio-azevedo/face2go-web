@@ -30,8 +30,6 @@ type ResponsibleRegisterWizardProps = {
 
 const emptyForm: ResponsibleRegisterFormData = {
     name: "",
-    email: "",
-    password: "",
     phone: "",
     document: "",
     plate: "",
@@ -109,8 +107,8 @@ export function ResponsibleRegisterWizard({ code }: ResponsibleRegisterWizardPro
             <div className="mx-auto max-w-md space-y-4 rounded-2xl border bg-card p-8 text-center shadow-sm">
                 <h1 className="text-xl font-semibold">Cadastro já aprovado</h1>
                 <p className="text-sm text-muted-foreground">
-                    Seu cadastro já foi aprovado. Você já pode acessar o app com seu
-                    e-mail e senha.
+                    Seu cadastro já foi aprovado. Você já pode retirar o(s)
+                    aluno(s) vinculado(s).
                 </p>
             </div>
         );

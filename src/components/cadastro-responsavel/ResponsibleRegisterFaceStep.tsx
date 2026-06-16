@@ -11,8 +11,6 @@ import { compressFaceForRegistrationUpload } from "@/lib/cadastro-face";
 
 export type ResponsibleRegisterFormData = {
     name: string;
-    email: string;
-    password: string;
     phone: string;
     document: string;
     plate: string;
@@ -90,8 +88,6 @@ export function ResponsibleRegisterFaceStep({
             const hasVehicle = formData.plate.trim().length > 0;
             const body: Record<string, unknown> = {
                 name: formData.name.trim(),
-                email: formData.email.trim(),
-                password: formData.password,
                 phone: formData.phone.trim() || undefined,
                 document: formData.document.trim(),
                 faceImageKey,
