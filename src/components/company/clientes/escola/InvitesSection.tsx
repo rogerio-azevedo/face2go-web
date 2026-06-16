@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import {
@@ -12,6 +12,8 @@ import {
 import { deferInEffect } from "@/lib/defer-in-effect";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { SearchInput } from "@/components/ui/search-input";
 import {
     Sheet,
     SheetContent,
@@ -101,6 +103,30 @@ export function InvitesSection({
     const [isPending, startTransition] = useTransition();
     const [rows, setRows] = useState<InviteRow[]>(initialInvites);
     const [selectedRow, setSelectedRow] = useState<InviteRow | null>(null);
+    const [searchGuest, setSearchGuest] = useState("");
+    const [searchCreator, setSearchCreator] = useState("");
+
+    const filteredRows = useMemo(() => {
+        const guestTerm = searchGuest.trim().toLowerCase();
+        const creatorTerm = searchCreator.trim().toLowerCase();
+        const guestDigits = searchGuest.replace(/\D/g, "");
+
+        return rows.filter((row) => {
+            const guestName = row.guestName?.toLowerCase() ?? "";
+            const guestDocument = row.guestDocument?.replace(/\D/g, "") ?? "";
+            const guestMatch =
+                !guestTerm ||
+                guestName.includes(guestTerm) ||
+                (guestDigits.length >= 3 &&
+                    guestDocument.includes(guestDigits));
+            const creatorName =
+                row.requestedByMemberName?.toLowerCase() ?? "";
+            const creatorMatch =
+                !creatorTerm || creatorName.includes(creatorTerm);
+
+            return guestMatch && creatorMatch;
+        });
+    }, [rows, searchGuest, searchCreator]);
 
     useEffect(() => {
         deferInEffect(() => {
@@ -131,6 +157,33 @@ export function InvitesSection({
                 </Button>
             </div>
 
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-1">
+                    <Label htmlFor="search-invite-guest" className="text-muted-foreground">
+                        Visitante
+                    </Label>
+                    <SearchInput
+                        id="search-invite-guest"
+                        value={searchGuest}
+                        onValueChange={setSearchGuest}
+                        placeholder="Filtrar por visitante…"
+                        className="sm:max-w-sm"
+                    />
+                </div>
+                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-1">
+                    <Label htmlFor="search-invite-creator" className="text-muted-foreground">
+                        Criado por
+                    </Label>
+                    <SearchInput
+                        id="search-invite-creator"
+                        value={searchCreator}
+                        onValueChange={setSearchCreator}
+                        placeholder="Filtrar por criador…"
+                        className="sm:max-w-sm"
+                    />
+                </div>
+            </div>
+
             <div className="rounded-md border">
                 <Table>
                     <TableHeader>
@@ -143,17 +196,19 @@ export function InvitesSection({
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {rows.length === 0 ? (
+                        {filteredRows.length === 0 ? (
                             <TableRow>
                                 <TableCell
                                     colSpan={5}
                                     className="text-muted-foreground text-center py-10"
                                 >
-                                    Nenhum convite cadastrado.
+                                    {rows.length === 0
+                                        ? "Nenhum convite cadastrado."
+                                        : "Nenhum convite encontrado."}
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            rows.map((row) => {
+                            filteredRows.map((row) => {
                                 const guestLabel = [row.guestName, row.guestDocument]
                                     .filter(Boolean)
                                     .join(" · ");

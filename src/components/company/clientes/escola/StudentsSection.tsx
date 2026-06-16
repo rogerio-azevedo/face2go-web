@@ -173,7 +173,7 @@ export function StudentsSection({
                     id="search-students"
                     value={search}
                     onValueChange={onSearchChange}
-                    placeholder="Buscar por nome…"
+                    placeholder="Buscar por nome ou matrícula…"
                     disabled={tableBusy}
                     className="sm:flex-1"
                 />

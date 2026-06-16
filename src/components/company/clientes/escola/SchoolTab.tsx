@@ -64,7 +64,7 @@ export function SchoolTab({
                     <TabsTrigger value="parents">Responsáveis</TabsTrigger>
                     <TabsTrigger value="members">Membros</TabsTrigger>
                     <TabsTrigger value="pickups">
-                        Autorizações retirada
+                        Autorizações de retiradas
                     </TabsTrigger>
                     <TabsTrigger value="invites">Visitantes</TabsTrigger>
                     <TabsTrigger value="vehicles">Veículos</TabsTrigger>

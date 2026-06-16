@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import {
@@ -13,6 +13,8 @@ import {
 import { deferInEffect } from "@/lib/defer-in-effect";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { SearchInput } from "@/components/ui/search-input";
 import {
     Sheet,
     SheetContent,
@@ -112,6 +114,28 @@ export function PickupAuthorizationsSection({
     const [selectedRow, setSelectedRow] = useState<PickupAuthorizationRow | null>(
         null,
     );
+    const [searchStudent, setSearchStudent] = useState("");
+    const [searchRequester, setSearchRequester] = useState("");
+
+    const filteredRows = useMemo(() => {
+        const studentTerm = searchStudent.trim().toLowerCase();
+        const requesterTerm = searchRequester.trim().toLowerCase();
+
+        return rows.filter((row) => {
+            const studentMatch =
+                !studentTerm ||
+                row.students.some((student) =>
+                    student.name.toLowerCase().includes(studentTerm),
+                );
+            const requester = responsibleById.get(row.requestedByResponsibleId);
+            const requesterName = requester?.name ?? "";
+            const requesterMatch =
+                !requesterTerm ||
+                requesterName.toLowerCase().includes(requesterTerm);
+
+            return studentMatch && requesterMatch;
+        });
+    }, [rows, searchStudent, searchRequester, responsibleById]);
 
     useEffect(() => {
         deferInEffect(() => {
@@ -183,6 +207,33 @@ export function PickupAuthorizationsSection({
                 </Button>
             </div>
 
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-1">
+                    <Label htmlFor="search-pickup-student" className="text-muted-foreground">
+                        Aluno
+                    </Label>
+                    <SearchInput
+                        id="search-pickup-student"
+                        value={searchStudent}
+                        onValueChange={setSearchStudent}
+                        placeholder="Filtrar por aluno…"
+                        className="sm:max-w-sm"
+                    />
+                </div>
+                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-1">
+                    <Label htmlFor="search-pickup-requester" className="text-muted-foreground">
+                        Solicitante
+                    </Label>
+                    <SearchInput
+                        id="search-pickup-requester"
+                        value={searchRequester}
+                        onValueChange={setSearchRequester}
+                        placeholder="Filtrar por solicitante…"
+                        className="sm:max-w-sm"
+                    />
+                </div>
+            </div>
+
             <div className="rounded-md border">
                 <Table>
                     <TableHeader>
@@ -196,17 +247,19 @@ export function PickupAuthorizationsSection({
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {rows.length === 0 ? (
+                        {filteredRows.length === 0 ? (
                             <TableRow>
                                 <TableCell
                                     colSpan={6}
                                     className="text-muted-foreground text-center py-10"
                                 >
-                                    Nenhuma autorização cadastrada.
+                                    {rows.length === 0
+                                        ? "Nenhuma autorização cadastrada."
+                                        : "Nenhuma autorização encontrada."}
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            rows.map((row) => {
+                            filteredRows.map((row) => {
                                 const requester = responsibleById.get(
                                     row.requestedByResponsibleId,
                                 );

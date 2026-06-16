@@ -72,9 +72,7 @@ export function ParentForm({
         try {
             const r = await createResponsibleAction(clientId, {
                 ...vals,
-                document: vals.document
-                    ? normalizeCpf(vals.document)
-                    : vals.document,
+                document: normalizeCpf(vals.document),
             });
             if ("error" in r) {
                 toast.error(r.error);
@@ -125,7 +123,7 @@ export function ParentForm({
                         <Input id="p-phone" {...createForm.register("phone")} />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="p-doc">Documento (opcional)</Label>
+                        <Label htmlFor="p-doc">CPF</Label>
                         <Controller
                             control={createForm.control}
                             name="document"

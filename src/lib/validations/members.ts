@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { requiredCpfDocumentSchema } from "./school";
+
 export const createMemberSchema = z.object({
     roleId: z.string().uuid("Selecione a função."),
     email: z.email("E-mail inválido."),
@@ -9,7 +11,7 @@ export const createMemberSchema = z.object({
         .max(128),
     name: z.string().trim().min(1, "Informe o nome.").max(255),
     phone: z.string().trim().max(32).nullable().optional(),
-    document: z.string().trim().max(32).nullable().optional(),
+    document: requiredCpfDocumentSchema,
     birthDate: z
         .string()
         .regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida (YYYY-MM-DD).")
@@ -23,7 +25,7 @@ export const updateMemberSchema = z.object({
     name: z.string().trim().min(1).max(255).optional(),
     email: z.email("E-mail inválido.").optional(),
     phone: z.string().trim().max(32).nullable().optional(),
-    document: z.string().trim().max(32).nullable().optional(),
+    document: requiredCpfDocumentSchema,
     birthDate: z
         .string()
         .regex(/^\d{4}-\d{2}-\d{2}$/)

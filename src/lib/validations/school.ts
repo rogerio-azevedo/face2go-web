@@ -40,6 +40,14 @@ export const emptyOptionalShortString = z.preprocess((val: unknown) => {
     return val;
 }, z.string().trim().max(32).optional());
 
+/** CPF obrigatório — aceita formatado (000.000.000-00) ou 11 dígitos. */
+export const requiredCpfDocumentSchema = z
+    .string()
+    .trim()
+    .min(11, "CPF obrigatório.")
+    .max(14, "CPF inválido.")
+    .regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$|^\d{11}$/, "CPF inválido.");
+
 export const createSchoolClassSchema = z.object({
     name: z
         .string()
@@ -160,7 +168,7 @@ export const createResponsibleSchema = z.object({
         .max(128),
     name: z.string().trim().min(1, "Informe o nome.").max(255),
     phone: emptyOptionalShortString,
-    document: emptyOptionalShortString,
+    document: requiredCpfDocumentSchema,
     isActive: z.boolean().optional().default(true),
 });
 
@@ -177,13 +185,7 @@ export const updateResponsibleSchema = z.object({
                 : val,
         z.union([z.string().trim().max(32), z.null()]).optional(),
     ),
-    document: z.preprocess(
-        (val: unknown) =>
-            val === "" || val === undefined || val === null
-                ? null
-                : val,
-        z.union([z.string().trim().max(32), z.null()]).optional(),
-    ),
+    document: requiredCpfDocumentSchema,
     password: z
         .union([
             z.literal(""),

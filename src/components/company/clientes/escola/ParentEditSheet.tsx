@@ -140,9 +140,7 @@ export function ParentEditSheet({
             if (!parent) return;
             const body = {
                 ...vals,
-                document: vals.document
-                    ? normalizeCpf(vals.document)
-                    : vals.document,
+                document: normalizeCpf(vals.document ?? ""),
             };
             if (body.password === "" || body.password === undefined) {
                 delete body.password;
@@ -228,7 +226,7 @@ export function ParentEditSheet({
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="ep-doc">Documento</Label>
+                            <Label htmlFor="ep-doc">CPF</Label>
                             <Controller
                                 control={editForm.control}
                                 name="document"

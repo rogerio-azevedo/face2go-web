@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useForm, type Resolver, useWatch } from "react-hook-form";
+import { useForm, type Resolver, useWatch, Controller } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 
@@ -34,6 +34,12 @@ import {
 } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { updateMemberSchemaForEdit } from "@/lib/validations/members";
+import {
+    applyCpfMaskInput,
+    CPF_FORMATTED_MAX_LENGTH,
+    formatCpf,
+    normalizeCpf,
+} from "@/lib/utils/document";
 
 type EditVals = z.infer<ReturnType<typeof updateMemberSchemaForEdit>>;
 
@@ -85,7 +91,7 @@ export function MemberEditSheet({
             name: member.name,
             email: member.email ?? "",
             phone: member.phone ?? "",
-            document: member.document ?? "",
+            document: member.document ? formatCpf(member.document) : "",
             password: "",
             isActive: member.isActive,
             canEnrollStudentFace: member.canEnrollStudentFace,
@@ -139,6 +145,7 @@ export function MemberEditSheet({
             if (!member) return;
             const body = {
                 ...vals,
+                document: vals.document ? normalizeCpf(vals.document) : vals.document,
                 canEnrollStudentFace: editCanEnrollStudentFaceToggle === true,
             };
             if (body.password === "" || body.password === undefined) {
@@ -233,10 +240,27 @@ export function MemberEditSheet({
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="em-doc">Documento</Label>
-                            <Input
-                                id="em-doc"
-                                {...editForm.register("document")}
+                            <Label htmlFor="em-doc">CPF</Label>
+                            <Controller
+                                control={editForm.control}
+                                name="document"
+                                render={({ field }) => (
+                                    <Input
+                                        id="em-doc"
+                                        value={field.value ?? ""}
+                                        onChange={(e) =>
+                                            field.onChange(
+                                                applyCpfMaskInput(
+                                                    e.target.value,
+                                                ),
+                                            )
+                                        }
+                                        placeholder="000.000.000-00"
+                                        inputMode="numeric"
+                                        autoComplete="off"
+                                        maxLength={CPF_FORMATTED_MAX_LENGTH}
+                                    />
+                                )}
                             />
                         </div>
                         <div className="flex items-center gap-2">

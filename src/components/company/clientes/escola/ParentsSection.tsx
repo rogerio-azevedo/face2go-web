@@ -122,7 +122,7 @@ export function ParentsSection({
                     id="search-responsibles"
                     value={search}
                     onValueChange={onSearchChange}
-                    placeholder="Buscar por nome…"
+                    placeholder="Buscar por nome ou CPF…"
                     disabled={tableBusy}
                     className="sm:max-w-sm"
                 />

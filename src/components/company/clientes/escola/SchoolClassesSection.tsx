@@ -1,12 +1,13 @@
 "use client";
 
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import type { SchoolClassRow, ShiftRow } from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { SearchInput } from "@/components/ui/search-input";
 import {
     Table,
     TableBody,
@@ -33,6 +34,15 @@ export function SchoolClassesSection({
     const [, startTransition] = useTransition();
     const [sheetOpen, setSheetOpen] = useState(false);
     const [editRow, setEditRow] = useState<SchoolClassRow | null>(null);
+    const [search, setSearch] = useState("");
+
+    const filteredClasses = useMemo(() => {
+        const term = search.trim().toLowerCase();
+        if (!term) return initialClasses;
+        return initialClasses.filter((row) =>
+            row.name.toLowerCase().includes(term),
+        );
+    }, [initialClasses, search]);
 
     function refresh() {
         startTransition(() => router.refresh());
@@ -40,7 +50,14 @@ export function SchoolClassesSection({
 
     return (
         <>
-            <div className="flex justify-end gap-2 mb-2">
+            <div className="mb-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <SearchInput
+                    id="search-classes"
+                    value={search}
+                    onValueChange={setSearch}
+                    placeholder="Filtrar por nome da turma…"
+                    className="sm:max-w-sm"
+                />
                 <Button
                     type="button"
                     size="default"
@@ -67,17 +84,19 @@ export function SchoolClassesSection({
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {initialClasses.length === 0 ? (
+                        {filteredClasses.length === 0 ? (
                             <TableRow>
                                 <TableCell
                                     colSpan={5}
                                     className="text-muted-foreground py-10 text-center"
                                 >
-                                    Nenhuma turma cadastrada.
+                                    {initialClasses.length === 0
+                                        ? "Nenhuma turma cadastrada."
+                                        : "Nenhuma turma encontrada."}
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            initialClasses.map((row) => (
+                            filteredClasses.map((row) => (
                                 <TableRow key={row.id}>
                                     <TableCell className="font-medium">
                                         {row.name}
