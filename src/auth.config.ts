@@ -31,11 +31,12 @@ export const authConfig = {
                 return true;
             }
 
-            /** Páginas legais públicas. */
+            /** Páginas legais e de ajuda públicas. */
             if (
                 path === "/privacy-policy" ||
                 path === "/terms-of-use" ||
-                path === "/privacidade"
+                path === "/privacidade" ||
+                path === "/ajuda"
             ) {
                 return true;
             }

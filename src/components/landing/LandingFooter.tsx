@@ -21,6 +21,12 @@ export function LandingFooter() {
                 </p>
                 <nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm">
                     <Link
+                        href="/ajuda"
+                        className="text-white/75 underline-offset-4 hover:text-white hover:underline"
+                    >
+                        Ajuda
+                    </Link>
+                    <Link
                         href="/support"
                         className="text-white/75 underline-offset-4 hover:text-white hover:underline"
                     >
