@@ -49,6 +49,27 @@ function maskCnpjInput(raw: string) {
     return out;
 }
 
+/** Máscara BR: fixo (XX) XXXX-XXXX ou celular (XX) XXXXX-XXXX — apenas dígitos. */
+function maskPhoneInput(raw: string) {
+    const digits = raw.replace(/\D/g, "").slice(0, 11);
+    if (digits.length === 0) return "";
+
+    const ddd = digits.slice(0, 2);
+    const rest = digits.slice(2);
+
+    if (digits.length <= 2) return `(${ddd}`;
+
+    const isMobile = digits.length > 10;
+
+    if (isMobile) {
+        if (rest.length <= 5) return `(${ddd}) ${rest}`;
+        return `(${ddd}) ${rest.slice(0, 5)}-${rest.slice(5, 9)}`;
+    }
+
+    if (rest.length <= 4) return `(${ddd}) ${rest}`;
+    return `(${ddd}) ${rest.slice(0, 4)}-${rest.slice(4, 8)}`;
+}
+
 type ClientFormInput = ClientFormPayload;
 
 const emptyDefaults: ClientFormInput = {
@@ -61,6 +82,9 @@ const emptyDefaults: ClientFormInput = {
     primaryColor: undefined,
     privacyPolicyUrl: undefined,
     privacyAlias: undefined,
+    supportEmail: undefined,
+    supportPhone: undefined,
+    supportWhatsapp: undefined,
     timezoneOffsetMinutes: 0,
     isActive: true,
 };
@@ -115,6 +139,9 @@ export function ClientForm({
                 primaryColor: client.primaryColor ?? undefined,
                 privacyPolicyUrl: client.privacyPolicyUrl ?? undefined,
                 privacyAlias: client.privacyAlias ?? undefined,
+                supportEmail: client.supportEmail ?? undefined,
+                supportPhone: client.supportPhone ?? undefined,
+                supportWhatsapp: client.supportWhatsapp ?? undefined,
                 timezoneOffsetMinutes:
                     typeof client.timezoneOffsetMinutes === "number"
                         ? client.timezoneOffsetMinutes
@@ -284,13 +311,23 @@ export function ClientForm({
                                         Telefone{" "}
                                         <span className={hintClass}>(opcional)</span>
                                     </Label>
-                                    <Input
-                                        id="client-phone"
-                                        type="tel"
-                                        className={cn("bg-card h-10 px-3", controlClass)}
-                                        aria-invalid={!!errors.phone}
-                                        {...register("phone")}
-                                        placeholder="(11) 99999-9999"
+                                    <Controller
+                                        name="phone"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Input
+                                                id="client-phone"
+                                                type="tel"
+                                                inputMode="numeric"
+                                                className={cn("bg-card h-10 px-3", controlClass)}
+                                                aria-invalid={!!errors.phone}
+                                                value={field.value ? maskPhoneInput(field.value) : ""}
+                                                onChange={(e) =>
+                                                    field.onChange(maskPhoneInput(e.target.value))
+                                                }
+                                                placeholder="(11) 99999-9999"
+                                            />
+                                        )}
                                     />
                                     {errors.phone ? (
                                         <p className="text-destructive text-xs">
@@ -375,7 +412,108 @@ export function ClientForm({
                         </div>
 
                         <div className="space-y-4">
-                            <SectionStep step={3} title="Identidade visual" />
+                            <SectionStep step={3} title="Suporte" />
+                            <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div className="min-w-0 space-y-2 sm:col-span-2">
+                                    <Label htmlFor="client-supportEmail" className={fieldLabel}>
+                                        E-mail do Suporte{" "}
+                                        <span className={hintClass}>(opcional)</span>
+                                    </Label>
+                                    <Input
+                                        id="client-supportEmail"
+                                        type="email"
+                                        className={cn("bg-card h-10 px-3", controlClass)}
+                                        aria-invalid={!!errors.supportEmail}
+                                        {...register("supportEmail")}
+                                        placeholder="suporte@escola.com"
+                                    />
+                                    {errors.supportEmail ? (
+                                        <p className="text-destructive text-xs">
+                                            {errors.supportEmail.message}
+                                        </p>
+                                    ) : (
+                                        <p className="text-muted-foreground text-xs">
+                                            Exibido no app mobile para contato com o suporte da escola.
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="min-w-0 space-y-2">
+                                    <Label htmlFor="client-supportPhone" className={fieldLabel}>
+                                        Telefone do Suporte{" "}
+                                        <span className={hintClass}>(opcional)</span>
+                                    </Label>
+                                    <Controller
+                                        name="supportPhone"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Input
+                                                id="client-supportPhone"
+                                                type="tel"
+                                                inputMode="numeric"
+                                                className={cn("bg-card h-10 px-3", controlClass)}
+                                                aria-invalid={!!errors.supportPhone}
+                                                value={
+                                                    field.value
+                                                        ? maskPhoneInput(field.value)
+                                                        : ""
+                                                }
+                                                onChange={(e) =>
+                                                    field.onChange(
+                                                        maskPhoneInput(e.target.value),
+                                                    )
+                                                }
+                                                placeholder="(11) 3333-4444"
+                                            />
+                                        )}
+                                    />
+                                    {errors.supportPhone ? (
+                                        <p className="text-destructive text-xs">
+                                            {errors.supportPhone.message}
+                                        </p>
+                                    ) : null}
+                                </div>
+
+                                <div className="min-w-0 space-y-2">
+                                    <Label htmlFor="client-supportWhatsapp" className={fieldLabel}>
+                                        WhatsApp{" "}
+                                        <span className={hintClass}>(opcional)</span>
+                                    </Label>
+                                    <Controller
+                                        name="supportWhatsapp"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Input
+                                                id="client-supportWhatsapp"
+                                                type="tel"
+                                                inputMode="numeric"
+                                                className={cn("bg-card h-10 px-3", controlClass)}
+                                                aria-invalid={!!errors.supportWhatsapp}
+                                                value={
+                                                    field.value
+                                                        ? maskPhoneInput(field.value)
+                                                        : ""
+                                                }
+                                                onChange={(e) =>
+                                                    field.onChange(
+                                                        maskPhoneInput(e.target.value),
+                                                    )
+                                                }
+                                                placeholder="(11) 99999-9999"
+                                            />
+                                        )}
+                                    />
+                                    {errors.supportWhatsapp ? (
+                                        <p className="text-destructive text-xs">
+                                            {errors.supportWhatsapp.message}
+                                        </p>
+                                    ) : null}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <SectionStep step={4} title="Identidade visual" />
                             <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div className="min-w-0 space-y-2 sm:col-span-2">
                                     <Label htmlFor="client-logoUrl" className={fieldLabel}>
@@ -513,7 +651,7 @@ export function ClientForm({
                         </div>
 
                         <div className="space-y-4">
-                            <SectionStep step={4} title="Situação" />
+                            <SectionStep step={5} title="Situação" />
                             <Controller
                                 name="isActive"
                                 control={control}

@@ -37,6 +37,9 @@ export type ClientListRow = {
     primaryColor: string | null;
     privacyPolicyUrl: string | null;
     privacyAlias: string | null;
+    supportEmail: string | null;
+    supportPhone: string | null;
+    supportWhatsapp: string | null;
     timezoneOffsetMinutes: number;
     ienhFilialCode?: number | null;
     isActive: boolean;
