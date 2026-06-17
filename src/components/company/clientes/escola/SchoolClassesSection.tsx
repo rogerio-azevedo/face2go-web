@@ -17,6 +17,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 
+import { normalizeSearch } from "@/lib/utils/search";
 import { schoolClassTurnLabel } from "@/lib/validations/school";
 
 import { SchoolClassForm } from "./SchoolClassForm";
@@ -37,10 +38,10 @@ export function SchoolClassesSection({
     const [search, setSearch] = useState("");
 
     const filteredClasses = useMemo(() => {
-        const term = search.trim().toLowerCase();
+        const term = normalizeSearch(search);
         if (!term) return initialClasses;
         return initialClasses.filter((row) =>
-            row.name.toLowerCase().includes(term),
+            normalizeSearch(row.name).includes(term),
         );
     }, [initialClasses, search]);
 

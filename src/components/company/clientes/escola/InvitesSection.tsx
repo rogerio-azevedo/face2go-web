@@ -10,6 +10,7 @@ import {
     markUsedInviteAction,
 } from "@/app/company/clientes/[clientId]/usuarios/invites-actions";
 import { deferInEffect } from "@/lib/defer-in-effect";
+import { normalizeSearch } from "@/lib/utils/search";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -107,20 +108,21 @@ export function InvitesSection({
     const [searchCreator, setSearchCreator] = useState("");
 
     const filteredRows = useMemo(() => {
-        const guestTerm = searchGuest.trim().toLowerCase();
-        const creatorTerm = searchCreator.trim().toLowerCase();
+        const guestTerm = normalizeSearch(searchGuest);
+        const creatorTerm = normalizeSearch(searchCreator);
         const guestDigits = searchGuest.replace(/\D/g, "");
 
         return rows.filter((row) => {
-            const guestName = row.guestName?.toLowerCase() ?? "";
+            const guestName = normalizeSearch(row.guestName ?? "");
             const guestDocument = row.guestDocument?.replace(/\D/g, "") ?? "";
             const guestMatch =
                 !guestTerm ||
                 guestName.includes(guestTerm) ||
                 (guestDigits.length >= 3 &&
                     guestDocument.includes(guestDigits));
-            const creatorName =
-                row.requestedByMemberName?.toLowerCase() ?? "";
+            const creatorName = normalizeSearch(
+                row.requestedByMemberName ?? "",
+            );
             const creatorMatch =
                 !creatorTerm || creatorName.includes(creatorTerm);
 

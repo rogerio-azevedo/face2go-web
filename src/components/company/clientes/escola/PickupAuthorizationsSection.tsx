@@ -11,6 +11,7 @@ import {
     markUsedPickupAuthorizationAction,
 } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
 import { deferInEffect } from "@/lib/defer-in-effect";
+import { normalizeSearch } from "@/lib/utils/search";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -118,20 +119,20 @@ export function PickupAuthorizationsSection({
     const [searchRequester, setSearchRequester] = useState("");
 
     const filteredRows = useMemo(() => {
-        const studentTerm = searchStudent.trim().toLowerCase();
-        const requesterTerm = searchRequester.trim().toLowerCase();
+        const studentTerm = normalizeSearch(searchStudent);
+        const requesterTerm = normalizeSearch(searchRequester);
 
         return rows.filter((row) => {
             const studentMatch =
                 !studentTerm ||
                 row.students.some((student) =>
-                    student.name.toLowerCase().includes(studentTerm),
+                    normalizeSearch(student.name).includes(studentTerm),
                 );
             const requester = responsibleById.get(row.requestedByResponsibleId);
             const requesterName = requester?.name ?? "";
             const requesterMatch =
                 !requesterTerm ||
-                requesterName.toLowerCase().includes(requesterTerm);
+                normalizeSearch(requesterName).includes(requesterTerm);
 
             return studentMatch && requesterMatch;
         });
