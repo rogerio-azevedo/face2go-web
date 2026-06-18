@@ -78,7 +78,7 @@ export const clientAddressFormSchema = z
         }
     });
 
-export type ClientAddressFormInput = z.infer<typeof clientAddressFormSchema>;
+export type ClientAddressFormInput = z.input<typeof clientAddressFormSchema>;
 
 export type GeocodingSuggestion = {
     id: string;
