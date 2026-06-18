@@ -1,7 +1,10 @@
 import type { NextAuthConfig } from "next-auth";
 
 import { evaluateCompanyFeatureAction } from "@/lib/company-feature-access";
-import { getDashboardPathForRole } from "@/lib/dashboard-path";
+import {
+    getDashboardPathForRole,
+    resolveDashboardPathForAuth,
+} from "@/lib/dashboard-path";
 
 export const authConfig = {
     pages: {
@@ -43,9 +46,11 @@ export const authConfig = {
 
             if (path === "/login") {
                 if (isLoggedIn) {
-                    return Response.redirect(
-                        new URL(getDashboardPathForRole(role), nextUrl)
-                    );
+                    const dest = await resolveDashboardPathForAuth({
+                        accessToken: auth?.accessToken,
+                        user: auth?.user,
+                    });
+                    return Response.redirect(new URL(dest, nextUrl));
                 }
                 return true;
             }
@@ -87,6 +92,26 @@ export const authConfig = {
                 if (role !== "super_admin") {
                     return Response.redirect(
                         new URL("/login?error=Sem permissão", nextUrl)
+                    );
+                }
+                return true;
+            }
+
+            if (path.startsWith("/monitoring")) {
+                if (!isLoggedIn) return false;
+                if (role !== "company_admin" && role !== "company_operator") {
+                    return Response.redirect(
+                        new URL("/login?error=Sem permissão", nextUrl),
+                    );
+                }
+                const allowed = await evaluateCompanyFeatureAction(
+                    auth?.accessToken,
+                    "monitoring",
+                    "can_read",
+                );
+                if (!allowed) {
+                    return Response.redirect(
+                        new URL("/company/dashboard", nextUrl),
                     );
                 }
                 return true;

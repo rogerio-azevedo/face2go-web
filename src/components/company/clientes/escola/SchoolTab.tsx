@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/tabs";
 
 import { InvitesSection } from "./InvitesSection";
+import { ClientAddressesPanel } from "@/components/company/clientes/enderecos/ClientAddressesPanel";
+import type { ClientAddressRow } from "@/types/client-address";
 import { MembersSection } from "./MembersSection";
 import { ParentsSection } from "./ParentsSection";
 import { PickupAuthorizationsSection } from "./PickupAuthorizationsSection";
@@ -32,6 +34,8 @@ import { VehiclesSection } from "./VehiclesSection";
 export function SchoolTab({
     clientId,
     isAdmin = false,
+    canEditAddresses = false,
+    initialAddresses = [],
     initialClasses,
     initialStudents,
     initialResponsibles,
@@ -53,6 +57,8 @@ export function SchoolTab({
     initialPickupAuthorizations?: PickupAuthorizationRow[];
     initialInvites?: InviteRow[];
     initialVehicles?: PaginatedResponse<VehicleRow>;
+    canEditAddresses?: boolean;
+    initialAddresses?: ClientAddressRow[];
 }) {
     return (
         <div className="space-y-4">
@@ -68,6 +74,7 @@ export function SchoolTab({
                     </TabsTrigger>
                     <TabsTrigger value="invites">Visitantes</TabsTrigger>
                     <TabsTrigger value="vehicles">Veículos</TabsTrigger>
+                    <TabsTrigger value="addresses">Endereços</TabsTrigger>
                 </TabsList>
                 <TabsContent value="shifts" className="pt-4">
                     <ShiftsSection
@@ -121,6 +128,13 @@ export function SchoolTab({
                     <VehiclesSection
                         clientId={clientId}
                         initialVehicles={initialVehicles}
+                    />
+                </TabsContent>
+                <TabsContent value="addresses" className="pt-4">
+                    <ClientAddressesPanel
+                        clientId={clientId}
+                        initialAddresses={initialAddresses}
+                        canEdit={canEditAddresses}
                     />
                 </TabsContent>
             </Tabs>

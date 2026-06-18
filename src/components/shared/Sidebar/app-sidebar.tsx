@@ -10,6 +10,7 @@ import {
     History,
     LayoutDashboard,
     MonitorPlay,
+    Radio,
     RefreshCcw,
     ScanLine,
     Users,
@@ -96,6 +97,11 @@ function navItemsForRole(
                     url: "/company/integracao",
                     icon: RefreshCcw,
                 },
+                {
+                    title: "Monitoramento",
+                    url: "/monitoring",
+                    icon: Radio,
+                },
                 ...(process.env.NODE_ENV !== "production"
                     ? [
                           {
@@ -161,6 +167,13 @@ function navItemsForRole(
                     title: "Integração",
                     url: "/company/integracao",
                     icon: RefreshCcw,
+                });
+            }
+            if (pathSet?.has("/monitoring") === true) {
+                items.push({
+                    title: "Monitoramento",
+                    url: "/monitoring",
+                    icon: Radio,
                 });
             }
             return items;

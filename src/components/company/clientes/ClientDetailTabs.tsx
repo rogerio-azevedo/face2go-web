@@ -1,6 +1,7 @@
 "use client";
 
 import { CompanyClientRegistrationLinksPanel } from "@/components/company/clientes/CompanyClientRegistrationLinksPanel";
+import { ClientAddressesPanel } from "@/components/company/clientes/enderecos/ClientAddressesPanel";
 import { SchoolTab } from "@/components/company/clientes/escola/SchoolTab";
 import { RegistrationsReviewBoard } from "@/components/registrations/RegistrationsReviewBoard";
 import { SyncAllProgressModal } from "@/components/registrations/SyncAllProgressModal";
@@ -20,11 +21,14 @@ import type {
     VehicleRow,
 } from "@/types/domain";
 import { emptyPaginated } from "@/lib/pagination";
+import type { ClientAddressRow } from "@/types/client-address";
 
 export type ClientDetailTabsProps = {
     clientId: string;
     clientType: string;
     isAdmin?: boolean;
+    canEditAddresses?: boolean;
+    initialAddresses?: ClientAddressRow[];
     initialLinks: RegistrationLinkListRow[];
     initialRows: ClientRegistrationListRow[];
     /** Só quando `clientType === "school"`: dados carregados no servidor */
@@ -43,6 +47,8 @@ export function ClientDetailTabs({
     clientId,
     clientType,
     isAdmin = false,
+    canEditAddresses = false,
+    initialAddresses = [],
     initialLinks,
     initialRows,
     initialSchoolClasses = [],
@@ -62,6 +68,8 @@ export function ClientDetailTabs({
             <SchoolTab
                 clientId={clientId}
                 isAdmin={isAdmin}
+                canEditAddresses={canEditAddresses}
+                initialAddresses={initialAddresses}
                 initialClasses={initialSchoolClasses}
                 initialStudents={initialSchoolStudents}
                 initialResponsibles={initialSchoolResponsibles}
@@ -82,6 +90,7 @@ export function ClientDetailTabs({
                     Solicitações recebidas
                 </TabsTrigger>
                 <TabsTrigger value="links">Links de cadastro</TabsTrigger>
+                <TabsTrigger value="addresses">Endereços</TabsTrigger>
             </TabsList>
 
             <TabsContent value="requests" className="space-y-4">
@@ -106,6 +115,14 @@ export function ClientDetailTabs({
                 <CompanyClientRegistrationLinksPanel
                     clientId={clientId}
                     initialLinks={initialLinks}
+                />
+            </TabsContent>
+
+            <TabsContent value="addresses" className="space-y-4">
+                <ClientAddressesPanel
+                    clientId={clientId}
+                    initialAddresses={initialAddresses}
+                    canEdit={canEditAddresses}
                 />
             </TabsContent>
         </Tabs>

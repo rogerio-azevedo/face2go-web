@@ -4,6 +4,8 @@ import { auth } from "@/auth";
 import { ClientDetailTabs } from "@/components/company/clientes/ClientDetailTabs";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { can } from "@/lib/permissions";
+import { listClientAddressesAction } from "@/app/company/clientes/[clientId]/enderecos/actions";
+import type { ClientAddressRow } from "@/types/client-address";
 import { apiFetchAuthed, parseResponseJson } from "@/lib/api-fetch";
 import {
     buildSchoolListQuery,
@@ -48,6 +50,10 @@ export default async function CompanyClientUsuariosPage({
         redirect("/company/dashboard");
     }
 
+    const canEditAddresses =
+        role === "company_admin" ||
+        (role === "company_operator" && (await can("clients", "can_update")));
+
     let clientMeta: Pick<ClientListRow, "name" | "type"> | null = null;
     let links: RegistrationLinkListRow[] = [];
     let rows: ClientRegistrationListRow[] = [];
@@ -61,6 +67,7 @@ export default async function CompanyClientUsuariosPage({
     let schoolPickupAuthorizations: PickupAuthorizationRow[] = [];
     let schoolInvites: InviteRow[] = [];
     let schoolVehicles: PaginatedResponse<VehicleRow> = emptyPaginated();
+    let addresses: ClientAddressRow[] = [];
 
     try {
         const clientRes = await apiFetchAuthed(`/api/clients/${clientId}`);
@@ -71,10 +78,15 @@ export default async function CompanyClientUsuariosPage({
             }
         }
 
-        const [linksRes, regRes] = await Promise.all([
+        const [linksRes, regRes, addrResult] = await Promise.all([
             apiFetchAuthed(`/api/clients/${clientId}/registration-links`),
             apiFetchAuthed(`/api/clients/${clientId}/registrations`),
+            listClientAddressesAction(clientId),
         ]);
+
+        if (addrResult.ok) {
+            addresses = addrResult.data;
+        }
 
         if (linksRes.ok) {
             links = (await parseResponseJson(linksRes)) as RegistrationLinkListRow[];
@@ -191,6 +203,8 @@ export default async function CompanyClientUsuariosPage({
                 clientId={clientId}
                 clientType={clientMeta?.type ?? "other"}
                 isAdmin={role === "company_admin"}
+                canEditAddresses={canEditAddresses}
+                initialAddresses={addresses}
                 initialLinks={links}
                 initialRows={rows}
                 initialSchoolClasses={schoolClasses}

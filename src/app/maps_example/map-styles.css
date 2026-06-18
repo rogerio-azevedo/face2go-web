@@ -1,0 +1,125 @@
+/* Custom styles for map filter component */
+
+/* Range slider styles */
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.slider::-webkit-slider-track {
+  width: 100%;
+  height: 8px;
+  cursor: pointer;
+  background: #4b5563;
+  border-radius: 4px;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.slider::-moz-range-track {
+  width: 100%;
+  height: 8px;
+  cursor: pointer;
+  background: #4b5563;
+  border-radius: 4px;
+  border: none;
+}
+
+.slider::-moz-range-thumb {
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Filter component hover effects */
+.filter-panel {
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.filter-panel:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Dragging state */
+.filter-panel.dragging {
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Button hover effects */
+.filter-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Dragging optimizations */
+.filter-panel.dragging {
+  user-select: none;
+  pointer-events: none;
+  transform: translate3d(0, 0, 0);
+}
+
+.filter-panel.dragging * {
+  pointer-events: none;
+}
+
+/* Smooth transform for better performance */
+.filter-panel {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+/* Custom Slider styles for ShadcnUI */
+.slider-custom [data-orientation='horizontal'] {
+  background: #4b5563 !important;
+}
+
+.slider-custom [data-orientation='horizontal'] .relative {
+  background: #4b5563 !important;
+}
+
+.slider-custom [data-orientation='horizontal'] .relative .absolute {
+  background: #ffffff !important;
+}
+
+.slider-custom [data-orientation='horizontal'] .relative .absolute .h-2 {
+  background: #ffffff !important;
+}
+
+.slider-custom [data-orientation='horizontal'] .relative .absolute .w-2 {
+  background: #ffffff !important;
+  border: 2px solid #ffffff !important;
+}
+
+/* Override ShadcnUI Slider colors */
+.slider-custom .relative {
+  background: #4b5563 !important;
+}
+
+.slider-custom .relative .absolute {
+  background: #ffffff !important;
+}
+
+.slider-custom .relative .absolute .h-2 {
+  background: #ffffff !important;
+}
+
+.slider-custom .relative .absolute .w-2 {
+  background: #ffffff !important;
+  border: 2px solid #ffffff !important;
+}
