@@ -16,6 +16,7 @@ import {
 import type { CompanyRow } from "@/types/domain";
 
 import { DeleteCompanyButton } from "../DeleteCompanyButton";
+import { CompanyFeaturesSheetTrigger } from "../CompanyFeaturesSheet";
 
 type CompanyTableProps = {
     companies: CompanyRow[];
@@ -75,6 +76,10 @@ export function CompanyTable({ companies: rows }: CompanyTableProps) {
                                 >
                                     Convites
                                 </ButtonLink>
+                                <CompanyFeaturesSheetTrigger
+                                    companyId={company.id}
+                                    companyName={company.name}
+                                />
                                 <ButtonLinkEdit id={company.id} />
                                 <DeleteCompanyButton
                                     companyId={company.id}

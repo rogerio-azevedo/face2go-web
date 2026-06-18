@@ -4,6 +4,40 @@
  */
 
 export interface paths {
+    "/companies/{id}/features": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar recursos premium da empresa */
+        get: operations["CompanyFeaturesController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/features/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Habilitar/desabilitar recurso premium da empresa */
+        patch: operations["CompanyFeaturesController_toggle"];
+        trace?: never;
+    };
     "/clients/{clientId}/lpr-plates/{vehicleId}/sync": {
         parameters: {
             query?: never;
@@ -297,6 +331,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/clients/map-points": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar clientes ativos com endereço geocodificado para o mapa */
+        get: operations["ClientsController_listMapPoints"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/clients/{clientId}/display-short-code": {
         parameters: {
             query?: never;
@@ -447,6 +498,60 @@ export interface paths {
         get: operations["ClientDisplayResolveController_resolve"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{clientId}/addresses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar endereços do cliente */
+        get: operations["ClientAddressesController_list"];
+        put?: never;
+        /** Criar endereço do cliente */
+        post: operations["ClientAddressesController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{clientId}/addresses/{addressId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Detalhe de um endereço do cliente */
+        get: operations["ClientAddressesController_getById"];
+        put?: never;
+        post?: never;
+        /** Excluir endereço do cliente */
+        delete: operations["ClientAddressesController_remove"];
+        options?: never;
+        head?: never;
+        /** Atualizar endereço do cliente */
+        patch: operations["ClientAddressesController_update"];
+        trace?: never;
+    };
+    "/clients/{clientId}/addresses/{addressId}/set-primary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Marcar endereço como principal */
+        post: operations["ClientAddressesController_setPrimary"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2854,6 +2959,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/member/students": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Buscar alunos para cadastro facial (funcionário autorizado) */
+        get: operations["MemberFaceEnrollmentController_listStudents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/member/students/{studentId}/face": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enviar/atualizar foto de aluno e sincronizar com os leitores */
+        post: operations["MemberFaceEnrollmentController_uploadStudentFace"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me/navigation": {
         parameters: {
             query?: never;
@@ -2863,6 +3002,40 @@ export interface paths {
         };
         /** Paths permitidos na sidebar da área empresa */
         get: operations["MeController_navigation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/sidebar-nav-access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Alias de /me/navigation (sidebar empresa) */
+        get: operations["MeController_sidebarNavAccess"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/company-features": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Recursos premium habilitados para a empresa do contexto atual */
+        get: operations["MeController_companyFeatures"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2935,7 +3108,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Registrar token Expo Push do app (responsável) */
+        /** Registrar token Expo Push do app (responsável ou membro) */
         patch: operations["NotificationsController_registerPushToken"];
         trace?: never;
     };
@@ -3160,10 +3333,185 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/geocoding/autocomplete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Autocomplete de endereço via HERE (proxy) */
+        get: operations["GeocodingController_autocomplete"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/geocoding/geocode": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Geocodificar endereço via HERE (proxy) */
+        get: operations["GeocodingController_geocode"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/geocoding/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reverse geocoding via HERE (proxy) */
+        get: operations["GeocodingController_reverse"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/geocoding/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lookup de local HERE por id (proxy) */
+        get: operations["GeocodingController_lookup"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{clientId}/panic-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Configuração de pedido de socorro do cliente */
+        get: operations["PanicEventsController_getPanicConfig"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Atualizar configuração de pedido de socorro */
+        patch: operations["PanicEventsController_updatePanicConfig"];
+        trace?: never;
+    };
+    "/panic-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar eventos de socorro (monitoramento) */
+        get: operations["PanicEventsController_list"];
+        put?: never;
+        /** Criar pedido de socorro (app) */
+        post: operations["PanicEventsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/panic-events/{eventId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Detalhe de evento de socorro */
+        get: operations["PanicEventsController_getById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/panic-events/{eventId}/claim": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pegar evento para tratativa */
+        post: operations["PanicEventsController_claim"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/panic-events/{eventId}/release": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Soltar evento em tratativa */
+        post: operations["PanicEventsController_release"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/panic-events/{eventId}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Fechar evento de socorro */
+        post: operations["PanicEventsController_close"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        ToggleCompanyFeatureDto: {
+            enabled: boolean;
+        };
         LoginDto: {
             /** Format: email */
             email?: string;
@@ -3217,6 +3565,54 @@ export interface components {
             companyId: string;
             /** @enum {string} */
             role: "company_admin" | "company_operator";
+        };
+        CreateClientAddressDto: {
+            /** @default Principal */
+            label: string;
+            isPrimary?: boolean;
+            cep?: string | "";
+            street?: string;
+            number?: string;
+            complement?: string;
+            neighborhood?: string;
+            city?: string;
+            state?: string | "";
+            /** @default BR */
+            country: string;
+            latitude?: number;
+            longitude?: number;
+            /**
+             * @default manual
+             * @enum {string}
+             */
+            geocodingProvider: "here" | "manual";
+            /** @enum {string} */
+            geocodingPrecision?: "rooftop" | "street" | "approximate";
+            hereLocationId?: string;
+        };
+        PatchClientAddressDto: {
+            /** @default Principal */
+            label: string;
+            isPrimary?: boolean;
+            cep?: string | "";
+            street?: string;
+            number?: string;
+            complement?: string;
+            neighborhood?: string;
+            city?: string;
+            state?: string | "";
+            /** @default BR */
+            country: string;
+            latitude?: number;
+            longitude?: number;
+            /**
+             * @default manual
+             * @enum {string}
+             */
+            geocodingProvider: "here" | "manual";
+            /** @enum {string} */
+            geocodingPrecision?: "rooftop" | "street" | "approximate";
+            hereLocationId?: string;
         };
         GenerateCompanyUserInviteLinkDto: {
             /** @enum {string} */
@@ -3292,6 +3688,26 @@ export interface components {
             /** Format: uuid */
             readerId?: string;
         };
+        UpdateClientPanicConfigDto: {
+            enabled?: boolean;
+            allowedRoles?: string[];
+            cooldownSeconds?: number;
+        };
+        CreatePanicEventDto: {
+            latitude: number;
+            longitude: number;
+            accuracy?: number;
+            deviceInfo?: {
+                os?: string;
+                appVersion?: string;
+                brand?: string;
+            };
+        };
+        ClosePanicEventDto: {
+            closingNotes?: string;
+            /** @enum {string} */
+            closingReason: "resolved" | "false_alarm" | "duplicate" | "other";
+        };
     };
     responses: never;
     parameters: never;
@@ -3301,6 +3717,49 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    CompanyFeaturesController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CompanyFeaturesController_toggle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ToggleCompanyFeatureDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     CompanyLprPlateSyncController_syncOne: {
         parameters: {
             query?: never;
@@ -3715,6 +4174,23 @@ export interface operations {
             };
         };
     };
+    ClientsController_listMapPoints: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ClientsController_ensureDisplayShortCode: {
         parameters: {
             query?: never;
@@ -3936,6 +4412,132 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientAddressesController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientAddressesController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateClientAddressDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientAddressesController_getById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                addressId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientAddressesController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                addressId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientAddressesController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                addressId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchClientAddressDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientAddressesController_setPrimary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                addressId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7375,7 +7977,85 @@ export interface operations {
             };
         };
     };
+    MemberFaceEnrollmentController_listStudents: {
+        parameters: {
+            query: {
+                search: string;
+                page: string;
+                pageSize: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MemberFaceEnrollmentController_uploadStudentFace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UploadFaceDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     MeController_navigation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MeController_sidebarNavAccess: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MeController_companyFeatures: {
         parameters: {
             query?: never;
             header?: never;
@@ -7715,6 +8395,243 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GeocodingController_autocomplete: {
+        parameters: {
+            query: {
+                q: string;
+                at: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GeocodingController_geocode: {
+        parameters: {
+            query: {
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GeocodingController_reverse: {
+        parameters: {
+            query: {
+                at: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GeocodingController_lookup: {
+        parameters: {
+            query: {
+                id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PanicEventsController_getPanicConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PanicEventsController_updatePanicConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateClientPanicConfigDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PanicEventsController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PanicEventsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePanicEventDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PanicEventsController_getById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PanicEventsController_claim: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PanicEventsController_release: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PanicEventsController_close: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClosePanicEventDto"];
+            };
+        };
+        responses: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -33,17 +33,34 @@ function escapeHtml(value: string): string {
         .replaceAll("'", "&#39;");
 }
 
+function closeAllClientTooltips(markers: Map<string, mapboxgl.Marker>): void {
+    markers.forEach((marker) => {
+        marker.getElement().classList.remove("is-active");
+    });
+}
+
+function openClientTooltip(
+    markers: Map<string, mapboxgl.Marker>,
+    wrap: HTMLElement,
+): void {
+    closeAllClientTooltips(markers);
+    wrap.classList.add("is-active");
+}
+
 function bindPinInteractions(
     wrap: HTMLElement,
-    onActivate: () => void,
+    markers: Map<string, mapboxgl.Marker>,
 ): void {
     const btn = wrap.querySelector<HTMLButtonElement>(".monitoring-client-pin");
+    const closeBtn = wrap.querySelector<HTMLButtonElement>(
+        ".monitoring-client-tooltip-close",
+    );
     if (!btn) return;
 
     const handleActivate = (event: Event) => {
         event.preventDefault();
         event.stopPropagation();
-        onActivate();
+        openClientTooltip(markers, wrap);
     };
 
     btn.replaceWith(btn.cloneNode(true));
@@ -57,14 +74,42 @@ function bindPinInteractions(
     freshBtn.addEventListener("touchstart", (event) => {
         event.stopPropagation();
     }, { passive: true });
+
+    if (closeBtn) {
+        closeBtn.replaceWith(closeBtn.cloneNode(true));
+        const freshCloseBtn = wrap.querySelector<HTMLButtonElement>(
+            ".monitoring-client-tooltip-close",
+        );
+        freshCloseBtn?.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            wrap.classList.remove("is-active");
+        });
+    }
 }
 
-function buildClientPinElement(
-    client: ClientMapPoint,
-    onActivate: () => void,
-): HTMLDivElement {
+function buildClientTooltipHtml(client: ClientMapPoint): string {
+    const typeLabel = CLIENT_TYPE_LABEL[client.type];
+    return `
+      <div class="monitoring-client-tooltip-body">
+        <div class="monitoring-client-tooltip-type">${escapeHtml(typeLabel)}</div>
+        <div class="monitoring-client-tooltip-name">${escapeHtml(client.name)}</div>
+      </div>
+      <button
+        type="button"
+        class="monitoring-client-tooltip-close"
+        aria-label="Fechar"
+      >&times;</button>
+    `;
+}
+
+function buildClientPinElement(client: ClientMapPoint): HTMLDivElement {
     const wrap = document.createElement("div");
     wrap.className = "monitoring-client-pin-wrap";
+
+    const tooltip = document.createElement("div");
+    tooltip.className = "monitoring-client-tooltip";
+    tooltip.innerHTML = buildClientTooltipHtml(client);
 
     const pulse = document.createElement("div");
     pulse.className = "monitoring-client-pin-pulse";
@@ -77,21 +122,27 @@ function buildClientPinElement(
     btn.setAttribute("aria-label", client.name);
     btn.innerHTML = BUILDING_ICON_SVG;
 
+    wrap.appendChild(tooltip);
     wrap.appendChild(pulse);
     wrap.appendChild(btn);
-    bindPinInteractions(wrap, onActivate);
 
     return wrap;
 }
 
-function buildClientPopupHtml(client: ClientMapPoint): string {
-    const typeLabel = CLIENT_TYPE_LABEL[client.type];
-    return `
-      <div class="monitoring-client-popup-body">
-        <div class="monitoring-client-popup-type">${escapeHtml(typeLabel)}</div>
-        <div class="monitoring-client-popup-name">${escapeHtml(client.name)}</div>
-      </div>
-    `;
+function updateClientPinElement(
+    wrap: HTMLElement,
+    client: ClientMapPoint,
+): void {
+    const tooltip = wrap.querySelector(".monitoring-client-tooltip");
+    if (tooltip) {
+        tooltip.innerHTML = buildClientTooltipHtml(client);
+    }
+
+    const btn = wrap.querySelector<HTMLButtonElement>(".monitoring-client-pin");
+    if (btn) {
+        btn.title = client.name;
+        btn.setAttribute("aria-label", client.name);
+    }
 }
 
 type UseClientMapMarkersOptions = {
@@ -106,11 +157,16 @@ export function useClientMapMarkers({
     mapReady,
 }: UseClientMapMarkersOptions) {
     const clientMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
-    const popupRef = useRef<mapboxgl.Popup | null>(null);
 
     useEffect(() => {
         const map = mapRef.current;
         if (!map || !mapReady) return;
+
+        const handleMapClick = () => {
+            closeAllClientTooltips(clientMarkersRef.current);
+        };
+
+        map.on("click", handleMapClick);
 
         const currentIds = new Set(clients.map((client) => client.id));
 
@@ -122,50 +178,31 @@ export function useClientMapMarkers({
         });
 
         for (const client of clients) {
-            const openPopup = () => {
-                popupRef.current?.remove();
-                popupRef.current = new mapboxgl.Popup({
-                    offset: 22,
-                    closeButton: true,
-                    closeOnClick: false,
-                    className: "monitoring-client-popup",
-                })
-                    .setLngLat([client.longitude, client.latitude])
-                    .setHTML(buildClientPopupHtml(client))
-                    .addTo(map);
-            };
-
             const existing = clientMarkersRef.current.get(client.id);
             if (existing) {
                 existing.setLngLat([client.longitude, client.latitude]);
+
                 const wrap = existing.getElement();
-                const btn = wrap.querySelector<HTMLButtonElement>(
-                    ".monitoring-client-pin",
-                );
-                if (btn) {
-                    btn.title = client.name;
-                    btn.setAttribute("aria-label", client.name);
-                }
-                bindPinInteractions(wrap, openPopup);
+                updateClientPinElement(wrap, client);
+                bindPinInteractions(wrap, clientMarkersRef.current);
                 continue;
             }
 
-            const el = buildClientPinElement(client, openPopup);
-
+            const wrap = buildClientPinElement(client);
             const marker = new mapboxgl.Marker({
-                element: el,
+                element: wrap,
                 anchor: "center",
             })
                 .setLngLat([client.longitude, client.latitude])
                 .addTo(map);
 
             marker.getElement().style.pointerEvents = "auto";
+            bindPinInteractions(wrap, clientMarkersRef.current);
             clientMarkersRef.current.set(client.id, marker);
         }
 
         return () => {
-            popupRef.current?.remove();
-            popupRef.current = null;
+            map.off("click", handleMapClick);
             clientMarkersRef.current.forEach((marker) => marker.remove());
             clientMarkersRef.current.clear();
         };

@@ -1,7 +1,7 @@
 import { auth } from '@/auth';
 
 import { apiFetchAuthed, parseResponseJson } from '@/lib/api-fetch';
-import type { FeatureSlug, PermissionAction } from './features';
+import type { FeatureSlug, PermissionAction, PremiumFeatureSlug } from './features';
 
 export async function can(
     featureSlug: FeatureSlug,
@@ -23,6 +23,32 @@ export async function can(
         return data.allowed === true;
     } catch {
         return false;
+    }
+}
+
+export async function getCompanyFeatureFlags(): Promise<
+    Record<PremiumFeatureSlug, boolean>
+> {
+    const session = await auth();
+    const token = session?.accessToken;
+
+    if (!session?.user?.companyId || !token) {
+        return { monitoring: false };
+    }
+
+    try {
+        const res = await apiFetchAuthed('/api/me/company-features');
+
+        if (!res.ok) return { monitoring: false };
+
+        const data = (await parseResponseJson(res)) as Partial<
+            Record<PremiumFeatureSlug, boolean>
+        >;
+        return {
+            monitoring: data.monitoring === true,
+        };
+    } catch {
+        return { monitoring: false };
     }
 }
 

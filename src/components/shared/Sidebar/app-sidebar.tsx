@@ -31,12 +31,16 @@ import { NavUser, type NavSidebarUser } from "./nav-user";
 import { ContextSwitcher } from "@/components/shared/Header/ContextSwitcher";
 import { contextLogoUrl } from "@/lib/auth-contexts";
 import { useAuthContexts } from "@/hooks/use-auth-contexts";
+import type { PremiumFeatureSlug } from "@/lib/features";
 
 export type { NavMainItem };
+
+export type CompanyFeatureFlags = Record<PremiumFeatureSlug, boolean>;
 
 function navItemsForRole(
     role: NonNullable<Session["user"]["role"]>,
     mainPaths?: string[] | null,
+    companyFeatures?: CompanyFeatureFlags,
 ): NavMainItem[] {
     const pathSet =
         mainPaths && mainPaths.length > 0 ? new Set(mainPaths) : null;
@@ -97,11 +101,15 @@ function navItemsForRole(
                     url: "/company/integracao",
                     icon: RefreshCcw,
                 },
-                {
-                    title: "Monitoramento",
-                    url: "/monitoring",
-                    icon: Radio,
-                },
+                ...(companyFeatures?.monitoring
+                    ? [
+                          {
+                              title: "Monitoramento",
+                              url: "/monitoring",
+                              icon: Radio,
+                          },
+                      ]
+                    : []),
                 ...(process.env.NODE_ENV !== "production"
                     ? [
                           {
@@ -169,7 +177,10 @@ function navItemsForRole(
                     icon: RefreshCcw,
                 });
             }
-            if (pathSet?.has("/monitoring") === true) {
+            if (
+                companyFeatures?.monitoring &&
+                pathSet?.has("/monitoring") === true
+            ) {
                 items.push({
                     title: "Monitoramento",
                     url: "/monitoring",
@@ -227,16 +238,19 @@ export function AppSidebar({
     user,
     productName = "Face2go",
     mainPaths,
+    companyFeatures,
     ...props
 }: ComponentProps<typeof Sidebar> & {
     user: NonNullable<Session["user"]>;
     productName?: string;
     /** Rotas permitidas (ex.: operadores com permissões por feature). */
     mainPaths?: string[] | null;
+    /** Recursos premium habilitados para a empresa. */
+    companyFeatures?: CompanyFeatureFlags;
 }) {
     const navItems = useMemo(
-        () => navItemsForRole(user.role, mainPaths),
-        [user.role, mainPaths],
+        () => navItemsForRole(user.role, mainPaths, companyFeatures),
+        [user.role, mainPaths, companyFeatures],
     );
     const productSubtitle = useMemo(
         () => subtitleForRole(user.role),

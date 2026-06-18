@@ -7,7 +7,10 @@
     height: 40px;
     cursor: pointer;
     pointer-events: auto;
-    z-index: 2;
+}
+
+.monitoring-client-pin-wrap.is-active {
+    z-index: 1000000 !important;
 }
 
 .monitoring-client-pin-pulse {
@@ -22,7 +25,6 @@
 
 .monitoring-client-pin {
     position: relative;
-    z-index: 1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -47,29 +49,40 @@
     transform: scale(1.05);
 }
 
-@keyframes monitoring-client-pin-ping {
-    0% {
-        transform: scale(1);
-        opacity: 0.75;
-    }
-    75%,
-    100% {
-        transform: scale(2);
-        opacity: 0;
-    }
-}
-
-.monitoring-client-popup.mapboxgl-popup {
+.monitoring-client-tooltip {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    z-index: 2;
+    display: none;
+    width: max-content;
     max-width: 280px;
-}
-
-.monitoring-client-popup .mapboxgl-popup-content {
-    border-radius: 8px;
+    min-width: 180px;
     padding: 12px 36px 12px 12px;
+    border-radius: 8px;
+    background: #fff;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: translateX(-50%);
+    pointer-events: auto;
 }
 
-.monitoring-client-popup .mapboxgl-popup-close-button {
+.monitoring-client-tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border: 8px solid transparent;
+    border-top-color: #fff;
+    transform: translateX(-50%);
+}
+
+.monitoring-client-pin-wrap.is-active .monitoring-client-tooltip {
+    display: block;
+}
+
+.monitoring-client-tooltip-close {
     position: absolute;
     top: 8px;
     right: 8px;
@@ -89,22 +102,34 @@
     cursor: pointer;
 }
 
-.monitoring-client-popup .mapboxgl-popup-close-button:hover {
+.monitoring-client-tooltip-close:hover {
     color: #4b5563;
     background: #f3f4f6;
 }
 
-.monitoring-client-popup-body {
+@keyframes monitoring-client-pin-ping {
+    0% {
+        transform: scale(1);
+        opacity: 0.75;
+    }
+    75%,
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+.monitoring-client-tooltip-body {
     min-width: 180px;
 }
 
-.monitoring-client-popup-type {
+.monitoring-client-tooltip-type {
     font-size: 12px;
     font-weight: 500;
     color: #047857;
 }
 
-.monitoring-client-popup-name {
+.monitoring-client-tooltip-name {
     margin-top: 2px;
     font-size: 14px;
     font-weight: 600;
