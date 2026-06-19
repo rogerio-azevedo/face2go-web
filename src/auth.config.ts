@@ -39,7 +39,9 @@ export const authConfig = {
                 path === "/privacy-policy" ||
                 path === "/terms-of-use" ||
                 path === "/privacidade" ||
-                path === "/ajuda"
+                path === "/ajuda" ||
+                path === "/ienh/ajuda" ||
+                path.startsWith("/ienh/")
             ) {
                 return true;
             }

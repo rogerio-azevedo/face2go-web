@@ -1,0 +1,108 @@
+.brand-themed {
+    --brand-deep-navy: #001b3d;
+    --brand-accent: #00c7b7;
+    --brand-accent-foreground: #001b3d;
+    --brand-link: #00c7b7;
+    --brand-off-white: #f7fafc;
+    --brand-slate: #607083;
+}
+
+.brand-themed .text-brand-deep-navy {
+    color: var(--brand-deep-navy);
+}
+
+.brand-themed .text-brand-slate {
+    color: var(--brand-slate);
+}
+
+.brand-themed .text-brand-accent {
+    color: var(--brand-accent);
+}
+
+.brand-themed .text-brand-link {
+    color: var(--brand-link);
+}
+
+.brand-themed .bg-brand-off-white {
+    background-color: var(--brand-off-white);
+}
+
+.brand-themed .bg-brand-header {
+    background-color: color-mix(in srgb, var(--brand-deep-navy) 95%, transparent);
+}
+
+.brand-themed .border-brand-header {
+    border-color: color-mix(in srgb, var(--brand-deep-navy) 90%, transparent);
+}
+
+.brand-themed .bg-brand-footer {
+    background-color: var(--brand-deep-navy);
+}
+
+.brand-themed .border-brand-footer {
+    border-color: var(--brand-deep-navy);
+}
+
+.brand-themed .bg-brand-accent-soft {
+    background-color: color-mix(in srgb, var(--brand-accent) 10%, transparent);
+}
+
+.brand-themed .text-brand-accent-soft {
+    color: var(--brand-accent);
+}
+
+.brand-themed .border-brand-accent-soft {
+    border-color: color-mix(in srgb, var(--brand-accent) 30%, transparent);
+}
+
+.brand-themed .hover\:bg-brand-accent-soft:hover {
+    background-color: color-mix(in srgb, var(--brand-accent) 10%, transparent);
+}
+
+.brand-themed .bg-brand-accent {
+    background-color: var(--brand-accent);
+}
+
+.brand-themed .text-brand-accent-foreground {
+    color: var(--brand-accent-foreground);
+}
+
+.brand-themed .bg-brand-deep-navy-soft {
+    background-color: color-mix(in srgb, var(--brand-deep-navy) 5%, transparent);
+}
+
+.brand-themed .bg-brand-step-badge {
+    background-color: var(--brand-accent);
+    color: var(--brand-accent-foreground);
+}
+
+.brand-themed .brand-cta-button {
+    background-color: var(--brand-accent);
+    color: var(--brand-accent-foreground);
+}
+
+.brand-themed .brand-cta-button:hover {
+    background-color: color-mix(in srgb, var(--brand-accent) 88%, black);
+}
+
+.brand-themed .brand-tip-dot {
+    background-color: var(--brand-accent);
+}
+
+.brand-themed .brand-screen-subtitle {
+    color: var(--brand-accent);
+}
+
+.brand-themed .brand-icon-badge {
+    background-color: color-mix(in srgb, var(--brand-accent) 10%, transparent);
+    color: var(--brand-accent);
+}
+
+.brand-themed .brand-nav-pill {
+    border-color: color-mix(in srgb, var(--brand-accent) 30%, transparent);
+    color: var(--brand-deep-navy);
+}
+
+.brand-themed .brand-nav-pill:hover {
+    background-color: color-mix(in srgb, var(--brand-accent) 10%, transparent);
+}
