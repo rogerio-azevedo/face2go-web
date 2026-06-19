@@ -21,7 +21,6 @@ export type ResponsibleRegisterPreview = {
     }>;
     status: string;
     faceApprovalStatus: string;
-    plateApprovalStatus: string;
 };
 
 const BRAND_METADATA: Record<

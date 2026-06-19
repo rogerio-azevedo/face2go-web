@@ -2,14 +2,15 @@
 
 import { useEffect, useState } from "react";
 
+import { PublicRegistrationDataStep } from "@/components/public-registration/PublicRegistrationDataStep";
+import {
+    emptyPublicRegistrationForm,
+    type PublicRegistrationFormData,
+} from "@/components/public-registration/types";
 import { getApiBaseUrl } from "@/lib/api-fetch";
 import { RELATIONSHIP_TYPE_LABELS } from "@/lib/validations/school";
 
-import {
-    ResponsibleRegisterFaceStep,
-    type ResponsibleRegisterFormData,
-} from "./ResponsibleRegisterFaceStep";
-import { ResponsibleRegisterDataStep } from "./ResponsibleRegisterDataStep";
+import { ResponsibleRegisterFaceStep } from "./ResponsibleRegisterFaceStep";
 
 type Preview = {
     clientName: string;
@@ -21,22 +22,14 @@ type Preview = {
     }>;
     status: string;
     faceApprovalStatus: string;
-    plateApprovalStatus: string;
 };
 
 type ResponsibleRegisterWizardProps = {
     code: string;
 };
 
-const emptyForm: ResponsibleRegisterFormData = {
-    name: "",
-    phone: "",
-    document: "",
-    plate: "",
-    brand: "",
-    model: "",
-    color: "",
-};
+/** @deprecated Use PublicRegistrationFormData */
+export type ResponsibleRegisterFormData = PublicRegistrationFormData;
 
 export function ResponsibleRegisterWizard({ code }: ResponsibleRegisterWizardProps) {
     const [loading, setLoading] = useState(true);
@@ -44,7 +37,9 @@ export function ResponsibleRegisterWizard({ code }: ResponsibleRegisterWizardPro
     const [preview, setPreview] = useState<Preview | null>(null);
     const [done, setDone] = useState(false);
     const [step, setStep] = useState<"data" | "face">("data");
-    const [formData, setFormData] = useState<ResponsibleRegisterFormData>(emptyForm);
+    const [formData, setFormData] = useState<PublicRegistrationFormData>(
+        emptyPublicRegistrationForm(),
+    );
 
     useEffect(() => {
         const controller = new AbortController();
@@ -95,7 +90,7 @@ export function ResponsibleRegisterWizard({ code }: ResponsibleRegisterWizardPro
                     Cadastro enviado
                 </h1>
                 <p className="text-sm text-muted-foreground">
-                    O responsável que convidou vai revisar sua foto e placa. Você será
+                    O responsável que convidou vai revisar seu cadastro. Você será
                     avisado conforme a combinação com a escola.
                 </p>
             </div>
@@ -144,8 +139,9 @@ export function ResponsibleRegisterWizard({ code }: ResponsibleRegisterWizardPro
             </div>
 
             {step === "data" ? (
-                <ResponsibleRegisterDataStep
+                <PublicRegistrationDataStep
                     initial={formData}
+                    nameLabel="Nome"
                     onNext={(data) => {
                         setFormData(data);
                         setStep("face");

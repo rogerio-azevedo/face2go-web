@@ -5,23 +5,20 @@ import { toast } from "sonner";
 
 import { FaceLiveCameraPanel } from "@/components/face-capture/FaceLiveCameraPanel";
 import { Button } from "@/components/ui/button";
+import {
+    buildPublicRegistrationSubmitBody,
+    type PublicRegistrationFormData,
+} from "@/components/public-registration/types";
 import { useFaceLiveCamera } from "@/hooks/use-face-live-camera";
 import { getApiBaseUrl } from "@/lib/api-fetch";
 import { compressFaceForRegistrationUpload } from "@/lib/cadastro-face";
 
-export type ResponsibleRegisterFormData = {
-    name: string;
-    phone: string;
-    document: string;
-    plate: string;
-    brand: string;
-    model: string;
-    color: string;
-};
+/** @deprecated Use PublicRegistrationFormData */
+export type ResponsibleRegisterFormData = PublicRegistrationFormData;
 
 type ResponsibleRegisterFaceStepProps = {
     code: string;
-    formData: ResponsibleRegisterFormData;
+    formData: PublicRegistrationFormData;
     onCompleted: () => void;
     onBack: () => void;
 };
@@ -85,28 +82,14 @@ export function ResponsibleRegisterFaceStep({
         }
         setSubmitting(true);
         try {
-            const hasVehicle = formData.plate.trim().length > 0;
-            const body: Record<string, unknown> = {
-                name: formData.name.trim(),
-                phone: formData.phone.trim() || undefined,
-                document: formData.document.trim(),
-                faceImageKey,
-            };
-            if (hasVehicle) {
-                body.vehicle = {
-                    plate: formData.plate.trim(),
-                    brand: formData.brand.trim(),
-                    model: formData.model.trim(),
-                    color: formData.color.trim(),
-                };
-            }
-
             const res = await fetch(
                 `${getApiBaseUrl()}/api/responsible-register/${encodeURIComponent(code.trim())}/submit`,
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(body),
+                    body: JSON.stringify(
+                        buildPublicRegistrationSubmitBody(formData, faceImageKey),
+                    ),
                 },
             );
             const data = (await res.json()) as {

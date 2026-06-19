@@ -5,30 +5,33 @@ import { toast } from "sonner";
 
 import { FaceLiveCameraPanel } from "@/components/face-capture/FaceLiveCameraPanel";
 import { Button } from "@/components/ui/button";
+import {
+    buildPublicRegistrationSubmitBody,
+    type PublicRegistrationFormData,
+} from "@/components/public-registration/types";
 import { useFaceLiveCamera } from "@/hooks/use-face-live-camera";
 import { getApiBaseUrl } from "@/lib/api-fetch";
 import { compressFaceForRegistrationUpload } from "@/lib/cadastro-face";
 
-export type GuestProfile = {
-    guestName: string;
-    guestDocument: string;
-    guestPhone?: string | null;
-};
+/** @deprecated Use PublicRegistrationFormData */
+export type GuestProfile = PublicRegistrationFormData;
 
 type GuestFaceRegistrationStepProps = {
     code: string;
     apiPrefix: "pickup-register" | "invite-register";
-    guestProfile?: GuestProfile | null;
+    formData: PublicRegistrationFormData;
     successMessage?: string;
     onCompleted: () => void;
+    onBack?: () => void;
 };
 
 export function GuestFaceRegistrationStep({
     code,
     apiPrefix,
-    guestProfile = null,
+    formData,
     successMessage = "Cadastro enviado. Aguarde a aprovação.",
     onCompleted,
+    onBack,
 }: GuestFaceRegistrationStepProps) {
     const [faceImageKey, setFaceImageKey] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
@@ -85,16 +88,9 @@ export function GuestFaceRegistrationStep({
             const res = await fetch(`${baseUrl}/submit`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    faceImageKey,
-                    ...(guestProfile
-                        ? {
-                              guestName: guestProfile.guestName,
-                              guestDocument: guestProfile.guestDocument,
-                              guestPhone: guestProfile.guestPhone ?? null,
-                          }
-                        : {}),
-                }),
+                body: JSON.stringify(
+                    buildPublicRegistrationSubmitBody(formData, faceImageKey),
+                ),
             });
             const data = (await res.json()) as {
                 success?: boolean;
@@ -120,61 +116,68 @@ export function GuestFaceRegistrationStep({
     };
 
     return (
-        <FaceLiveCameraPanel
-            videoRef={camera.videoRef}
-            captureInputRef={camera.captureInputRef}
-            status={camera.status}
-            previewDataUrl={camera.previewDataUrl}
-            message={camera.message}
-            useNativeCapture={camera.useNativeCapture}
-            onCaptureFromVideo={camera.captureFromVideo}
-            onCancelLive={() => {
-                camera.stopCamera();
-                camera.setStatus("idle");
-            }}
-            onOpenCameraClick={camera.onOpenCameraClick}
-            onHiddenCaptureChange={camera.onHiddenCaptureChange}
-            previewActions={
-                <>
-                    {camera.status === "preview_local" ? (
-                        <>
+        <div className="space-y-4">
+            <FaceLiveCameraPanel
+                videoRef={camera.videoRef}
+                captureInputRef={camera.captureInputRef}
+                status={camera.status}
+                previewDataUrl={camera.previewDataUrl}
+                message={camera.message}
+                useNativeCapture={camera.useNativeCapture}
+                onCaptureFromVideo={camera.captureFromVideo}
+                onCancelLive={() => {
+                    camera.stopCamera();
+                    camera.setStatus("idle");
+                }}
+                onOpenCameraClick={camera.onOpenCameraClick}
+                onHiddenCaptureChange={camera.onHiddenCaptureChange}
+                previewActions={
+                    <>
+                        {camera.status === "preview_local" ? (
+                            <>
+                                <Button
+                                    type="button"
+                                    size="lg"
+                                    className="h-11 w-full"
+                                    onClick={() => void uploadPreview()}
+                                >
+                                    Enviar esta foto
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="lg"
+                                    className="h-11 w-full"
+                                    onClick={camera.resetCapture}
+                                >
+                                    Tirar de novo
+                                </Button>
+                            </>
+                        ) : null}
+                        {camera.status === "uploading" ? (
+                            <p className="py-2 text-center text-sm text-muted-foreground">
+                                Otimizando e enviando a foto…
+                            </p>
+                        ) : null}
+                        {camera.status === "uploaded" ? (
                             <Button
                                 type="button"
                                 size="lg"
                                 className="h-11 w-full"
-                                onClick={() => void uploadPreview()}
+                                disabled={submitting}
+                                onClick={() => void submitRegistration()}
                             >
-                                Enviar esta foto
+                                {submitting ? "Enviando…" : "Concluir cadastro de face"}
                             </Button>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="lg"
-                                className="h-11 w-full"
-                                onClick={camera.resetCapture}
-                            >
-                                Tirar de novo
-                            </Button>
-                        </>
-                    ) : null}
-                    {camera.status === "uploading" ? (
-                        <p className="py-2 text-center text-sm text-muted-foreground">
-                            Otimizando e enviando a foto…
-                        </p>
-                    ) : null}
-                    {camera.status === "uploaded" ? (
-                        <Button
-                            type="button"
-                            size="lg"
-                            className="h-11 w-full"
-                            disabled={submitting}
-                            onClick={() => void submitRegistration()}
-                        >
-                            {submitting ? "Enviando…" : "Concluir cadastro de face"}
-                        </Button>
-                    ) : null}
-                </>
-            }
-        />
+                        ) : null}
+                    </>
+                }
+            />
+            {onBack ? (
+                <Button type="button" variant="outline" className="w-full" onClick={onBack}>
+                    Voltar aos dados
+                </Button>
+            ) : null}
+        </div>
     );
 }
