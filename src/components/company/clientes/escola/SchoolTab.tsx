@@ -62,13 +62,13 @@ export function SchoolTab({
 }) {
     return (
         <div className="space-y-4">
-            <Tabs defaultValue="shifts">
+            <Tabs defaultValue="students">
                 <TabsList className="h-auto w-full flex-wrap justify-start gap-1 md:w-fit">
-                    <TabsTrigger value="shifts">Horários</TabsTrigger>
-                    <TabsTrigger value="classes">Turmas</TabsTrigger>
                     <TabsTrigger value="students">Alunos</TabsTrigger>
                     <TabsTrigger value="parents">Responsáveis</TabsTrigger>
                     <TabsTrigger value="members">Membros</TabsTrigger>
+                    <TabsTrigger value="shifts">Horários</TabsTrigger>
+                    <TabsTrigger value="classes">Turmas</TabsTrigger>
                     <TabsTrigger value="pickups">
                         Autorizações de retiradas
                     </TabsTrigger>
@@ -76,19 +76,6 @@ export function SchoolTab({
                     <TabsTrigger value="vehicles">Veículos</TabsTrigger>
                     <TabsTrigger value="addresses">Endereços</TabsTrigger>
                 </TabsList>
-                <TabsContent value="shifts" className="pt-4">
-                    <ShiftsSection
-                        clientId={clientId}
-                        initialShifts={initialShifts}
-                    />
-                </TabsContent>
-                <TabsContent value="classes" className="pt-4">
-                    <SchoolClassesSection
-                        clientId={clientId}
-                        initialClasses={initialClasses}
-                        shifts={initialShifts}
-                    />
-                </TabsContent>
                 <TabsContent value="students" className="pt-4">
                     <StudentsSection
                         clientId={clientId}
@@ -110,6 +97,19 @@ export function SchoolTab({
                         isAdmin={isAdmin}
                         roles={initialRoles}
                         initialMembers={initialMembers}
+                    />
+                </TabsContent>
+                <TabsContent value="shifts" className="pt-4">
+                    <ShiftsSection
+                        clientId={clientId}
+                        initialShifts={initialShifts}
+                    />
+                </TabsContent>
+                <TabsContent value="classes" className="pt-4">
+                    <SchoolClassesSection
+                        clientId={clientId}
+                        initialClasses={initialClasses}
+                        shifts={initialShifts}
                     />
                 </TabsContent>
                 <TabsContent value="pickups" className="pt-4">
