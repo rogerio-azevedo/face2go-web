@@ -12,11 +12,13 @@ import type { PanicEventItem } from "@/types/panic-events";
 
 const DEFAULT_CENTER: [number, number] = [-46.6333, -23.5505];
 
-const STATUS_COLOR: Record<PanicEventItem["status"], string> = {
-    open: "#DC2626",
-    claimed: "#F59E0B",
-    closed: "#6B7280",
-};
+const PANIC_SOS_ICON_SVG = `
+  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+    <line x1="12" y1="9" x2="12" y2="13"/>
+    <line x1="12" y1="17" x2="12.01" y2="17"/>
+  </svg>
+`;
 
 type MonitoringMapProps = {
     events: PanicEventItem[];
@@ -24,6 +26,57 @@ type MonitoringMapProps = {
     selectedId: string | null;
     onSelect: (id: string) => void;
 };
+
+function buildPanicPinElement(
+    event: PanicEventItem,
+    selected: boolean,
+    onSelect: (id: string) => void,
+): HTMLDivElement {
+    const wrap = document.createElement("div");
+    wrap.className = `monitoring-panic-pin-wrap monitoring-panic-pin-wrap--${event.status}`;
+    if (selected) {
+        wrap.classList.add("is-selected");
+    }
+
+    const pulse = document.createElement("div");
+    pulse.className = "monitoring-panic-pin-pulse";
+    pulse.setAttribute("aria-hidden", "true");
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "monitoring-panic-pin";
+    btn.title = `${event.requesterName} — pedido de socorro`;
+    btn.setAttribute("aria-label", `Pedido de socorro: ${event.requesterName}`);
+    btn.innerHTML = PANIC_SOS_ICON_SVG;
+    btn.onclick = () => onSelect(event.id);
+
+    wrap.appendChild(pulse);
+    wrap.appendChild(btn);
+
+    return wrap;
+}
+
+function updatePanicPinElement(
+    wrap: HTMLDivElement,
+    event: PanicEventItem,
+    selected: boolean,
+    onSelect: (id: string) => void,
+): void {
+    wrap.className = `monitoring-panic-pin-wrap monitoring-panic-pin-wrap--${event.status}`;
+    if (selected) {
+        wrap.classList.add("is-selected");
+    }
+
+    const btn = wrap.querySelector<HTMLButtonElement>(".monitoring-panic-pin");
+    if (btn) {
+        btn.title = `${event.requesterName} — pedido de socorro`;
+        btn.setAttribute(
+            "aria-label",
+            `Pedido de socorro: ${event.requesterName}`,
+        );
+        btn.onclick = () => onSelect(event.id);
+    }
+}
 
 export function MonitoringMap({
     events,
@@ -101,7 +154,7 @@ export function MonitoringMap({
 
     useEffect(() => {
         const map = mapRef.current;
-        if (!map) return;
+        if (!map || !mapReady) return;
 
         const currentIds = new Set(events.map((e) => e.id));
 
@@ -113,32 +166,38 @@ export function MonitoringMap({
         });
 
         for (const event of events) {
-            const color = STATUS_COLOR[event.status];
-            const el = document.createElement("button");
-            el.type = "button";
-            el.className = "monitoring-pin";
-            el.style.width = selectedId === event.id ? "18px" : "14px";
-            el.style.height = selectedId === event.id ? "18px" : "14px";
-            el.style.borderRadius = "999px";
-            el.style.border = "2px solid #fff";
-            el.style.background = color;
-            el.style.boxShadow = "0 0 0 2px " + color;
-            el.title = event.requesterName;
-            el.onclick = () => onSelect(event.id);
-
+            const lngLat: [number, number] = [
+                event.location.longitude,
+                event.location.latitude,
+            ];
             const existing = markersRef.current.get(event.id);
+
             if (existing) {
-                existing.setLngLat([
-                    event.location.longitude,
-                    event.location.latitude,
-                ]);
-                existing.getElement().replaceWith(el);
-                existing.remove();
+                existing.setLngLat(lngLat);
+                const wrap = existing.getElement();
+                if (wrap instanceof HTMLDivElement) {
+                    updatePanicPinElement(
+                        wrap,
+                        event,
+                        selectedId === event.id,
+                        onSelect,
+                    );
+                }
+                continue;
             }
 
-            const marker = new mapboxgl.Marker({ element: el })
-                .setLngLat([event.location.longitude, event.location.latitude])
+            const wrap = buildPanicPinElement(
+                event,
+                selectedId === event.id,
+                onSelect,
+            );
+            const marker = new mapboxgl.Marker({
+                element: wrap,
+                anchor: "center",
+            })
+                .setLngLat(lngLat)
                 .addTo(map);
+            marker.getElement().style.pointerEvents = "auto";
             markersRef.current.set(event.id, marker);
         }
 
@@ -155,7 +214,7 @@ export function MonitoringMap({
                 });
             }
         }
-    }, [events, onSelect, selectedId]);
+    }, [events, mapReady, onSelect, selectedId]);
 
     if (!process.env.NEXT_PUBLIC_MAPBOX_TOKEN) {
         return (
@@ -166,4 +225,4 @@ export function MonitoringMap({
     }
 
     return <div ref={containerRef} className="h-full w-full" />;
-}
+};

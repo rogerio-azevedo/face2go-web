@@ -35,7 +35,12 @@ export function useMonitoringSocket(accessToken: string | undefined) {
     const socketRef = useRef<Socket | null>(null);
 
     const upsert = useCallback((event: PanicEventItem) => {
-        setEvents((prev) => upsertEvent(prev, event));
+        setEvents((prev) => {
+            if (event.status === "closed") {
+                return prev.filter((item) => item.id !== event.id);
+            }
+            return upsertEvent(prev, event);
+        });
     }, []);
 
     useEffect(() => {

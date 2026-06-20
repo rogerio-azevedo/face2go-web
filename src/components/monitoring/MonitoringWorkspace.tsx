@@ -63,9 +63,9 @@ export function MonitoringWorkspace({
     } = useMonitoringSocket(token);
 
     const [selectedId, setSelectedId] = useState<string | null>(null);
-    const [statusFilter, setStatusFilter] = useState<
-        "all" | PanicEventItem["status"]
-    >("all");
+    const [statusFilter, setStatusFilter] = useState<"all" | "open" | "claimed">(
+        "all",
+    );
     const [closeOpen, setCloseOpen] = useState(false);
     const [closingReason, setClosingReason] = useState("resolved");
     const [closingNotes, setClosingNotes] = useState("");
@@ -75,7 +75,7 @@ export function MonitoringWorkspace({
     );
 
     useEffect(() => {
-        replaceEvents(initialEvents);
+        replaceEvents(initialEvents.filter((event) => event.status !== "closed"));
         for (const event of initialEvents) {
             knownIdsRef.current.add(event.id);
         }
@@ -103,14 +103,19 @@ export function MonitoringWorkspace({
         }
     }, [events]);
 
+    const activeEvents = useMemo(
+        () => events.filter((event) => event.status !== "closed"),
+        [events],
+    );
+
     const filtered = useMemo(() => {
-        if (statusFilter === "all") return events;
-        return events.filter((e) => e.status === statusFilter);
-    }, [events, statusFilter]);
+        if (statusFilter === "all") return activeEvents;
+        return activeEvents.filter((e) => e.status === statusFilter);
+    }, [activeEvents, statusFilter]);
 
     const selected = useMemo(
-        () => events.find((e) => e.id === selectedId) ?? null,
-        [events, selectedId],
+        () => activeEvents.find((e) => e.id === selectedId) ?? null,
+        [activeEvents, selectedId],
     );
 
     const runAction = useCallback(
@@ -140,7 +145,10 @@ export function MonitoringWorkspace({
                           ? "Evento liberado."
                           : "Evento fechado.",
                 );
-                if (action === "close") setCloseOpen(false);
+                if (action === "close") {
+                    setSelectedId(null);
+                    setCloseOpen(false);
+                }
             } finally {
                 setPending(false);
             }
@@ -179,8 +187,7 @@ export function MonitoringWorkspace({
                 <div className="space-y-2 border-b p-4">
                     <h2 className="text-lg font-bold">Monitoramento</h2>
                     <div className="flex flex-wrap gap-2">
-                        {(["all", "open", "claimed", "closed"] as const).map(
-                            (s) => (
+                        {(["all", "open", "claimed"] as const).map((s) => (
                                 <Button
                                     key={s}
                                     size="sm"
@@ -195,12 +202,9 @@ export function MonitoringWorkspace({
                                         ? "Todos"
                                         : s === "open"
                                           ? "Abertos"
-                                          : s === "claimed"
-                                            ? "Em tratativa"
-                                            : "Fechados"}
+                                          : "Em tratativa"}
                                 </Button>
-                            ),
-                        )}
+                            ))}
                     </div>
                 </div>
 
