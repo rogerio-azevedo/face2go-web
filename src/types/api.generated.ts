@@ -1296,6 +1296,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/clients/{clientId}/members/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Buscar pessoa existente por CPF ou e-mail antes do cadastro */
+        get: operations["MembersController_lookupMember"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/clients/{clientId}/members/{memberId}": {
         parameters: {
             query?: never;
@@ -1656,6 +1673,23 @@ export interface paths {
         };
         /** SSE — progresso da sincronização global de responsáveis (token na query) */
         get: operations["ResponsiblesController_globalSyncProgress"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{clientId}/responsibles/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Buscar pessoa existente por CPF ou e-mail antes do cadastro */
+        get: operations["ResponsiblesController_lookupResponsible"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2516,7 +2550,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Aprovar face do convidado */
+        /** Aprovar cadastro do convidado (face e veículo) */
         post: operations["ManagedResponsiblesController_approveFace"];
         delete?: never;
         options?: never;
@@ -2533,42 +2567,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Recusar face do convidado */
+        /** Recusar cadastro do convidado */
         post: operations["ManagedResponsiblesController_rejectFace"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/responsible/responsible-invitations/{id}/approve-plate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Aprovar placa do convidado */
-        post: operations["ManagedResponsiblesController_approvePlate"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/responsible/responsible-invitations/{id}/reject-plate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Recusar placa do convidado */
-        post: operations["ManagedResponsiblesController_rejectPlate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5509,6 +5509,28 @@ export interface operations {
             };
         };
     };
+    MembersController_lookupMember: {
+        parameters: {
+            query: {
+                cpf: string;
+                email: string;
+            };
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     MembersController_getOne: {
         parameters: {
             query?: never;
@@ -6140,6 +6162,28 @@ export interface operations {
     ResponsiblesController_globalSyncProgress: {
         parameters: {
             query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ResponsiblesController_lookupResponsible: {
+        parameters: {
+            query: {
+                cpf: string;
+                email: string;
+            };
             header?: never;
             path: {
                 clientId: string;
@@ -7313,44 +7357,6 @@ export interface operations {
         };
     };
     ManagedResponsiblesController_rejectFace: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    ManagedResponsiblesController_approvePlate: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    ManagedResponsiblesController_rejectPlate: {
         parameters: {
             query?: never;
             header?: never;

@@ -19,6 +19,7 @@ import {
     updateMemberSchema,
 } from "@/lib/validations/members";
 import type { ClientRoleRow, MemberRow, PaginatedResponse } from "@/types/domain";
+import type { PersonLookupResult } from "@/lib/types/person-lookup";
 
 function zodFirstMessage(error: unknown): string {
     if (error instanceof ZodError && error.issues[0]?.message) {
@@ -90,6 +91,35 @@ export async function listMembersAction(
     }
 }
 
+export async function lookupMemberAction(
+    clientId: string,
+    params: { cpf?: string; email?: string },
+): Promise<
+    | { success: true; result: PersonLookupResult }
+    | { error: string }
+> {
+    try {
+        const c = ids.safeParse({ clientId });
+        if (!c.success) return { error: "Cliente inválido." };
+        const qs = new URLSearchParams();
+        if (params.cpf) qs.set("cpf", params.cpf);
+        if (params.email) qs.set("email", params.email);
+        const query = qs.toString();
+        if (!query) return { error: "Informe CPF ou e-mail." };
+        const res = await apiFetchAuthed(
+            `/api/clients/${c.data.clientId}/members/lookup?${query}`,
+        );
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { error: nestErrorMessage(data) };
+        }
+        const result = (await parseResponseJson(res)) as PersonLookupResult;
+        return { success: true, result };
+    } catch {
+        return { error: "Sem permissão." };
+    }
+}
+
 export async function createMemberAction(
     clientId: string,
     body: unknown,
@@ -99,12 +129,16 @@ export async function createMemberAction(
         if (!c.success) return { error: "Cliente inválido." };
         const parsed = createMemberSchema.safeParse(body);
         if (!parsed.success) return { error: zodFirstMessage(parsed.error) };
+        const payload = { ...parsed.data };
+        if (!payload.password) {
+            delete payload.password;
+        }
         const res = await apiFetchAuthed(
             `/api/clients/${c.data.clientId}/members`,
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(parsed.data),
+                body: JSON.stringify(payload),
             },
         );
         if (!res.ok) {

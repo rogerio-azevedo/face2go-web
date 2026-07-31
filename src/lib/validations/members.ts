@@ -1,14 +1,11 @@
 import { z } from "zod";
 
-import { requiredCpfDocumentSchema } from "./school";
+import { optionalCreatePasswordSchema, requiredCpfDocumentSchema } from "./school";
 
 export const createMemberSchema = z.object({
     roleId: z.string().uuid("Selecione a função."),
     email: z.email("E-mail inválido."),
-    password: z
-        .string()
-        .min(8, "Senha deve ter pelo menos 8 caracteres.")
-        .max(128),
+    password: optionalCreatePasswordSchema,
     name: z.string().trim().min(1, "Informe o nome.").max(255),
     phone: z.string().trim().max(32).nullable().optional(),
     document: requiredCpfDocumentSchema,
@@ -19,6 +16,18 @@ export const createMemberSchema = z.object({
         .optional(),
     isActive: z.boolean().optional().default(true),
 });
+
+export function createMemberSchemaForCreate(requirePassword: boolean) {
+    return createMemberSchema.superRefine((data, ctx) => {
+        if (requirePassword && !data.password) {
+            ctx.addIssue({
+                code: "custom",
+                message: "Informe a senha para o cadastro.",
+                path: ["password"],
+            });
+        }
+    });
+}
 
 export const updateMemberSchema = z.object({
     roleId: z.string().uuid().optional(),

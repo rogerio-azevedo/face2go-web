@@ -556,6 +556,13 @@ export function IntegracaoIenhPanel({
                                 Contas de login criadas:{" "}
                                 {syncResult.accountsCreated ?? 0}
                             </Badge>
+                            {(syncResult.accountsSkippedEmailConflict ?? 0) >
+                            0 ? (
+                                <Badge variant="destructive">
+                                    Contas não vinculadas (conflito CPF/e-mail):{" "}
+                                    {syncResult.accountsSkippedEmailConflict}
+                                </Badge>
+                            ) : null}
                             <Badge variant="secondary">
                                 Vínculos responsável: {syncResult.linksCreated}
                             </Badge>

@@ -79,6 +79,7 @@ export type IenhSyncResult = {
     classLinksDeactivated: number;
     classLinksDeduped?: number;
     accountsCreated: number;
+    accountsSkippedEmailConflict?: number;
     linksCreated: number;
     errors: { enrollment: string; message: string }[];
     durationMs: number;

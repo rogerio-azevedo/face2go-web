@@ -40,6 +40,17 @@ export const emptyOptionalShortString = z.preprocess((val: unknown) => {
     return val;
 }, z.string().trim().max(32).optional());
 
+/** Senha opcional no create — aceita vazio quando a conta de login já existe. */
+export const optionalCreatePasswordSchema = z
+    .union([
+        z.literal(""),
+        z
+            .string()
+            .min(8, "Senha deve ter pelo menos 8 caracteres.")
+            .max(128),
+    ])
+    .optional();
+
 /** CPF obrigatório — aceita formatado (000.000.000-00) ou 11 dígitos. */
 export const requiredCpfDocumentSchema = z
     .string()
@@ -162,15 +173,24 @@ const responsibleRelationshipSchema = z.enum(RESPONSIBLE_RELATIONSHIP_VALUES, {
 
 export const createResponsibleSchema = z.object({
     email: z.email("E-mail inválido."),
-    password: z
-        .string()
-        .min(8, "Senha deve ter pelo menos 8 caracteres.")
-        .max(128),
+    password: optionalCreatePasswordSchema,
     name: z.string().trim().min(1, "Informe o nome.").max(255),
     phone: emptyOptionalShortString,
     document: requiredCpfDocumentSchema,
     isActive: z.boolean().optional().default(true),
 });
+
+export function createResponsibleSchemaForCreate(requirePassword: boolean) {
+    return createResponsibleSchema.superRefine((data, ctx) => {
+        if (requirePassword && !data.password) {
+            ctx.addIssue({
+                code: "custom",
+                message: "Informe a senha para o cadastro.",
+                path: ["password"],
+            });
+        }
+    });
+}
 
 export const updateResponsibleSchema = z.object({
     name: z.string().trim().min(1).max(255).optional(),

@@ -24,6 +24,7 @@ import type {
   ResponsibleRow,
   ResponsibleStudentLinkWithStudent,
 } from '@/features/school/types';
+import type { PersonLookupResult } from '@/lib/types/person-lookup';
 import {
   clientIdSchema as ids,
   revalidateSchoolRoutes,
@@ -108,6 +109,35 @@ export async function getResponsibleByIdAction(
   }
 }
 
+export async function lookupResponsibleAction(
+  clientId: string,
+  params: { cpf?: string; email?: string },
+): Promise<
+  | { success: true; result: PersonLookupResult }
+  | { error: string }
+> {
+  try {
+    const c = ids.safeParse({ clientId });
+    if (!c.success) return { error: 'Cliente inválido.' };
+    const qs = new URLSearchParams();
+    if (params.cpf) qs.set('cpf', params.cpf);
+    if (params.email) qs.set('email', params.email);
+    const query = qs.toString();
+    if (!query) return { error: 'Informe CPF ou e-mail.' };
+    const res = await apiFetchAuthed(
+      `/api/clients/${c.data.clientId}/responsibles/lookup?${query}`,
+    );
+    if (!res.ok) {
+      const data = await parseResponseJson(res);
+      return { error: nestErrorMessage(data) };
+    }
+    const result = (await parseResponseJson(res)) as PersonLookupResult;
+    return { success: true, result };
+  } catch {
+    return { error: 'Sem permissão.' };
+  }
+}
+
 export async function createResponsibleAction(
   clientId: string,
   input: unknown,
@@ -120,6 +150,9 @@ export async function createResponsibleAction(
     if (!parsed.success) return { error: zodFirstMessage(parsed.error) };
 
     const body = stripUndefined(parsed.data);
+    if (!body.password) {
+      delete body.password;
+    }
     const res = await apiFetchAuthed(`/api/clients/${clientId}/responsibles`, {
       method: 'POST',
       body: JSON.stringify(body),
