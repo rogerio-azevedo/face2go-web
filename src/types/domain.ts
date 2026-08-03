@@ -462,6 +462,8 @@ export type MemberRow = {
     roleId: string;
     roleName: string;
     roleSlug: string;
+    shiftId: string | null;
+    shiftName?: string | null;
     userId: string | null;
     name: string;
     email?: string | null;

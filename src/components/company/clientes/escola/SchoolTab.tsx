@@ -97,6 +97,7 @@ export function SchoolTab({
                         isAdmin={isAdmin}
                         roles={initialRoles}
                         initialMembers={initialMembers}
+                        shifts={initialShifts}
                     />
                 </TabsContent>
                 <TabsContent value="shifts" className="pt-4">

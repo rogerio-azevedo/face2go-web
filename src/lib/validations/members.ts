@@ -15,6 +15,7 @@ export const createMemberSchema = z.object({
         .nullable()
         .optional(),
     isActive: z.boolean().optional().default(true),
+    shiftId: z.string().uuid().nullable().optional(),
 });
 
 export function createMemberSchemaForCreate(requirePassword: boolean) {
@@ -51,6 +52,7 @@ export const updateMemberSchema = z.object({
         .optional(),
     isActive: z.boolean().optional(),
     canEnrollStudentFace: z.boolean().optional(),
+    shiftId: z.string().uuid().nullable().optional(),
 });
 
 export function updateMemberSchemaForEdit(hasAccount: boolean) {

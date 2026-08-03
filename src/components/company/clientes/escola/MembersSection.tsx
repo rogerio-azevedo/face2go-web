@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 import { listMembersAction } from "@/app/company/clientes/[clientId]/usuarios/members-actions";
 import { useFaceSyncOffer } from "@/lib/use-face-sync-offer";
-import type { ClientRoleRow, MemberRow, PaginatedResponse } from "@/types/domain";
+import type { ClientRoleRow, MemberRow, PaginatedResponse, ShiftRow } from "@/types/domain";
 import { deferInEffect } from "@/lib/defer-in-effect";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,11 +33,13 @@ export function MembersSection({
     clientId,
     isAdmin = false,
     roles,
+    shifts,
     initialMembers,
 }: {
     clientId: string;
     isAdmin?: boolean;
     roles: ClientRoleRow[];
+    shifts: ShiftRow[];
     initialMembers: PaginatedResponse<MemberRow>;
 }) {
     const router = useRouter();
@@ -153,6 +155,7 @@ export function MembersSection({
                             <TableHead className="w-[52px]" aria-label="Foto" />
                             <TableHead>Nome</TableHead>
                             <TableHead>Função</TableHead>
+                            <TableHead>Horário</TableHead>
                             <TableHead>Telefone</TableHead>
                             <TableHead>Documento</TableHead>
                             <TableHead>Acesso login</TableHead>
@@ -165,7 +168,7 @@ export function MembersSection({
                         {list.data.length === 0 ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={9}
+                                    colSpan={10}
                                     className="text-muted-foreground py-10 text-center"
                                 >
                                     {search
@@ -192,6 +195,13 @@ export function MembersSection({
                                         <Badge variant="outline">
                                             {row.roleName}
                                         </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        {row.shiftName ?? (
+                                            <span className="text-muted-foreground">
+                                                24h
+                                            </span>
+                                        )}
                                     </TableCell>
                                     <TableCell>{row.phone ?? "—"}</TableCell>
                                     <TableCell>{row.document ?? "—"}</TableCell>
@@ -278,6 +288,7 @@ export function MembersSection({
                 onOpenChange={setCreateOpen}
                 clientId={clientId}
                 roles={roles}
+                shifts={shifts}
                 onSuccess={() => {
                     toast.success("Membro cadastrado.");
                     refresh();
@@ -294,6 +305,7 @@ export function MembersSection({
                 isAdmin={isAdmin}
                 member={editRow}
                 roles={roles}
+                shifts={shifts}
                 onSuccess={() => {
                     toast.success("Membro atualizado.");
                     refresh();

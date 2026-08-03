@@ -30,7 +30,7 @@ import {
     CPF_FORMATTED_MAX_LENGTH,
     normalizeCpf,
 } from "@/lib/utils/document";
-import type { ClientRoleRow } from "@/types/domain";
+import type { ClientRoleRow, ShiftRow } from "@/types/domain";
 
 type CreateVals = z.infer<typeof createMemberSchema>;
 
@@ -44,12 +44,14 @@ export function MemberForm({
     onOpenChange,
     clientId,
     roles,
+    shifts,
     onSuccess,
 }: {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     clientId: string;
     roles: ClientRoleRow[];
+    shifts: ShiftRow[];
     onSuccess?: () => void;
 }) {
     const [busy, setBusy] = useState(false);
@@ -58,6 +60,7 @@ export function MemberForm({
     const createDefaults = useMemo(
         (): CreateVals => ({
             roleId: roles[0]?.id ?? "",
+            shiftId: null,
             email: "",
             password: "",
             name: "",
@@ -215,6 +218,34 @@ export function MemberForm({
                             ))}
                         </select>
                         <FieldError message={errors.roleId?.message} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="m-shift">Horário (opcional)</Label>
+                        <select
+                            id="m-shift"
+                            className="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-50"
+                            disabled={shifts.length === 0}
+                            value={createForm.watch("shiftId") ?? ""}
+                            onChange={(e) =>
+                                createForm.setValue(
+                                    "shiftId",
+                                    e.target.value ? e.target.value : null,
+                                )
+                            }
+                        >
+                            <option value="">
+                                {shifts.length === 0
+                                    ? "Cadastre horários na aba Horários"
+                                    : "Nenhum (acesso 24h)"}
+                            </option>
+                            {shifts.map((shift) => (
+                                <option key={shift.id} value={shift.id}>
+                                    {shift.name}
+                                    {!shift.isActive ? " (inativo)" : ""}
+                                </option>
+                            ))}
+                        </select>
+                        <FieldError message={errors.shiftId?.message} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="m-name">Nome</Label>

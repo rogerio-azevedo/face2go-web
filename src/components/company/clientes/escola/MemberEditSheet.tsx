@@ -11,7 +11,7 @@ import {
     deleteMemberAction,
     updateMemberAction,
 } from "@/app/company/clientes/[clientId]/usuarios/members-actions";
-import type { ClientRoleRow, MemberRow } from "@/types/domain";
+import type { ClientRoleRow, MemberRow, ShiftRow } from "@/types/domain";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -50,6 +50,7 @@ export function MemberEditSheet({
     isAdmin = false,
     member,
     roles,
+    shifts,
     onSuccess,
     onDeleted,
 }: {
@@ -59,6 +60,7 @@ export function MemberEditSheet({
     isAdmin?: boolean;
     member: MemberRow | null;
     roles: ClientRoleRow[];
+    shifts: ShiftRow[];
     onSuccess?: () => void;
     onDeleted?: () => void;
 }) {
@@ -77,6 +79,7 @@ export function MemberEditSheet({
         if (!member) {
             return {
                 roleId: roles[0]?.id,
+                shiftId: null,
                 name: "",
                 email: "",
                 phone: "",
@@ -88,6 +91,7 @@ export function MemberEditSheet({
         }
         return {
             roleId: member.roleId,
+            shiftId: member.shiftId,
             name: member.name,
             email: member.email ?? "",
             phone: member.phone ?? "",
@@ -200,6 +204,34 @@ export function MemberEditSheet({
                                 {roles.map((role) => (
                                     <option key={role.id} value={role.id}>
                                         {role.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="em-shift">Horário (opcional)</Label>
+                            <select
+                                id="em-shift"
+                                className="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-50"
+                                disabled={shifts.length === 0}
+                                value={editForm.watch("shiftId") ?? ""}
+                                onChange={(e) =>
+                                    editForm.setValue(
+                                        "shiftId",
+                                        e.target.value ? e.target.value : null,
+                                    )
+                                }
+                            >
+                                <option value="">
+                                    {shifts.length === 0
+                                        ? "Cadastre horários na aba Horários"
+                                        : "Nenhum (acesso 24h)"}
+                                </option>
+                                {shifts.map((shift) => (
+                                    <option key={shift.id} value={shift.id}>
+                                        {shift.name}
+                                        {!shift.isActive ? " (inativo)" : ""}
                                     </option>
                                 ))}
                             </select>
