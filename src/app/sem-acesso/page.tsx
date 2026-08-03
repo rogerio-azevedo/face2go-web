@@ -14,29 +14,43 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
+import { SHARED_STORE_LINKS } from "@/lib/public-brands/shared";
 
 export const metadata: Metadata = {
     title: "Sem permissão • Face2go",
     description:
-        "Sua conta não tem permissão de acesso a esta área da plataforma.",
+        "Baixe o aplicativo Face2go para acessar sua conta de responsável.",
 };
+
+function getPageCopy(role: string | undefined) {
+    if (role === "responsible") {
+        return {
+            title: "Use o aplicativo Face2go",
+            description:
+                "Contas de responsável acessam a plataforma pelo aplicativo móvel, não pelo painel web. Baixe o app no seu celular e entre com o mesmo e-mail.",
+        };
+    }
+
+    return {
+        title: "Sua conta não pode acessar esta plataforma",
+        description:
+            "Você está autenticado, mas este tipo de conta não está habilitado no painel web. Baixe o aplicativo Face2go no seu celular para acessar os recursos disponíveis.",
+    };
+}
 
 export default async function SemAcessoPage() {
     const session = await auth();
     const user = session?.user;
+    const copy = getPageCopy(user?.role);
 
     return (
         <div className="flex min-h-[60vh] items-center justify-center px-4 py-12">
             <Card className="w-full max-w-lg">
                 <CardHeader className="text-center">
-                    <CardTitle>Sua conta não pode acessar esta plataforma</CardTitle>
-                    <CardDescription>
-                        Você está autenticado, mas o tipo de conta vinculada ao seu
-                        e-mail não está habilitado no painel web. Entre em contato com o
-                        suporte se precisar de acesso.
-                    </CardDescription>
+                    <CardTitle>{copy.title}</CardTitle>
+                    <CardDescription>{copy.description}</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-2 text-muted-foreground text-sm">
+                <CardContent className="space-y-4 text-muted-foreground text-sm">
                     {user?.email ? (
                         <p>
                             <span className="font-medium text-foreground">E-mail:</span>{" "}
@@ -45,17 +59,30 @@ export default async function SemAcessoPage() {
                     ) : (
                         <p>Nenhuma sessão ativa encontrada neste navegador.</p>
                     )}
-                    {user?.role != null ? (
-                        <p>
-                            <span className="font-medium text-foreground">Papel:</span>{" "}
-                            {String(user.role)}
+
+                    <div className="space-y-2">
+                        <p className="font-medium text-foreground">
+                            Baixe o aplicativo
                         </p>
-                    ) : user ? (
-                        <p>
-                            <span className="font-medium text-foreground">Papel:</span>{" "}
-                            (não definido na sessão)
-                        </p>
-                    ) : null}
+                        <div className="flex flex-col gap-2 sm:flex-row">
+                            <a
+                                href={SHARED_STORE_LINKS.playStore}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={buttonVariants({ variant: "default" })}
+                            >
+                                Google Play (Android)
+                            </a>
+                            <a
+                                href={SHARED_STORE_LINKS.appStore}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={buttonVariants({ variant: "outline" })}
+                            >
+                                App Store (iPhone)
+                            </a>
+                        </div>
+                    </div>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-2 sm:flex-row sm:justify-between">
                     {user ? (

@@ -2,7 +2,7 @@ import type { ManualScreen } from "@/lib/public-brands/types";
 
 export const SHARED_STORE_LINKS = {
     playStore: "https://play.google.com/store/apps/details?id=com.face2go",
-    appStore: "https://apps.apple.com/br/app/face2go/id6769947369",
+    appStore: "https://apps.apple.com/br/app/face2go-escola-segura/id6769947369",
     qrPlay: "/manual/qr/play-store.png",
     qrAppStore: "/manual/qr/app-store.png",
 } as const;
