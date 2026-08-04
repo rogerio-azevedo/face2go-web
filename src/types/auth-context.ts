@@ -3,6 +3,7 @@ export type UserContextType =
     | "company"
     | "client"
     | "responsible"
+    | "member"
     | "face_user";
 
 export type TenantBranding = {
@@ -43,6 +44,17 @@ export type UserContext =
           responsibleId: string;
           clientId: string;
           clientName: string;
+          branding: TenantBranding;
+          label: string;
+      }
+    | {
+          type: "member";
+          contextId: string;
+          memberId: string;
+          clientId: string;
+          clientName: string;
+          roleName: string;
+          canEnrollStudentFace: boolean;
           branding: TenantBranding;
           label: string;
       }

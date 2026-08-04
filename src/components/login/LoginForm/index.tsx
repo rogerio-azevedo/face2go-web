@@ -24,6 +24,7 @@ import { Label } from "@/components/ui/label";
 import {
     establishSessionFromContext,
     establishSessionFromLegacyLogin,
+    filterWebPreferredContexts,
     isLegacyLoginResponse,
     loginWithIdentifier,
     selectContextWithToken,
@@ -108,12 +109,20 @@ export function LoginForm() {
                 return;
             }
 
-            if (payload.contexts.length === 1) {
-                await completeLogin(payload, payload.contexts[0]!);
+            const selectableContexts = filterWebPreferredContexts(
+                payload.contexts,
+            );
+            const filteredPayload: LoginResponse = {
+                ...payload,
+                contexts: selectableContexts,
+            };
+
+            if (selectableContexts.length === 1) {
+                await completeLogin(filteredPayload, selectableContexts[0]!);
                 return;
             }
 
-            setLoginPayload(payload);
+            setLoginPayload(filteredPayload);
             setStep("context");
         } catch (error) {
             toast.error(

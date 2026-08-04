@@ -1,6 +1,13 @@
 "use client";
 
-import { Building2, GraduationCap, ScanFace, Shield, Users } from "lucide-react";
+import {
+    Building2,
+    GraduationCap,
+    ScanFace,
+    Shield,
+    UserRound,
+    Users,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +30,8 @@ function contextIcon(type: UserContext["type"]) {
             return Users;
         case "responsible":
             return GraduationCap;
+        case "member":
+            return UserRound;
         case "face_user":
             return ScanFace;
     }

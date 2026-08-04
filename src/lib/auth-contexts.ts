@@ -13,6 +13,18 @@ import type { Face2goCredentialsUser } from "@/lib/dashboard-path";
 export const CONTEXTS_STORAGE_KEY = "face2go.contexts";
 export const ACTIVE_CONTEXT_STORAGE_KEY = "face2go.activeContext";
 
+const MOBILE_ONLY_CONTEXT_TYPES: UserContextType[] = ["responsible", "member"];
+
+/** Prioriza contextos com painel web; cai no conjunto original se não houver nenhum. */
+export function filterWebPreferredContexts(
+    contexts: UserContext[],
+): UserContext[] {
+    const webContexts = contexts.filter(
+        (context) => !MOBILE_ONLY_CONTEXT_TYPES.includes(context.type),
+    );
+    return webContexts.length > 0 ? webContexts : contexts;
+}
+
 export function contextStorageKey(context: UserContext): string {
     if (context.type === "super_admin" || context.type === "face_user") {
         return context.type;
@@ -61,7 +73,11 @@ export function contextLogoUrl(context: UserContext | null | undefined): string 
     if (context.type === "company") {
         return context.logoUrl;
     }
-    if (context.type === "client" || context.type === "responsible") {
+    if (
+        context.type === "client" ||
+        context.type === "responsible" ||
+        context.type === "member"
+    ) {
         return context.branding.logoUrl;
     }
     return null;
