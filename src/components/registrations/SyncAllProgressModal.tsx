@@ -19,12 +19,12 @@ import {
 type SseEvt =
     | { type: "start"; total: number }
     | {
-          type: "item";
-          registrationId: string;
-          name: string | null;
-          ok: boolean;
-          error?: string;
-      }
+        type: "item";
+        registrationId: string;
+        name: string | null;
+        ok: boolean;
+        error?: string;
+    }
     | { type: "done" }
     | { type: "error"; message: string };
 
@@ -59,8 +59,8 @@ export function SyncAllProgressModal({
             variant === "client"
                 ? await getClientFaceSyncProgressSseUrlAction()
                 : await getCompanyFaceSyncProgressSseUrlAction(
-                      companyClientId ?? "",
-                  );
+                    companyClientId ?? "",
+                );
 
         if ("error" in urlResult) {
             toast.error(urlResult.error);
@@ -141,7 +141,7 @@ export function SyncAllProgressModal({
                         <SheetTitle>Sincronizar faces nos leitores</SheetTitle>
                         <SheetDescription>
                             Envia cada cadastro aprovado pendente para todos os
-                            leitores Intelbras ativos deste cliente. Use após
+                            leitores ativos deste cliente. Use após
                             trocar o equipamento.
                         </SheetDescription>
                     </SheetHeader>

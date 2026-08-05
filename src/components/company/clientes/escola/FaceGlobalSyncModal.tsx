@@ -34,14 +34,14 @@ const LABELS = {
         button: "Sincronizar todos os alunos",
         title: "Sync global de alunos",
         description:
-            "Envia em lote as faces de alunos pendentes ou com falha para todos os leitores Intelbras ativos.",
+            "Envia em lote as faces de alunos pendentes ou com falha para todos os leitores ativos.",
         entity: "alunos",
     },
     responsibles: {
         button: "Sincronizar todos os responsáveis",
         title: "Sync global de responsáveis",
         description:
-            "Envia em lote as faces de responsáveis pendentes ou com falha para todos os leitores Intelbras ativos.",
+            "Envia em lote as faces de responsáveis pendentes ou com falha para todos os leitores ativos.",
         entity: "responsáveis",
     },
 } as const;
