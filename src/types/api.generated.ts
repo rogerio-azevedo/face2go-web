@@ -2993,6 +2993,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/member/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Buscar membros para cadastro facial (funcionário autorizado) */
+        get: operations["MemberFaceEnrollmentController_listMembers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/member/members/{memberId}/face": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enviar/atualizar foto de membro e sincronizar com os leitores */
+        post: operations["MemberFaceEnrollmentController_uploadMemberFace"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me/navigation": {
         parameters: {
             query?: never;
@@ -8010,6 +8044,50 @@ export interface operations {
             header?: never;
             path: {
                 studentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UploadFaceDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MemberFaceEnrollmentController_listMembers: {
+        parameters: {
+            query: {
+                search: string;
+                page: string;
+                pageSize: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    MemberFaceEnrollmentController_uploadMemberFace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                memberId: string;
             };
             cookie?: never;
         };

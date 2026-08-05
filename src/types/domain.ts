@@ -252,9 +252,8 @@ export type ClientRegistrationListRow = {
     deviceSyncStatus: DeviceSyncStatus | null;
     deviceSyncedAt: string | null;
     deviceSyncError: string | null;
+    hasFacialReaders: boolean;
 };
-
-/** Item de `GET /api/accesses` (datas ISO). */
 export type AccessRow = {
     id: string;
     companyId: string;
@@ -423,6 +422,7 @@ export type StudentRow = {
     createdAt: string;
     updatedAt: string;
     classes: StudentClassRow[];
+    hasFacialReaders: boolean;
 };
 
 export type ResponsibleRow = {
@@ -442,6 +442,7 @@ export type ResponsibleRow = {
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
+    hasFacialReaders: boolean;
 };
 
 /** Item de `GET /api/clients/:clientId/roles`. */
@@ -481,6 +482,7 @@ export type MemberRow = {
     canEnrollMemberFace: boolean;
     createdAt: string;
     updatedAt: string;
+    hasFacialReaders: boolean;
 };
 
 /** Item de `GET /api/clients/:clientId/vehicles` (datas ISO). */
@@ -498,6 +500,7 @@ export type VehicleRow = {
     updatedAt: string;
     lprSyncStatus: DeviceSyncStatus | null;
     lprSyncError: string | null;
+    hasLprCameras: boolean;
 };
 
 /** Item de `GET /api/clients/:clientId/vehicles/driver-options`. */

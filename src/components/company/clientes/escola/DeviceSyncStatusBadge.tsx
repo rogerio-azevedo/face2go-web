@@ -30,16 +30,22 @@ function syncStatusLabel(
 export function DeviceSyncStatusBadge({
     status,
     hasFace,
+    hasReaders,
     error,
 }: {
     status: DeviceSyncStatus | null | undefined;
     hasFace: boolean;
+    hasReaders: boolean;
     error?: string | null;
 }) {
     if (!hasFace) {
         return (
             <span className="text-muted-foreground text-xs">Sem foto</span>
         );
+    }
+
+    if (!hasReaders) {
+        return null;
     }
 
     const partial = status === "synced" && isPartialSyncError(error);

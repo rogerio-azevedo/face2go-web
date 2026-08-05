@@ -259,7 +259,8 @@ export function RegistrationsReviewBoard({
                                         <div className="flex flex-col gap-1">
                                             <span>{row.name ?? "—"}</span>
                                             {tab === "approved" &&
-                                                row.faceId != null ? (
+                                                row.faceId != null &&
+                                                row.hasFacialReaders ? (
                                                 <div className="flex flex-wrap items-center gap-1">
                                                     <Badge
                                                         variant="outline"
@@ -375,7 +376,8 @@ export function RegistrationsReviewBoard({
                                                 ? String(activeRow.faceId)
                                                 : "—"}
                                         </p>
-                                        {activeRow.faceId != null ? (
+                                        {activeRow.faceId != null &&
+                                        activeRow.hasFacialReaders ? (
                                             <div className="flex flex-wrap items-center gap-2">
                                                 <span className="text-xs text-muted-foreground">
                                                     Sincronização:
@@ -453,7 +455,8 @@ export function RegistrationsReviewBoard({
                             </Button>
                         </SheetFooter>
                     ) : activeRow?.status === "approved" &&
-                      activeRow.faceId != null ? (
+                      activeRow.faceId != null &&
+                      activeRow.hasFacialReaders ? (
                         <SheetFooter className="sm:justify-end">
                             <Button
                                 type="button"

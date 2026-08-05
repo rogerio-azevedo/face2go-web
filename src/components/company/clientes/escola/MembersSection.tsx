@@ -225,6 +225,7 @@ export function MembersSection({
                                         <DeviceSyncStatusBadge
                                             status={row.deviceSyncStatus}
                                             hasFace={row.faceId != null}
+                                            hasReaders={row.hasFacialReaders}
                                             error={row.deviceSyncError}
                                         />
                                     </TableCell>

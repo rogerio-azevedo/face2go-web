@@ -223,39 +223,48 @@ export function VehiclesSection({
                                     <TableCell>{row.color}</TableCell>
                                     <TableCell>{row.driverName}</TableCell>
                                     <TableCell>
-                                        <DeviceSyncStatusBadge
-                                            status={
-                                                row.lprSyncStatus ??
-                                                "pending_sync"
-                                            }
-                                            hasFace
-                                            error={row.lprSyncError}
-                                        />
+                                        {row.hasLprCameras ? (
+                                            <DeviceSyncStatusBadge
+                                                status={
+                                                    row.lprSyncStatus ??
+                                                    "pending_sync"
+                                                }
+                                                hasFace
+                                                hasReaders
+                                                error={row.lprSyncError}
+                                            />
+                                        ) : (
+                                            <span className="text-muted-foreground text-xs">
+                                                —
+                                            </span>
+                                        )}
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex flex-wrap justify-end gap-2">
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                disabled={
-                                                    syncingId === row.id ||
-                                                    tableBusy
-                                                }
-                                                title="Sincronizar placa com as câmeras LPR"
-                                                onClick={() =>
-                                                    void handleSyncLpr(row)
-                                                }
-                                            >
-                                                {syncingId === row.id ? (
-                                                    <Loader2 className="size-4 animate-spin" />
-                                                ) : (
-                                                    <RefreshCw className="size-4" />
-                                                )}
-                                                <span className="sr-only sm:not-sr-only sm:ml-1.5">
-                                                    Sincronizar
-                                                </span>
-                                            </Button>
+                                            {row.hasLprCameras ? (
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    disabled={
+                                                        syncingId === row.id ||
+                                                        tableBusy
+                                                    }
+                                                    title="Sincronizar placa com as câmeras LPR"
+                                                    onClick={() =>
+                                                        void handleSyncLpr(row)
+                                                    }
+                                                >
+                                                    {syncingId === row.id ? (
+                                                        <Loader2 className="size-4 animate-spin" />
+                                                    ) : (
+                                                        <RefreshCw className="size-4" />
+                                                    )}
+                                                    <span className="sr-only sm:not-sr-only sm:ml-1.5">
+                                                        Sincronizar
+                                                    </span>
+                                                </Button>
+                                            ) : null}
                                             <Button
                                                 type="button"
                                                 variant="outline"
