@@ -478,6 +478,7 @@ export type MemberRow = {
     deviceSyncError: string | null;
     isActive: boolean;
     canEnrollStudentFace: boolean;
+    canEnrollMemberFace: boolean;
     createdAt: string;
     updatedAt: string;
 };

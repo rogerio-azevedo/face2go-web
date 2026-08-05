@@ -87,6 +87,7 @@ export function MemberEditSheet({
                 password: "",
                 isActive: true,
                 canEnrollStudentFace: false,
+                canEnrollMemberFace: false,
             };
         }
         return {
@@ -99,6 +100,7 @@ export function MemberEditSheet({
             password: "",
             isActive: member.isActive,
             canEnrollStudentFace: member.canEnrollStudentFace,
+            canEnrollMemberFace: member.canEnrollMemberFace ?? false,
         };
     }, [member, roles]);
 
@@ -119,6 +121,11 @@ export function MemberEditSheet({
         control: editForm.control,
         name: "canEnrollStudentFace",
         defaultValue: editFormDefaults.canEnrollStudentFace === true,
+    });
+    const editCanEnrollMemberFaceToggle = useWatch({
+        control: editForm.control,
+        name: "canEnrollMemberFace",
+        defaultValue: editFormDefaults.canEnrollMemberFace === true,
     });
 
     useEffect(() => {
@@ -151,6 +158,7 @@ export function MemberEditSheet({
                 ...vals,
                 document: vals.document ? normalizeCpf(vals.document) : vals.document,
                 canEnrollStudentFace: editCanEnrollStudentFaceToggle === true,
+                canEnrollMemberFace: editCanEnrollMemberFaceToggle === true,
             };
             if (body.password === "" || body.password === undefined) {
                 delete body.password;
@@ -172,14 +180,14 @@ export function MemberEditSheet({
     return (
         <>
             <Sheet open={open} onOpenChange={onOpenChange}>
-                <SheetContent className="sm:max-w-md">
-                    <SheetHeader>
+                <SheetContent className="flex flex-col sm:max-w-md">
+                    <SheetHeader className="px-6 pt-6">
                         <SheetTitle>Editar membro</SheetTitle>
                     </SheetHeader>
 
                     <form
                         key={`${member.id}-${member.userId ?? "no-account"}`}
-                        className="flex flex-1 flex-col gap-4 overflow-y-auto px-1 py-2"
+                        className="flex flex-1 flex-col gap-4 overflow-y-auto px-6 py-4"
                         onSubmit={editForm.handleSubmit(submitEdit)}
                     >
                         {!member.userId ? (
@@ -317,12 +325,29 @@ export function MemberEditSheet({
                             />
                             <Label>Pode fotografar alunos</Label>
                         </div>
+                        <div className="flex items-center gap-2">
+                            <Switch
+                                checked={editCanEnrollMemberFaceToggle === true}
+                                onCheckedChange={(v) =>
+                                    editForm.setValue(
+                                        "canEnrollMemberFace",
+                                        v === true,
+                                        { shouldDirty: true, shouldValidate: true },
+                                    )
+                                }
+                            />
+                            <Label>Pode fotografar outros membros</Label>
+                        </div>
                         <input
                             type="hidden"
                             {...editForm.register("canEnrollStudentFace")}
                         />
+                        <input
+                            type="hidden"
+                            {...editForm.register("canEnrollMemberFace")}
+                        />
 
-                        <SheetFooter className="mt-auto flex-col gap-2 sm:flex-row sm:justify-between">
+                        <SheetFooter className="mt-auto flex-col gap-2 px-0 pb-6 sm:flex-row sm:justify-between">
                             {isAdmin ? (
                                 <Button
                                     type="button"
