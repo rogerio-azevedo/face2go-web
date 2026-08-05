@@ -33,22 +33,23 @@ export async function getCompanyFeatureFlags(): Promise<
     const token = session?.accessToken;
 
     if (!session?.user?.companyId || !token) {
-        return { monitoring: false };
+        return { monitoring: false, presence: false };
     }
 
     try {
         const res = await apiFetchAuthed('/api/me/company-features');
 
-        if (!res.ok) return { monitoring: false };
+        if (!res.ok) return { monitoring: false, presence: false };
 
         const data = (await parseResponseJson(res)) as Partial<
             Record<PremiumFeatureSlug, boolean>
         >;
         return {
             monitoring: data.monitoring === true,
+            presence: data.presence === true,
         };
     } catch {
-        return { monitoring: false };
+        return { monitoring: false, presence: false };
     }
 }
 

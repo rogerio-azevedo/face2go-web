@@ -5,12 +5,16 @@ export type FeatureSlug =
     | "access_control"
     | "users"
     | "clients"
-    | "monitoring";
+    | "monitoring"
+    | "presence";
 
 /** Recursos premium contratados por empresa (gerenciados pelo super admin). */
-export type PremiumFeatureSlug = "monitoring";
+export type PremiumFeatureSlug = "monitoring" | "presence";
 
-export const PREMIUM_FEATURE_SLUGS: PremiumFeatureSlug[] = ["monitoring"];
+export const PREMIUM_FEATURE_SLUGS: PremiumFeatureSlug[] = [
+    "monitoring",
+    "presence",
+];
 
 export type PermissionAction =
     | "can_read"
@@ -68,6 +72,14 @@ export const ALL_FEATURES: FeatureDefinition[] = [
         name: "Pedido de Socorro & Monitoramento",
         description:
             'Habilita o botão "Me Ajuda" no app e a central de monitoramento web',
+        category: "Premium",
+        isPremium: true,
+    },
+    {
+        slug: "presence",
+        name: "Presença & Emergência",
+        description:
+            "Dashboard de presença em tempo real e chamada de emergência por escola",
         category: "Premium",
         isPremium: true,
     },

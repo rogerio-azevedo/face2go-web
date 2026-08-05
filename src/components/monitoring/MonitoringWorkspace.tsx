@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
@@ -11,7 +12,7 @@ import {
 } from "@/app/monitoring/actions";
 import { MonitoringMap } from "@/components/monitoring/MonitoringMap";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
     Sheet,
     SheetContent,
@@ -22,6 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMonitoringSocket } from "@/hooks/use-monitoring-socket";
+import { cn } from "@/lib/utils";
 import type { PanicEventItem } from "@/types/panic-events";
 import type { ClientMapPoint } from "@/types/client-map-point";
 
@@ -261,6 +263,15 @@ export function MonitoringWorkspace({
                             {selected.location.latitude.toFixed(5)},{" "}
                             {selected.location.longitude.toFixed(5)}
                         </p>
+                        <Link
+                            href={`/company/presenca?clientId=${selected.clientId}`}
+                            className={cn(
+                                buttonVariants({ variant: "outline", size: "sm" }),
+                                "w-full",
+                            )}
+                        >
+                            Abrir presença da escola
+                        </Link>
                         {selected.status === "open" ? (
                             <Button
                                 className="w-full"

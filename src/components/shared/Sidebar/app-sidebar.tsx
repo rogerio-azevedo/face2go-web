@@ -13,6 +13,7 @@ import {
     Radio,
     RefreshCcw,
     ScanLine,
+    ShieldAlert,
     Users,
 } from "lucide-react";
 import Image from "next/image";
@@ -86,6 +87,15 @@ function navItemsForRole(
                     url: "/company/acessos",
                     icon: History,
                 },
+                ...(companyFeatures?.presence
+                    ? [
+                          {
+                              title: "Presença",
+                              url: "/company/presenca",
+                              icon: ShieldAlert,
+                          },
+                      ]
+                    : []),
                 {
                     title: "Usuários",
                     url: "/company/usuarios",
@@ -154,6 +164,13 @@ function navItemsForRole(
                     title: "Acessos",
                     url: "/company/acessos",
                     icon: History,
+                });
+            }
+            if (pathSet?.has("/company/presenca") === true) {
+                items.push({
+                    title: "Presença",
+                    url: "/company/presenca",
+                    icon: ShieldAlert,
                 });
             }
             if (pathSet?.has("/company/usuarios") === true) {

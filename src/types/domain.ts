@@ -622,3 +622,100 @@ export type InviteRow = {
     guestRegistrationUrl: string | null;
     authorizedPhotoUrl: string | null;
 };
+
+export type PresenceCounts = {
+    students: number;
+    responsibles: number;
+    members: number;
+    guests: number;
+    total: number;
+};
+
+export type PresencePersonItem = {
+    personId: string;
+    personName: string;
+    personType: "student" | "responsible" | "member" | "guest";
+    status: "in" | "out";
+    lastEventAt: string | null;
+    lastSource: "facial" | "lpr" | null;
+    lastDeviceName: string | null;
+    classId: string | null;
+    className: string | null;
+};
+
+export type SchoolPresenceResponse = {
+    clientId: string;
+    clientName: string;
+    counts: PresenceCounts;
+    people: PresencePersonItem[];
+    deviceSummary: {
+        readersTotal: number;
+        readersWithDirection: number;
+        camerasTotal: number;
+        camerasWithDirection: number;
+        hasDirectionConfigured: boolean;
+    };
+    activeEmergencyId: string | null;
+};
+
+export type CompanySchoolPresenceSummary = {
+    clientId: string;
+    clientName: string;
+    counts: PresenceCounts;
+    activeEmergencyId: string | null;
+};
+
+export type CompanyPresenceResponse = {
+    schools: CompanySchoolPresenceSummary[];
+    totals: PresenceCounts;
+};
+
+export type EmergencyCheckinStatus =
+    | "pending"
+    | "safe"
+    | "not_located"
+    | "evacuated"
+    | "injured";
+
+export type EmergencyCheckinItem = {
+    id: string;
+    personType: "student" | "responsible" | "member" | "guest";
+    personId: string;
+    personName: string;
+    classId: string | null;
+    className: string | null;
+    expectedStatus: "inside" | "added_manually";
+    status: EmergencyCheckinStatus;
+    statusNote: string | null;
+    statusUpdatedAt: string | null;
+};
+
+export type EmergencySummary = {
+    total: number;
+    pending: number;
+    safe: number;
+    notLocated: number;
+    evacuated: number;
+    injured: number;
+};
+
+export type EmergencyEventResponse = {
+    id: string;
+    companyId: string;
+    clientId: string;
+    clientName: string;
+    status: "active" | "resolved";
+    srpAction:
+        | "hold"
+        | "secure"
+        | "lockdown"
+        | "evacuate"
+        | "shelter"
+        | "other"
+        | null;
+    reason: string | null;
+    startedAt: string;
+    resolvedAt: string | null;
+    summary: EmergencySummary;
+    checkins: EmergencyCheckinItem[];
+};
