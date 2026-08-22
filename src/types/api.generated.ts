@@ -634,7 +634,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Status de monitoramento (conexão stream snapManager / leitores Intelbras) */
+        /** Status de monitoramento (conexão stream / leitores Intelbras e Hikvision) */
         get: operations["ReadersController_monitorStatus"];
         put?: never;
         post?: never;
@@ -1014,7 +1014,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Enviar foto (base64) pelo servidor para o R2 — preferir em vez do presign no browser */
+        /** Enviar foto (multipart) pelo servidor para o R2 */
         post: operations["PublicRegisterController_uploadPhoto"];
         delete?: never;
         options?: never;
@@ -2189,7 +2189,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Enviar foto do convidado (base64 via servidor) */
+        /** Enviar foto do convidado (multipart via servidor) */
         post: operations["PublicPickupRegisterController_uploadPhoto"];
         delete?: never;
         options?: never;
@@ -2446,7 +2446,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Enviar foto do visitante (base64 via servidor) */
+        /** Enviar foto do visitante (multipart via servidor) */
         post: operations["PublicInviteRegisterController_uploadPhoto"];
         delete?: never;
         options?: never;
@@ -2618,7 +2618,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Enviar foto do convidado (base64 via servidor) */
+        /** Enviar foto do convidado (multipart via servidor) */
         post: operations["PublicResponsibleRegisterController_uploadPhoto"];
         delete?: never;
         options?: never;
@@ -3539,6 +3539,125 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/clients/{clientId}/presence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Presença atual de uma escola/unidade */
+        get: operations["PresenceController_getClientPresence"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{companyId}/presence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Presença agregada da empresa ou de uma escola específica */
+        get: operations["PresenceController_getCompanyPresence"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{clientId}/emergency-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ativar modo emergência para uma escola */
+        post: operations["EmergencyEventsController_activate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/emergency-events/{eventId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Detalhe do evento de emergência com chamada */
+        get: operations["EmergencyEventsController_getById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/emergency-events/{eventId}/checkins/{checkinId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Atualizar status de uma pessoa na chamada */
+        patch: operations["EmergencyEventsController_updateCheckin"];
+        trace?: never;
+    };
+    "/emergency-events/{eventId}/checkins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Adicionar pessoa manualmente à chamada */
+        post: operations["EmergencyEventsController_addCheckin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/emergency-events/{eventId}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Encerrar evento de emergência */
+        patch: operations["EmergencyEventsController_resolve"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3741,6 +3860,26 @@ export interface components {
             closingNotes?: string;
             /** @enum {string} */
             closingReason: "resolved" | "false_alarm" | "duplicate" | "other";
+        };
+        CreateEmergencyEventDto: {
+            /** @enum {string} */
+            srpAction?: "hold" | "secure" | "lockdown" | "evacuate" | "shelter" | "other";
+            reason?: string;
+            panicEventId?: string;
+        };
+        UpdateEmergencyCheckinDto: {
+            /** @enum {string} */
+            status: "safe" | "not_located" | "evacuated" | "injured";
+            note?: string;
+        };
+        AddEmergencyCheckinDto: {
+            /** @enum {string} */
+            personType: "student" | "responsible" | "member" | "guest";
+            /** Format: uuid */
+            personId: string;
+        };
+        ResolveEmergencyEventDto: {
+            note?: string;
         };
     };
     responses: never;
@@ -5185,7 +5324,16 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                    /** Format: uuid */
+                    registrationId: string;
+                };
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -6904,7 +7052,14 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -7228,7 +7383,14 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -7456,7 +7618,14 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -8716,6 +8885,156 @@ export interface operations {
         };
         responses: {
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PresenceController_getClientPresence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PresenceController_getCompanyPresence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    EmergencyEventsController_activate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateEmergencyEventDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    EmergencyEventsController_getById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    EmergencyEventsController_updateCheckin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                checkinId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateEmergencyCheckinDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    EmergencyEventsController_addCheckin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddEmergencyCheckinDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    EmergencyEventsController_resolve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResolveEmergencyEventDto"];
+            };
+        };
+        responses: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

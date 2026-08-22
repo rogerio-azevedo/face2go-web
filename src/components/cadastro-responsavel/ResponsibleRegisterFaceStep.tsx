@@ -11,7 +11,10 @@ import {
 } from "@/components/public-registration/types";
 import { useFaceLiveCamera } from "@/hooks/use-face-live-camera";
 import { getApiBaseUrl } from "@/lib/api-fetch";
-import { compressFaceForRegistrationUpload } from "@/lib/cadastro-face";
+import {
+    dataUrlToUploadBlob,
+    MAX_FACE_UPLOAD_BYTES,
+} from "@/lib/cadastro-face";
 
 /** @deprecated Use PublicRegistrationFormData */
 export type ResponsibleRegisterFormData = PublicRegistrationFormData;
@@ -41,15 +44,19 @@ export function ResponsibleRegisterFaceStep({
         camera.setMessage(null);
         camera.setStatus("uploading");
         try {
-            const compressed = await compressFaceForRegistrationUpload(
-                camera.previewDataUrl,
-            );
+            const blob = await dataUrlToUploadBlob(camera.previewDataUrl);
+            if (blob.size > MAX_FACE_UPLOAD_BYTES) {
+                throw new Error(
+                    "Foto muito grande. Tente outra foto ou melhore a iluminação.",
+                );
+            }
+            const formData = new FormData();
+            formData.append("file", blob, "face.jpg");
             const res = await fetch(
                 `${getApiBaseUrl()}/api/responsible-register/${encodeURIComponent(code.trim())}/upload-photo`,
                 {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ imageBase64: compressed }),
+                    body: formData,
                 },
             );
             const data = (await res.json()) as {
@@ -158,7 +165,7 @@ export function ResponsibleRegisterFaceStep({
                         ) : null}
                         {camera.status === "uploading" ? (
                             <p className="py-2 text-center text-sm text-muted-foreground">
-                                Otimizando e enviando a foto…
+                                Enviando a foto…
                             </p>
                         ) : null}
                         {camera.status === "uploaded" ? (

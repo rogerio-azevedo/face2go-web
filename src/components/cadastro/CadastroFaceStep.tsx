@@ -6,7 +6,8 @@ import { toast } from "sonner";
 
 import { getApiBaseUrl } from "@/lib/api-fetch";
 import {
-    compressFaceForRegistrationUpload,
+    dataUrlToUploadBlob,
+    MAX_FACE_UPLOAD_BYTES,
     preferNativeCameraInput,
 } from "@/lib/cadastro-face";
 import { cn } from "@/lib/utils";
@@ -96,8 +97,8 @@ export function CadastroFaceStep({
                 stream = await navigator.mediaDevices.getUserMedia({
                     video: {
                         facingMode: "user",
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 },
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 },
                     },
                     audio: false,
                 });
@@ -163,18 +164,20 @@ export function CadastroFaceStep({
         setMessage(null);
         setStatus("uploading");
         try {
-            const compressed = await compressFaceForRegistrationUpload(
-                previewDataUrl,
-            );
+            const blob = await dataUrlToUploadBlob(previewDataUrl);
+            if (blob.size > MAX_FACE_UPLOAD_BYTES) {
+                throw new Error(
+                    "Foto muito grande. Tente outra foto ou melhore a iluminação.",
+                );
+            }
+            const formData = new FormData();
+            formData.append("file", blob, "face.jpg");
+            formData.append("registrationId", registrationId);
             const res = await fetch(
                 `${getApiBaseUrl()}/api/register/${encodeURIComponent(code.trim())}/upload-photo`,
                 {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        registrationId,
-                        imageBase64: compressed,
-                    }),
+                    body: formData,
                 },
             );
             const data = (await res.json()) as {
@@ -293,7 +296,7 @@ export function CadastroFaceStep({
                         ) : null}
                         {status === "uploading" ? (
                             <p className="py-2 text-center text-sm text-muted-foreground">
-                                Otimizando e enviando a foto…
+                                Enviando a foto…
                             </p>
                         ) : null}
                         {status === "uploaded" ? (

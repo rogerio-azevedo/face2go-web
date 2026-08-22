@@ -42,6 +42,12 @@ function ConnectionBadge({
     device: ReaderMonitorDeviceApiRow | undefined;
     loading: boolean;
 }) {
+    const monitorOnlineHint =
+        "Monitor de eventos ativo — recebendo passagens em tempo real.";
+    const monitorOfflineHint =
+        device?.lastConnectionError ??
+        "Monitor de eventos inativo — cadastro, sync e listagem ISAPI podem funcionar normalmente.";
+
     if (loading && !device) {
         return (
             <span className="text-muted-foreground text-sm tabular-nums">
@@ -75,6 +81,7 @@ function ConnectionBadge({
             <Badge
                 variant="outline"
                 className="border-emerald-200 bg-emerald-50 font-normal text-emerald-800 hover:bg-emerald-50"
+                title={monitorOnlineHint}
             >
                 Online
             </Badge>
@@ -84,7 +91,7 @@ function ConnectionBadge({
         <Badge
             variant="outline"
             className="border-red-200 bg-red-50 font-normal text-red-800 hover:bg-red-50"
-            title={device.lastConnectionError ?? "Desconectado"}
+            title={monitorOfflineHint}
         >
             Offline
         </Badge>
@@ -244,7 +251,9 @@ export function ReadersTable({
                             <TableHead>Nome</TableHead>
                             <TableHead>Marca</TableHead>
                             <TableHead>Endereço</TableHead>
-                            <TableHead>Conexão</TableHead>
+                            <TableHead title="Monitor de eventos (stream/poll) — não indica se o ISAPI responde">
+                                Conexão
+                            </TableHead>
                             <TableHead>Direção</TableHead>
                             <TableHead>Status</TableHead>
                             {canManage ? (
@@ -333,7 +342,8 @@ export function ReadersTable({
                                     {canManage ? (
                                         <TableCell className="text-right">
                                             <div className="flex items-center justify-end gap-2">
-                                                {row.brand === "intelbras" ? (
+                                                {(row.brand === "intelbras" ||
+                                                    row.brand === "hikvision") ? (
                                                     <Link
                                                         href={`/company/leitores/${row.id}/device-users`}
                                                         className={buttonVariants({ variant: "outline", size: "sm" })}
