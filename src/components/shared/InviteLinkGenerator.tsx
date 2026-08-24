@@ -13,13 +13,17 @@ export function InviteLinkGenerator({
     title,
     roleLabel,
     onGenerate,
+    existingCode,
 }: {
     title: string;
     roleLabel: string;
     onGenerate: () => Promise<InviteGenerateResult>;
+    existingCode?: string | null;
 }) {
     const [lastCode, setLastCode] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+
+    const displayCode = lastCode ?? existingCode ?? null;
 
     async function generate() {
         setLoading(true);
@@ -55,19 +59,19 @@ export function InviteLinkGenerator({
                     {loading ? "Gerando..." : "Gerar novo link"}
                 </Button>
             </div>
-            {lastCode ? (
+            {displayCode ? (
                 <div className="mt-2 space-y-2">
                     <div className="break-all rounded bg-muted p-2 text-sm">
                         <p className="text-xs font-medium text-muted-foreground">
                             Novo cadastro
                         </p>
-                        Link: {origin}/register?invite={lastCode}
+                        Link: {origin}/register?invite={displayCode}
                     </div>
                     <div className="break-all rounded bg-muted p-2 text-sm">
                         <p className="text-xs font-medium text-muted-foreground">
                             Usuário existente
                         </p>
-                        Link: {origin}/join?invite={lastCode}
+                        Link: {origin}/join?invite={displayCode}
                     </div>
                 </div>
             ) : null}

@@ -11,6 +11,41 @@ import {
 
 const clientInviteRoleSchema = z.enum(['client_admin', 'client_operator']);
 
+export type ClientInviteLinkRow = {
+    id: string;
+    code: string;
+    role: 'client_admin' | 'client_operator';
+    usedCount: number;
+    isActive: boolean;
+    expiresAt: string | null;
+    createdAt: string;
+};
+
+export async function listClientInviteLinksAction(clientId: string): Promise<
+    { success: true; invites: ClientInviteLinkRow[] } | { success: false; error: string }
+> {
+    const parsed = z.string().uuid().safeParse(clientId);
+    if (!parsed.success) {
+        return { success: false, error: 'Cliente inválido.' };
+    }
+
+    try {
+        const res = await apiFetchAuthed(
+            `/api/clients/${parsed.data}/invite-links`,
+        );
+        const data = await parseResponseJson(res);
+        if (!res.ok) {
+            return { success: false, error: nestErrorMessage(data) };
+        }
+
+        const invites =
+            (data as { invites?: ClientInviteLinkRow[] }).invites ?? [];
+        return { success: true, invites };
+    } catch {
+        return { success: false, error: 'Sem permissão.' };
+    }
+}
+
 export async function generateClientInviteFromCompanyAction(input: {
     clientId: string;
     role: 'client_admin' | 'client_operator';

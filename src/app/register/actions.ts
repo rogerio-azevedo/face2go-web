@@ -86,7 +86,7 @@ export async function getInvitePreviewAction(code: string): Promise<InvitePrevie
         );
 
         if (companyRes.ok) {
-            const data = await companyRes.json();
+            const data = await parseResponseJson(companyRes);
             const companyPreview = parseCompanyInvitePreview(data);
             if (companyPreview) return companyPreview;
         }
@@ -97,7 +97,7 @@ export async function getInvitePreviewAction(code: string): Promise<InvitePrevie
 
         if (!clientRes.ok) return null;
 
-        const data = await clientRes.json();
+        const data = await parseResponseJson(clientRes);
         return parseClientInvitePreview(data);
     } catch {
         return null;
