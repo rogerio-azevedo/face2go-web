@@ -248,6 +248,7 @@ export type ClientRegistrationListRow = {
     rejectionNotes: string | null;
     createdAt: string;
     hasFacePhoto: boolean;
+    faceUrl: string | null;
     faceId: number | null;
     deviceSyncStatus: DeviceSyncStatus | null;
     deviceSyncedAt: string | null;

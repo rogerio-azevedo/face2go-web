@@ -162,6 +162,7 @@ export type DeviceUser = {
     CardNo: string;
     ValidDateStart?: string;
     ValidDateEnd?: string;
+    HasFace?: boolean | null;
 };
 
 export type DeviceUsersListResult = {

@@ -4,7 +4,7 @@ import { CompanyClientRegistrationLinksPanel } from "@/components/company/client
 import { ClientAddressesPanel } from "@/components/company/clientes/enderecos/ClientAddressesPanel";
 import { SchoolTab } from "@/components/company/clientes/escola/SchoolTab";
 import { RegistrationsReviewBoard } from "@/components/registrations/RegistrationsReviewBoard";
-import { SyncAllProgressModal } from "@/components/registrations/SyncAllProgressModal";
+import { RegistrationsFaceSyncAllModal } from "@/features/registrations/components/RegistrationsFaceSyncAllModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type {
     ClientRegistrationListRow,
@@ -95,7 +95,7 @@ export function ClientDetailTabs({
 
             <TabsContent value="requests" className="space-y-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-                    <SyncAllProgressModal
+                    <RegistrationsFaceSyncAllModal
                         variant="company"
                         companyClientId={clientId}
                     />

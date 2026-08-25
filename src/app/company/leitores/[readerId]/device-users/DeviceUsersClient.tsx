@@ -151,7 +151,6 @@ export default function DeviceUsersClient({ readerId }: { readerId: string }) {
                         value={search}
                         onValueChange={handleSearchChange}
                         placeholder="Buscar por nome..."
-                        disabled={isLoading}
                         className="sm:max-w-xs"
                     />
                     {search.trim() ? (
@@ -164,8 +163,9 @@ export default function DeviceUsersClient({ readerId }: { readerId: string }) {
                     <TableHeader>
                         <TableRow>
                             <TableHead>User ID</TableHead>
-                            <TableHead>Nome (CardName)</TableHead>
+                            <TableHead>Nome</TableHead>
                             <TableHead>Nº Cartão</TableHead>
+                            <TableHead>Face</TableHead>
                             <TableHead>Validade Início</TableHead>
                             <TableHead>Validade Fim</TableHead>
                             <TableHead className="text-right">Ações</TableHead>
@@ -174,13 +174,13 @@ export default function DeviceUsersClient({ readerId }: { readerId: string }) {
                     <TableBody>
                         {isLoading ? (
                             <TableRow>
-                                <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                                <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
                                     Consultando leitor...
                                 </TableCell>
                             </TableRow>
                         ) : users.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                                <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
                                     Nenhum usuário encontrado na memória.
                                 </TableCell>
                             </TableRow>
@@ -190,6 +190,21 @@ export default function DeviceUsersClient({ readerId }: { readerId: string }) {
                                     <TableCell className="font-medium">{u.UserID}</TableCell>
                                     <TableCell>{u.CardName}</TableCell>
                                     <TableCell>{u.CardNo || "—"}</TableCell>
+                                    <TableCell>
+                                        {u.HasFace === true ? (
+                                            <span className="text-emerald-700 text-xs font-medium">
+                                                Sim
+                                            </span>
+                                        ) : u.HasFace === false ? (
+                                            <span className="text-muted-foreground text-xs">
+                                                Não
+                                            </span>
+                                        ) : (
+                                            <span className="text-muted-foreground text-xs">
+                                                —
+                                            </span>
+                                        )}
+                                    </TableCell>
                                     <TableCell>{u.ValidDateStart || "—"}</TableCell>
                                     <TableCell>{u.ValidDateEnd || "—"}</TableCell>
                                     <TableCell className="text-right">

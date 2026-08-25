@@ -1,25 +1,29 @@
 "use client";
 
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import {
     approveClientRegistrationAction,
     getClientRegistrationFaceUrlAction,
     rejectClientRegistrationAction,
-    syncClientRegistrationFaceAction,
 } from "@/app/client/usuarios/actions";
 import {
     approveCompanyRegistrationAction,
     getCompanyRegistrationFaceUrlAction,
     rejectCompanyRegistrationAction,
-    syncCompanyRegistrationFaceAction,
 } from "@/app/company/clientes/[clientId]/usuarios/actions";
-import type { ClientRegistrationListRow } from "@/types/domain";
+import { FaceSyncResultModal } from "@/components/company/clientes/escola/FaceSyncResultModal";
+import { DeviceSyncStatusBadge } from "@/components/company/clientes/escola/DeviceSyncStatusBadge";
+import { useRegistrationFaceSync } from "@/features/registrations/hooks/use-registration-face-sync";
+import type { ClientRegistrationListRow, DeviceSyncStatus } from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { FaceCirclePhoto } from "@/components/ui/face-circle-photo";
 import { Label } from "@/components/ui/label";
+import { SearchInput } from "@/components/ui/search-input";
 import {
     Sheet,
     SheetContent,
@@ -38,6 +42,8 @@ import {
 } from "@/components/ui/table";
 
 type Tab = "draft" | "approved" | "rejected";
+type SortField = "submittedAt" | "name" | "local";
+type SortDir = "asc" | "desc";
 
 const TAB_LABELS: Record<Tab, string> = {
     draft: "Aguardando aprovação",
@@ -69,20 +75,80 @@ function extraSummary(row: ClientRegistrationListRow): string {
     return "—";
 }
 
-function syncStatusBadgeVariant(
-    s: ClientRegistrationListRow["deviceSyncStatus"],
-): "default" | "secondary" | "destructive" | "outline" {
-    if (s === "synced") return "default";
-    if (s === "pending_sync") return "secondary";
-    if (s === "sync_failed") return "destructive";
-    return "outline";
+function matchesRegistrationSearch(
+    row: ClientRegistrationListRow,
+    term: string,
+): boolean {
+    const q = term.trim().toLowerCase();
+    if (!q) return true;
+
+    const name = (row.name ?? "").toLowerCase();
+    if (name.includes(q)) return true;
+
+    const digits = q.replace(/\D/g, "");
+    const docDigits = (row.document ?? "").replace(/\D/g, "");
+    if (digits.length >= 3 && docDigits.includes(digits)) return true;
+
+    const local = extraSummary(row).toLowerCase();
+    if (local !== "—" && local.includes(q)) return true;
+
+    return false;
 }
 
-function syncStatusLabel(s: ClientRegistrationListRow["deviceSyncStatus"]) {
-    if (s === "synced") return "Sincronizado";
-    if (s === "pending_sync") return "Pendente";
-    if (s === "sync_failed") return "Erro sync";
-    return "—";
+function compareRows(
+    a: ClientRegistrationListRow,
+    b: ClientRegistrationListRow,
+    field: SortField,
+    dir: SortDir,
+): number {
+    let cmp = 0;
+    if (field === "name") {
+        cmp = (a.name ?? "").localeCompare(b.name ?? "", "pt-BR", {
+            sensitivity: "base",
+        });
+    } else if (field === "local") {
+        cmp = extraSummary(a).localeCompare(extraSummary(b), "pt-BR", {
+            sensitivity: "base",
+        });
+    } else {
+        const ta = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
+        const tb = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
+        cmp = ta - tb;
+    }
+    return dir === "asc" ? cmp : -cmp;
+}
+
+function SortableHead({
+    label,
+    active,
+    dir,
+    onClick,
+    className,
+}: {
+    label: string;
+    active: boolean;
+    dir: SortDir;
+    onClick: () => void;
+    className?: string;
+}) {
+    const Icon = active ? (dir === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
+    return (
+        <TableHead className={className}>
+            <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="-ml-2 h-8 gap-1 px-2 font-medium"
+                onClick={onClick}
+                aria-sort={
+                    active ? (dir === "asc" ? "ascending" : "descending") : "none"
+                }
+            >
+                {label}
+                <Icon className="size-3.5 opacity-60" aria-hidden />
+            </Button>
+        </TableHead>
+    );
 }
 
 export function RegistrationsReviewBoard({
@@ -95,19 +161,51 @@ export function RegistrationsReviewBoard({
     initialRows: ClientRegistrationListRow[];
 }) {
     const router = useRouter();
+    const [rows, setRows] = useState(initialRows);
     const [tab, setTab] = useState<Tab>("draft");
+    const [search, setSearch] = useState("");
+    const [sortField, setSortField] = useState<SortField>("submittedAt");
+    const [sortDir, setSortDir] = useState<SortDir>("desc");
     const [sheetOpen, setSheetOpen] = useState(false);
     const [activeRow, setActiveRow] = useState<ClientRegistrationListRow | null>(
         null,
     );
     const [faceUrl, setFaceUrl] = useState<string | null>(null);
     const [rejectNotes, setRejectNotes] = useState("");
+    const [syncingId, setSyncingId] = useState<string | null>(null);
     const [pending, startTransition] = useTransition();
+    const { syncModalState, runSync, closeSyncResult } = useRegistrationFaceSync({
+        variant,
+        companyClientId,
+        onAfterSync: () => router.refresh(),
+    });
 
-    const filtered = useMemo(
-        () => initialRows.filter((r) => r.status === tab),
-        [initialRows, tab],
-    );
+    useEffect(() => {
+        setRows(initialRows);
+    }, [initialRows]);
+
+    const filtered = useMemo(() => {
+        const byTab = rows.filter((r) => r.status === tab);
+        const bySearch = byTab.filter((r) => matchesRegistrationSearch(r, search));
+        return [...bySearch].sort((a, b) =>
+            compareRows(a, b, sortField, sortDir),
+        );
+    }, [rows, tab, search, sortField, sortDir]);
+
+    const toggleSort = useCallback((field: "name" | "local") => {
+        setSortField((current) => {
+            if (current === field) {
+                setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+                return field;
+            }
+            setSortDir("asc");
+            return field;
+        });
+    }, []);
+
+    const handleSearchChange = useCallback((value: string) => {
+        setSearch(value);
+    }, []);
 
     async function openDetail(row: ClientRegistrationListRow) {
         setActiveRow(row);
@@ -173,37 +271,34 @@ export function RegistrationsReviewBoard({
         });
     }
 
-    function runSyncFace(registrationId: string) {
+    async function runSyncFace(row: ClientRegistrationListRow) {
         if (variant === "company" && !companyClientId) {
             toast.error("Cliente inválido.");
             return;
         }
-        startTransition(async () => {
-            const res =
-                variant === "client"
-                    ? await syncClientRegistrationFaceAction(registrationId)
-                    : await syncCompanyRegistrationFaceAction(
-                          companyClientId!,
-                          registrationId,
-                      );
-            if ("error" in res) {
-                toast.error(res.error);
-                return;
-            }
-            if (res.deviceSyncStatus === "synced") {
-                toast.success("Face sincronizada com o(s) leitor(es).");
-            } else {
-                toast.warning(
-                    res.deviceSyncError ?? "Sync incompleta ou com avisos.",
-                );
-            }
-            router.refresh();
-        });
+        setSyncingId(row.id);
+        try {
+            const result = await runSync(row.id, row.name ?? "Cadastro");
+            if (!result) return;
+
+            const patch = {
+                deviceSyncStatus: result.deviceSyncStatus as DeviceSyncStatus,
+                deviceSyncError: result.deviceSyncError,
+            };
+            setRows((prev) =>
+                prev.map((r) => (r.id === row.id ? { ...r, ...patch } : r)),
+            );
+            setActiveRow((prev) =>
+                prev?.id === row.id ? { ...prev, ...patch } : prev,
+            );
+        } finally {
+            setSyncingId(null);
+        }
     }
 
     function doSyncActiveFace() {
         if (!activeRow) return;
-        runSyncFace(activeRow.id);
+        void runSyncFace(activeRow);
     }
 
     return (
@@ -225,17 +320,35 @@ export function RegistrationsReviewBoard({
                 ))}
             </div>
 
+            <SearchInput
+                id="search-registrations"
+                value={search}
+                onValueChange={handleSearchChange}
+                placeholder="Buscar por nome, CPF ou local…"
+                className="sm:max-w-sm"
+            />
+
             <div className="rounded-md border">
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Nome</TableHead>
+                            <TableHead className="w-[52px]" aria-label="Foto" />
+                            <SortableHead
+                                label="Nome"
+                                active={sortField === "name"}
+                                dir={sortDir}
+                                onClick={() => toggleSort("name")}
+                            />
                             <TableHead className="hidden sm:table-cell">
                                 E-mail
                             </TableHead>
-                            <TableHead className="hidden md:table-cell">
-                                Local
-                            </TableHead>
+                            <SortableHead
+                                label="Local"
+                                active={sortField === "local"}
+                                dir={sortDir}
+                                onClick={() => toggleSort("local")}
+                                className="hidden md:table-cell"
+                            />
                             <TableHead>Enviado</TableHead>
                             <TableHead className="w-[100px] text-right">
                                 Ações
@@ -246,7 +359,7 @@ export function RegistrationsReviewBoard({
                         {filtered.length === 0 ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={5}
+                                    colSpan={6}
                                     className="py-10 text-center text-muted-foreground"
                                 >
                                     Nenhum registro nesta lista.
@@ -255,6 +368,15 @@ export function RegistrationsReviewBoard({
                         ) : (
                             filtered.map((row) => (
                                 <TableRow key={row.id}>
+                                    <TableCell className="align-middle">
+                                        <div className="size-8 shrink-0 overflow-hidden rounded-full bg-teal-100 ring-2 ring-teal-100">
+                                            <FaceCirclePhoto
+                                                className="size-full"
+                                                photoUrl={row.faceUrl ?? null}
+                                                nameHint={row.name ?? null}
+                                            />
+                                        </div>
+                                    </TableCell>
                                     <TableCell className="font-medium">
                                         <div className="flex flex-col gap-1">
                                             <span>{row.name ?? "—"}</span>
@@ -268,16 +390,20 @@ export function RegistrationsReviewBoard({
                                                     >
                                                         ID leitor {row.faceId}
                                                     </Badge>
-                                                    <Badge
-                                                        variant={syncStatusBadgeVariant(
-                                                            row.deviceSyncStatus,
-                                                        )}
-                                                        className="text-[10px]"
-                                                    >
-                                                        {syncStatusLabel(
-                                                            row.deviceSyncStatus,
-                                                        )}
-                                                    </Badge>
+                                                    <DeviceSyncStatusBadge
+                                                        status={
+                                                            row.deviceSyncStatus
+                                                        }
+                                                        hasFace={
+                                                            row.faceId != null
+                                                        }
+                                                        hasReaders={
+                                                            row.hasFacialReaders
+                                                        }
+                                                        error={
+                                                            row.deviceSyncError
+                                                        }
+                                                    />
                                                 </div>
                                             ) : null}
                                             {tab === "approved" &&
@@ -315,9 +441,12 @@ export function RegistrationsReviewBoard({
                                                     type="button"
                                                     variant="secondary"
                                                     size="sm"
-                                                    disabled={pending}
+                                                    disabled={
+                                                        pending ||
+                                                        syncingId === row.id
+                                                    }
                                                     onClick={() =>
-                                                        runSyncFace(row.id)
+                                                        void runSyncFace(row)
                                                     }
                                                 >
                                                     Sync leitor
@@ -382,16 +511,20 @@ export function RegistrationsReviewBoard({
                                                 <span className="text-xs text-muted-foreground">
                                                     Sincronização:
                                                 </span>
-                                                <Badge
-                                                    variant={syncStatusBadgeVariant(
-                                                        activeRow.deviceSyncStatus,
-                                                    )}
-                                                    className="text-[10px]"
-                                                >
-                                                    {syncStatusLabel(
-                                                        activeRow.deviceSyncStatus,
-                                                    )}
-                                                </Badge>
+                                                <DeviceSyncStatusBadge
+                                                    status={
+                                                        activeRow.deviceSyncStatus
+                                                    }
+                                                    hasFace={
+                                                        activeRow.faceId != null
+                                                    }
+                                                    hasReaders={
+                                                        activeRow.hasFacialReaders
+                                                    }
+                                                    error={
+                                                        activeRow.deviceSyncError
+                                                    }
+                                                />
                                             </div>
                                         ) : null}
                                         {activeRow.deviceSyncError ? (
@@ -470,6 +603,11 @@ export function RegistrationsReviewBoard({
                     ) : null}
                 </SheetContent>
             </Sheet>
+
+            <FaceSyncResultModal
+                state={syncModalState}
+                onClose={closeSyncResult}
+            />
         </div>
     );
 }

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { ClientRegistrationLinksPanel } from "@/components/client/ClientRegistrationLinksPanel";
 import { ClientSelfInvitePanel } from "@/components/client/ClientSelfInvitePanel";
 import { RegistrationsReviewBoard } from "@/components/registrations/RegistrationsReviewBoard";
-import { SyncAllProgressModal } from "@/components/registrations/SyncAllProgressModal";
+import { RegistrationsFaceSyncAllModal } from "@/features/registrations/components/RegistrationsFaceSyncAllModal";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ClientSystemUsersTable } from "@/components/shared/ClientSystemUsersTable";
 import { auth } from "@/auth";
@@ -82,7 +82,7 @@ export default async function ClientUsuariosPage() {
                     <h2 className="text-sm font-medium">
                         Solicitações recebidas
                     </h2>
-                    <SyncAllProgressModal variant="client" />
+                    <RegistrationsFaceSyncAllModal variant="client" />
                 </div>
                 <RegistrationsReviewBoard
                     variant="client"
