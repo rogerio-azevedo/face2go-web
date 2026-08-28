@@ -4,6 +4,7 @@ import {
     SHARED_STORE_LINKS,
     buildSharedScreens,
 } from "@/lib/public-brands/shared";
+import { buildFacialGuidelinesCopy } from "@/lib/public-brands/shared-facial";
 
 const APP_NAME = "Face2Go — Escola Segura";
 
@@ -36,6 +37,13 @@ export const face2goBrand: PublicBrandConfig = {
             "Manual de utilização do aplicativo Face2Go — Escola Segura para pais e responsáveis. Primeiros passos, guia das telas e perguntas frequentes.",
         ogImage: "/og/face2go-invite.png",
     },
+    facialMetadata: {
+        title: "Orientações para captura facial • Face2Go",
+        description:
+            "Como tirar uma foto facial correta para leitores da escola: posição, iluminação, distância e exemplos do que evitar.",
+        ogImage: "/og/face2go-invite.png",
+    },
+    facialGuidelines: buildFacialGuidelinesCopy(APP_NAME),
     copy: {
         intro:
             "Guia para pais e responsáveis usarem o Face2Go — Escola Segura no celular: cadastro facial, autorizações, acessos e veículos.",

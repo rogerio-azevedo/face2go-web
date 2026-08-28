@@ -56,6 +56,7 @@ export function BrandShellHeader({ config }: BrandShellProps) {
 export function BrandShellFooter({ config }: BrandShellProps) {
     const year = new Date().getFullYear();
     const ajudaHref = `${config.routePrefix}/ajuda`;
+    const orientacoesHref = `${config.routePrefix}/orientacoes-facial`;
 
     return (
         <footer className="border-brand-footer bg-brand-footer border-t px-4 py-10 sm:px-6">
@@ -86,6 +87,12 @@ export function BrandShellFooter({ config }: BrandShellProps) {
                         className="text-white/75 underline-offset-4 hover:text-white hover:underline"
                     >
                         Ajuda
+                    </Link>
+                    <Link
+                        href={orientacoesHref}
+                        className="text-white/75 underline-offset-4 hover:text-white hover:underline"
+                    >
+                        Orientações faciais
                     </Link>
                     <Link
                         href="/support"

@@ -13,21 +13,22 @@ export function getPublicBrand(slug: PublicBrandSlug): PublicBrandConfig {
     return BRANDS[slug];
 }
 
-export function buildManualMetadata(slug: PublicBrandSlug): Metadata {
-    const config = getPublicBrand(slug);
-    const { metadata } = config;
-
+function toOpenGraphMetadata(meta: {
+    title: string;
+    description: string;
+    ogImage?: string;
+}): Metadata {
     return {
-        title: metadata.title,
-        description: metadata.description,
+        title: meta.title,
+        description: meta.description,
         openGraph: {
-            title: metadata.title,
-            description: metadata.description,
-            ...(metadata.ogImage
+            title: meta.title,
+            description: meta.description,
+            ...(meta.ogImage
                 ? {
                       images: [
                           {
-                              url: metadata.ogImage,
+                              url: meta.ogImage,
                               width: 1200,
                               height: 630,
                           },
@@ -36,6 +37,14 @@ export function buildManualMetadata(slug: PublicBrandSlug): Metadata {
                 : {}),
         },
     };
+}
+
+export function buildManualMetadata(slug: PublicBrandSlug): Metadata {
+    return toOpenGraphMetadata(getPublicBrand(slug).metadata);
+}
+
+export function buildFacialGuidelinesMetadata(slug: PublicBrandSlug): Metadata {
+    return toOpenGraphMetadata(getPublicBrand(slug).facialMetadata);
 }
 
 export type { PublicBrandConfig, PublicBrandSlug } from "@/lib/public-brands/types";

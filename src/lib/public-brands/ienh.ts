@@ -4,6 +4,7 @@ import {
     SHARED_STORE_LINKS,
     buildSharedScreens,
 } from "@/lib/public-brands/shared";
+import { buildFacialGuidelinesCopy } from "@/lib/public-brands/shared-facial";
 
 const APP_NAME = "IENH Access";
 
@@ -37,6 +38,13 @@ export const ienhBrand: PublicBrandConfig = {
             "Manual de utilização do IENH Access para pais e responsáveis. Primeiros passos, guia das telas e perguntas frequentes.",
         ogImage: "/og/ienh-invite.png",
     },
+    facialMetadata: {
+        title: "Orientações para captura facial • IENH Access",
+        description:
+            "Como tirar uma foto facial correta para leitores da escola: posição, iluminação, distância e exemplos do que evitar.",
+        ogImage: "/og/ienh-invite.png",
+    },
+    facialGuidelines: buildFacialGuidelinesCopy(APP_NAME),
     copy: {
         intro:
             "Guia para pais e responsáveis usarem o IENH Access no celular: cadastro facial, autorizações, acessos e veículos.",

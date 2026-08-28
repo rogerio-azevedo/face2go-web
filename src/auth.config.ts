@@ -40,6 +40,7 @@ export const authConfig = {
                 path === "/terms-of-use" ||
                 path === "/privacidade" ||
                 path === "/ajuda" ||
+                path === "/orientacoes-facial" ||
                 path === "/ienh/ajuda" ||
                 path.startsWith("/ienh/")
             ) {

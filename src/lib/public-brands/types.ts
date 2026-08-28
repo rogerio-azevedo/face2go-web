@@ -34,6 +34,53 @@ export type ManualFaqItem = {
     answer: FaqAnswerPart[];
 };
 
+export type FacialExampleKind = "ideal" | "inadequate";
+
+export type FacialExample = {
+    id: string;
+    kind: FacialExampleKind;
+    title: string;
+    description: string;
+    src: string;
+    alt: string;
+};
+
+export type FacialPracticeIcon =
+    | "sun"
+    | "user"
+    | "eye"
+    | "scan-face"
+    | "ban"
+    | "smile"
+    | "scissors"
+    | "aperture";
+
+export type FacialPractice = {
+    icon: FacialPracticeIcon;
+    title: string;
+    description: string;
+};
+
+export type FacialTip = {
+    title: string;
+    description: string;
+};
+
+export type FacialGuidelinesCopy = {
+    title: string;
+    subtitle: string;
+    intro: string;
+    idealHeading: string;
+    inadequateHeading: string;
+    practicesHeading: string;
+    tipsHeading: string;
+    footerNote: string;
+    idealExamples: FacialExample[];
+    inadequateExamples: FacialExample[];
+    practices: FacialPractice[];
+    tips: FacialTip[];
+};
+
 export type PublicBrandConfig = {
     slug: PublicBrandSlug;
     appName: string;
@@ -68,6 +115,11 @@ export type PublicBrandConfig = {
         description: string;
         ogImage?: string;
     };
+    facialMetadata: {
+        title: string;
+        description: string;
+        ogImage?: string;
+    };
     copy: {
         intro: string;
         gettingStartedSubtitle: string;
@@ -78,4 +130,5 @@ export type PublicBrandConfig = {
         footerTagline: string;
         copyrightName: string;
     };
+    facialGuidelines: FacialGuidelinesCopy;
 };
