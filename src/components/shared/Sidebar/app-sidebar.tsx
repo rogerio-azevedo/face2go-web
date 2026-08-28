@@ -6,6 +6,7 @@ import {
     BriefcaseBusiness,
     Building2,
     Camera,
+    FileBarChart,
     FlaskConical,
     History,
     LayoutDashboard,
@@ -111,6 +112,11 @@ function navItemsForRole(
                     url: "/company/integracao",
                     icon: RefreshCcw,
                 },
+                {
+                    title: "Relatórios",
+                    url: "/company/relatorios",
+                    icon: FileBarChart,
+                },
                 ...(companyFeatures?.monitoring
                     ? [
                           {
@@ -194,6 +200,13 @@ function navItemsForRole(
                     icon: RefreshCcw,
                 });
             }
+            if (pathSet?.has("/company/relatorios") === true) {
+                items.push({
+                    title: "Relatórios",
+                    url: "/company/relatorios",
+                    icon: FileBarChart,
+                });
+            }
             if (
                 companyFeatures?.monitoring &&
                 pathSet?.has("/monitoring") === true
@@ -218,6 +231,11 @@ function navItemsForRole(
                     title: "Usuários",
                     url: "/client/usuarios",
                     icon: Users,
+                },
+                {
+                    title: "Relatórios",
+                    url: "/client/relatorios",
+                    icon: FileBarChart,
                 },
             ];
         case "face_user":

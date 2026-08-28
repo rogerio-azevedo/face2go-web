@@ -1349,6 +1349,108 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/reports/enrollment/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Resumo de cadastro (face/veículo) de um cliente */
+        get: operations["CompanyReportsController_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reports/enrollment/list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista paginada de cadastro (face/veículo) de um cliente */
+        get: operations["CompanyReportsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reports/enrollment/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Exportar relatório de cadastro em CSV */
+        get: operations["CompanyReportsController_export"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/client/reports/enrollment/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Resumo de cadastro (face/veículo) da unidade atual */
+        get: operations["ClientReportsController_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/client/reports/enrollment/list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista paginada de cadastro (face/veículo) da unidade atual */
+        get: operations["ClientReportsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/client/reports/enrollment/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Exportar relatório de cadastro em CSV */
+        get: operations["ClientReportsController_export"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/company-users": {
         parameters: {
             query?: never;
@@ -3767,6 +3869,27 @@ export interface components {
             geocodingPrecision?: "rooftop" | "street" | "approximate";
             hereLocationId?: string;
         };
+        EnrollmentSummaryDto: {
+            /** Format: uuid */
+            clientId: string;
+            clientName: string;
+            /** @enum {string} */
+            clientType: "office" | "clinic" | "condominium" | "school" | "other";
+            /** @enum {string} */
+            group: "students" | "responsibles" | "members";
+            total: number;
+            withFace: number;
+            withoutFace: number;
+            percentWithFace: number;
+            withVehicle?: number;
+            withoutVehicle?: number;
+            percentWithVehicle?: number;
+            classes?: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+            }[];
+        };
         GenerateCompanyUserInviteLinkDto: {
             /** @enum {string} */
             role: "company_admin" | "company_operator";
@@ -5786,6 +5909,151 @@ export interface operations {
         requestBody?: never;
         responses: {
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CompanyReportsController_summary: {
+        parameters: {
+            query: {
+                group: "students" | "responsibles" | "members";
+                classId?: string;
+                search?: string;
+                page?: number;
+                pageSize?: number;
+                clientId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollmentSummaryDto"];
+                };
+            };
+        };
+    };
+    CompanyReportsController_list: {
+        parameters: {
+            query: {
+                group: "students" | "responsibles" | "members";
+                classId?: string;
+                search?: string;
+                page?: number;
+                pageSize?: number;
+                clientId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CompanyReportsController_export: {
+        parameters: {
+            query: {
+                group: "students" | "responsibles" | "members";
+                classId?: string;
+                search?: string;
+                page?: number;
+                pageSize?: number;
+                clientId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientReportsController_summary: {
+        parameters: {
+            query: {
+                group: "students" | "responsibles" | "members";
+                classId?: string;
+                search?: string;
+                page?: number;
+                pageSize?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollmentSummaryDto"];
+                };
+            };
+        };
+    };
+    ClientReportsController_list: {
+        parameters: {
+            query: {
+                group: "students" | "responsibles" | "members";
+                classId?: string;
+                search?: string;
+                page?: number;
+                pageSize?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientReportsController_export: {
+        parameters: {
+            query: {
+                group: "students" | "responsibles" | "members";
+                classId?: string;
+                search?: string;
+                page?: number;
+                pageSize?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

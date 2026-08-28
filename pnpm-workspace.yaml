@@ -1,0 +1,6 @@
+allowBuilds:
+  sharp: true
+  unrs-resolver: true
+
+overrides:
+  "@auth/core": 0.41.2

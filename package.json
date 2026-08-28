@@ -3,17 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "dev:lan": "next dev --hostname 0.0.0.0",
+    "dev": "next dev --webpack",
+    "dev:turbo": "next dev",
+    "dev:lan": "next dev --webpack --hostname 0.0.0.0",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "openapi:gen": "node scripts/openapi-gen.mjs"
-  },
-  "pnpm": {
-    "overrides": {
-      "@auth/core": "0.41.2"
-    }
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
