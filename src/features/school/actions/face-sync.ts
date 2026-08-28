@@ -81,6 +81,44 @@ export async function syncResponsibleFaceAction(
   }
 }
 
+export async function getPersonFaceSyncStatusAction(
+  clientId: string,
+  personId: string,
+  kind: 'student' | 'responsible' | 'member',
+): Promise<
+  | {
+      success: true;
+      deviceSyncStatus: string;
+      deviceSyncError: string | null;
+    }
+  | { error: string }
+> {
+  const cid = z.string().uuid().safeParse(clientId);
+  const pid = z.string().uuid().safeParse(personId);
+  if (!cid.success || !pid.success) return { error: 'ID inválido.' };
+  const path =
+    kind === 'student'
+      ? `/api/clients/${cid.data}/students/${pid.data}`
+      : kind === 'member'
+        ? `/api/clients/${cid.data}/members/${pid.data}`
+        : `/api/clients/${cid.data}/responsibles/${pid.data}`;
+  try {
+    const res = await apiFetchAuthed(path, { cache: 'no-store' });
+    const data = (await parseResponseJson(res)) as {
+      deviceSyncStatus?: string | null;
+      deviceSyncError?: string | null;
+    };
+    if (!res.ok) return { error: nestErrorMessage(data) };
+    return {
+      success: true,
+      deviceSyncStatus: String(data.deviceSyncStatus ?? ''),
+      deviceSyncError: data.deviceSyncError ?? null,
+    };
+  } catch {
+    return { error: 'Sem permissão.' };
+  }
+}
+
 export async function getStudentsGlobalFaceSyncSseUrlAction(
   clientId: string,
 ): Promise<{ url: string } | { error: string }> {

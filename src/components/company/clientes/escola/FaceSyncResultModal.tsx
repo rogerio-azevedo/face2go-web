@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import {
     FACE_SYNC_STEPS,
     humanizeDeviceSyncError,
+    isFaceSyncPending,
     parseFaceSyncOutcome,
 } from "@/lib/face-sync-result";
 
@@ -42,6 +43,11 @@ export function FaceSyncResultModal({
 }: FaceSyncResultModalProps) {
     const open = state.phase !== "idle";
     const [activeStep, setActiveStep] = useState(0);
+    const stillRunning =
+        state.phase === "syncing" ||
+        (state.phase === "done" &&
+            isFaceSyncPending(state.status) &&
+            !state.error);
 
     useEffect(() => {
         let id: number | undefined;
@@ -66,27 +72,28 @@ export function FaceSyncResultModal({
     }, [state.phase, state.phase === "syncing" ? state.name : null]);
 
     function handleOpenChange(nextOpen: boolean) {
-        if (!nextOpen && state.phase === "done") {
+        if (!nextOpen && state.phase === "done" && !stillRunning) {
             onClose();
         }
     }
 
     const outcome =
-        state.phase === "done"
+        state.phase === "done" && !stillRunning
             ? parseFaceSyncOutcome(state.status, state.error)
             : null;
 
     return (
         <AlertDialog open={open} onOpenChange={handleOpenChange}>
             <AlertDialogContent className="max-w-md sm:max-w-md">
-                {state.phase === "syncing" ? (
+                {stillRunning ? (
                     <>
                         <AlertDialogHeader className="place-items-start text-left">
                             <AlertDialogMedia className="bg-muted mb-0">
                                 <Loader2 className="size-6 animate-spin" />
                             </AlertDialogMedia>
                             <AlertDialogTitle>
-                                Sincronizando {state.name}
+                                Sincronizando{" "}
+                                {state.phase === "idle" ? "" : state.name}
                             </AlertDialogTitle>
                             <AlertDialogDescription className="sr-only">
                                 Sincronização facial em andamento.
@@ -183,7 +190,7 @@ export function FaceSyncResultModal({
                                     </>
                                 ) : null}
                                 {outcome === "failed" ? (
-                                    <p className="text-muted-foreground text-sm">
+                                    <p className="text-muted-foreground text-sm whitespace-pre-wrap wrap-break-word">
                                         {humanizeDeviceSyncError(state.error)}
                                     </p>
                                 ) : null}

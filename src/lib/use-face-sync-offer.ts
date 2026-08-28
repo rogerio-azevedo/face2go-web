@@ -5,11 +5,16 @@ import { toast } from "sonner";
 
 import { syncMemberFaceAction } from "@/app/company/clientes/[clientId]/usuarios/members-actions";
 import {
+    getPersonFaceSyncStatusAction,
     syncResponsibleFaceAction,
     syncStudentFaceAction,
 } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
 import type { FaceSyncModalState } from "@/components/company/clientes/escola/FaceSyncResultModal";
 import type { FaceSyncSaveHint } from "@/lib/face-sync-after-edit";
+import {
+    isFaceSyncPending,
+    waitForFaceSyncSettled,
+} from "@/lib/face-sync-result";
 
 type FaceSyncOfferTarget = { id: string; name: string };
 
@@ -63,11 +68,36 @@ export function useFaceSyncOffer(params: {
                     setSyncModalState({ phase: "idle" });
                     return;
                 }
+
+                let status = res.deviceSyncStatus;
+                let error = res.deviceSyncError;
+                if (isFaceSyncPending(status)) {
+                    const settled = await waitForFaceSyncSettled(async () => {
+                        const snapshot = await getPersonFaceSyncStatusAction(
+                            clientId,
+                            id,
+                            kind,
+                        );
+                        if ("error" in snapshot) return snapshot;
+                        return {
+                            deviceSyncStatus: snapshot.deviceSyncStatus,
+                            deviceSyncError: snapshot.deviceSyncError,
+                        };
+                    });
+                    if ("error" in settled) {
+                        toast.error(settled.error);
+                        setSyncModalState({ phase: "idle" });
+                        return;
+                    }
+                    status = settled.deviceSyncStatus;
+                    error = settled.deviceSyncError;
+                }
+
                 setSyncModalState({
                     phase: "done",
                     name,
-                    status: res.deviceSyncStatus,
-                    error: res.deviceSyncError,
+                    status,
+                    error,
                 });
             } catch {
                 toast.error("Não foi possível sincronizar.");

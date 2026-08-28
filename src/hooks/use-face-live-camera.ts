@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { preferNativeCameraInput } from "@/lib/cadastro-face";
+import { composeFaceUploadDataUrl, preferNativeCameraInput } from "@/lib/cadastro-face";
 
 export type FaceCaptureStatus =
     | "idle"
@@ -101,20 +101,18 @@ export function useFaceLiveCamera(options: UseFaceLiveCameraOptions = {}) {
         }
     };
 
-    const captureFromVideo = () => {
+    const captureFromVideo = async () => {
         const video = videoRef.current;
         if (!video || video.videoWidth === 0) return;
         onCaptureReset?.();
-        const canvas = document.createElement("canvas");
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-        ctx.drawImage(video, 0, 0);
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
-        setPreviewDataUrl(dataUrl);
-        stopCamera();
-        setStatus("preview_local");
+        try {
+            const dataUrl = await composeFaceUploadDataUrl(video);
+            setPreviewDataUrl(dataUrl);
+            stopCamera();
+            setStatus("preview_local");
+        } catch {
+            setMessage("Não foi possível capturar a foto.");
+        }
     };
 
     const onHiddenCaptureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,8 +126,14 @@ export function useFaceLiveCamera(options: UseFaceLiveCameraOptions = {}) {
         const reader = new FileReader();
         reader.onload = () => {
             const r = reader.result as string;
-            setPreviewDataUrl(r);
-            setStatus("preview_local");
+            void composeFaceUploadDataUrl(r)
+                .then((composed) => {
+                    setPreviewDataUrl(composed);
+                    setStatus("preview_local");
+                })
+                .catch(() => {
+                    toast.error("Não foi possível processar a imagem.");
+                });
         };
         reader.readAsDataURL(file);
     };

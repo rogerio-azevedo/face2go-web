@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { AppSidebar } from "@/components/shared/Sidebar/app-sidebar";
 import { Header } from "@/components/shared/Header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { ReaderOfflineAlertListener } from "@/features/readers/components/ReaderOfflineAlertListener";
 
 export default async function ClientLayout({
     children,
@@ -30,6 +31,7 @@ export default async function ClientLayout({
                     {children}
                 </div>
             </SidebarInset>
+            <ReaderOfflineAlertListener />
         </SidebarProvider>
     );
 }
