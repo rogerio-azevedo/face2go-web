@@ -41,8 +41,21 @@ export function EnrollmentReport({
   const [classId, setClassId] = useState('');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [withFace, setWithFace] = useState(false);
+  const [withoutFace, setWithoutFace] = useState(false);
+  const [withVehicle, setWithVehicle] = useState(false);
+  const [withoutVehicle, setWithoutVehicle] = useState(false);
 
   const selectedClient = clients.find((client) => client.id === clientId);
+  const hasFace = withFace ? true : withoutFace ? false : undefined;
+  const hasVehicle =
+    group === 'students'
+      ? undefined
+      : withVehicle
+        ? true
+        : withoutVehicle
+          ? false
+          : undefined;
   const queryInput = {
     scope,
     clientId: clientId || undefined,
@@ -54,7 +67,11 @@ export function EnrollmentReport({
   };
 
   const summaryQuery = useEnrollmentSummary(queryInput);
-  const listQuery = useEnrollmentList(queryInput);
+  const listQuery = useEnrollmentList({
+    ...queryInput,
+    hasFace,
+    hasVehicle,
+  });
 
   const clientType =
     selectedClient?.type ?? summaryQuery.data?.clientType ?? null;
@@ -63,6 +80,10 @@ export function EnrollmentReport({
     setGroup(groups[0]);
     setClassId('');
     setPage(1);
+    if (groups[0] === 'students') {
+      setWithVehicle(false);
+      setWithoutVehicle(false);
+    }
   }
 
   const list = listQuery.data ?? emptyPaginated<EnrollmentListItem>();
@@ -99,6 +120,10 @@ export function EnrollmentReport({
           setGroup(next);
           setClassId('');
           setPage(1);
+          if (next === 'students') {
+            setWithVehicle(false);
+            setWithoutVehicle(false);
+          }
         }}
         classes={summaryQuery.data?.classes ?? []}
         classId={classId}
@@ -111,6 +136,23 @@ export function EnrollmentReport({
           setSearch(next);
           setPage(1);
         }}
+        statusFilters={{
+          withFace,
+          withoutFace,
+          withVehicle,
+          withoutVehicle,
+        }}
+        onStatusFiltersChange={(next) => {
+          if (next.withFace !== undefined) setWithFace(next.withFace);
+          if (next.withoutFace !== undefined) setWithoutFace(next.withoutFace);
+          if (next.withVehicle !== undefined) setWithVehicle(next.withVehicle);
+          if (next.withoutVehicle !== undefined) {
+            setWithoutVehicle(next.withoutVehicle);
+          }
+          setPage(1);
+        }}
+        hasFace={hasFace}
+        hasVehicle={hasVehicle}
         exportDisabled={!hasSelection || list.total === 0}
       />
 

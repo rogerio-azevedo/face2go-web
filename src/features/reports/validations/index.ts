@@ -14,6 +14,8 @@ export const enrollmentReportFiltersSchema = z.object({
   group: enrollmentGroupSchema,
   classId: z.string().uuid().optional(),
   search: z.string().trim().max(200).optional(),
+  hasFace: z.boolean().optional(),
+  hasVehicle: z.boolean().optional(),
   page: z.number().int().min(1).optional(),
   pageSize: z.number().int().min(1).max(100).optional(),
 });

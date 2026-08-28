@@ -16,6 +16,8 @@ type ExportCsvButtonProps = {
   group: EnrollmentGroup;
   classId?: string;
   search?: string;
+  hasFace?: boolean;
+  hasVehicle?: boolean;
   disabled?: boolean;
 };
 
@@ -25,6 +27,8 @@ export function ExportCsvButton({
   group,
   classId,
   search,
+  hasFace,
+  hasVehicle,
   disabled,
 }: ExportCsvButtonProps) {
   const [pending, setPending] = useState(false);
@@ -40,6 +44,8 @@ export function ExportCsvButton({
       if (classId) sp.set('classId', classId);
       const trimmed = search?.trim();
       if (trimmed) sp.set('search', trimmed);
+      if (hasFace !== undefined) sp.set('hasFace', String(hasFace));
+      if (hasVehicle !== undefined) sp.set('hasVehicle', String(hasVehicle));
 
       const res = await fetch(`/api/reports/enrollment/export?${sp.toString()}`);
       if (!res.ok) {

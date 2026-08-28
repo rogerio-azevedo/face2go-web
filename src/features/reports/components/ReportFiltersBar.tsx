@@ -2,6 +2,7 @@
 
 import { SearchInput } from '@/components/ui/search-input';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { ExportCsvButton } from '@/features/reports/components/ExportCsvButton';
 import type {
   EnrollmentGroup,
@@ -13,6 +14,13 @@ import { cn } from '@/lib/utils';
 type ClientOption = { id: string; name: string };
 
 type ClassOption = { id: string; name: string };
+
+type StatusFilters = {
+  withFace: boolean;
+  withoutFace: boolean;
+  withVehicle: boolean;
+  withoutVehicle: boolean;
+};
 
 type ReportFiltersBarProps = {
   scope: EnrollmentReportScope;
@@ -27,8 +35,41 @@ type ReportFiltersBarProps = {
   onClassIdChange: (classId: string) => void;
   search: string;
   onSearchChange: (search: string) => void;
+  statusFilters: StatusFilters;
+  onStatusFiltersChange: (next: Partial<StatusFilters>) => void;
+  hasFace?: boolean;
+  hasVehicle?: boolean;
   exportDisabled?: boolean;
 };
+
+function FilterCheckbox({
+  id,
+  label,
+  checked,
+  onCheckedChange,
+  disabled,
+}: {
+  id: string;
+  label: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <label
+      htmlFor={id}
+      className="flex cursor-pointer items-center gap-2 text-sm select-none"
+    >
+      <Checkbox
+        id={id}
+        checked={checked}
+        disabled={disabled}
+        onCheckedChange={(value) => onCheckedChange(value === true)}
+      />
+      {label}
+    </label>
+  );
+}
 
 const selectClassName =
   'h-9 w-full min-w-[10rem] rounded-md border border-input bg-background px-3 text-sm';
@@ -46,9 +87,15 @@ export function ReportFiltersBar({
   onClassIdChange,
   search,
   onSearchChange,
+  statusFilters,
+  onStatusFiltersChange,
+  hasFace,
+  hasVehicle,
   exportDisabled,
 }: ReportFiltersBarProps) {
   const showClassFilter = group === 'students';
+  const showVehicleFilters = group !== 'students';
+  const filtersDisabled = !clientId && scope === 'company';
 
   return (
     <div className="flex flex-col gap-3">
@@ -113,6 +160,8 @@ export function ReportFiltersBar({
             group={group}
             classId={classId || undefined}
             search={search}
+            hasFace={hasFace}
+            hasVehicle={hasVehicle}
             disabled={exportDisabled}
           />
         </div>
@@ -134,6 +183,61 @@ export function ReportFiltersBar({
           ))}
         </div>
       ) : null}
+
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <FilterCheckbox
+          id="report-with-face"
+          label="Com foto"
+          checked={statusFilters.withFace}
+          disabled={filtersDisabled}
+          onCheckedChange={(checked) =>
+            onStatusFiltersChange({
+              withFace: checked,
+              ...(checked ? { withoutFace: false } : {}),
+            })
+          }
+        />
+        <FilterCheckbox
+          id="report-without-face"
+          label="Sem foto"
+          checked={statusFilters.withoutFace}
+          disabled={filtersDisabled}
+          onCheckedChange={(checked) =>
+            onStatusFiltersChange({
+              withoutFace: checked,
+              ...(checked ? { withFace: false } : {}),
+            })
+          }
+        />
+        {showVehicleFilters ? (
+          <>
+            <FilterCheckbox
+              id="report-with-vehicle"
+              label="Com veículo"
+              checked={statusFilters.withVehicle}
+              disabled={filtersDisabled}
+              onCheckedChange={(checked) =>
+                onStatusFiltersChange({
+                  withVehicle: checked,
+                  ...(checked ? { withoutVehicle: false } : {}),
+                })
+              }
+            />
+            <FilterCheckbox
+              id="report-without-vehicle"
+              label="Sem veículo"
+              checked={statusFilters.withoutVehicle}
+              disabled={filtersDisabled}
+              onCheckedChange={(checked) =>
+                onStatusFiltersChange({
+                  withoutVehicle: checked,
+                  ...(checked ? { withVehicle: false } : {}),
+                })
+              }
+            />
+          </>
+        ) : null}
+      </div>
     </div>
   );
 }

@@ -17,6 +17,8 @@ export type EnrollmentReportQueryInput = {
   group: EnrollmentGroup;
   classId?: string;
   search?: string;
+  hasFace?: boolean;
+  hasVehicle?: boolean;
   page: number;
   pageSize?: number;
 };
@@ -57,6 +59,8 @@ export function useEnrollmentList(input: EnrollmentReportQueryInput) {
       input.group,
       input.classId,
       input.search,
+      input.hasFace,
+      input.hasVehicle,
       input.page,
       input.pageSize,
     ],

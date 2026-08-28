@@ -2,6 +2,11 @@ import { NextRequest } from 'next/server';
 
 import { apiFetchAuthed } from '@/lib/api-fetch';
 
+function optionalBoolParam(value: string | null): 'true' | 'false' | undefined {
+  if (value === 'true' || value === 'false') return value;
+  return undefined;
+}
+
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const scope = params.get('scope') === 'client' ? 'client' : 'company';
@@ -9,6 +14,8 @@ export async function GET(request: NextRequest) {
   const clientId = params.get('clientId');
   const classId = params.get('classId');
   const search = params.get('search');
+  const hasFace = optionalBoolParam(params.get('hasFace'));
+  const hasVehicle = optionalBoolParam(params.get('hasVehicle'));
 
   if (
     !group ||
@@ -28,6 +35,8 @@ export async function GET(request: NextRequest) {
   if (classId) nestParams.set('classId', classId);
   const trimmed = search?.trim();
   if (trimmed) nestParams.set('search', trimmed);
+  if (hasFace) nestParams.set('hasFace', hasFace);
+  if (hasVehicle) nestParams.set('hasVehicle', hasVehicle);
 
   const path =
     scope === 'company'

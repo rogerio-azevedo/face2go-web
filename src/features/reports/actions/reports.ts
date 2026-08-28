@@ -19,10 +19,12 @@ function buildQuery(
     group: string;
     classId?: string;
     search?: string;
+    hasFace?: boolean;
+    hasVehicle?: boolean;
     page?: number;
     pageSize?: number;
   },
-  includePagination: boolean,
+  options: { includePagination: boolean; includeStatusFilters: boolean },
 ): string {
   const sp = new URLSearchParams();
   if (data.scope === 'company' && data.clientId) {
@@ -32,7 +34,13 @@ function buildQuery(
   if (data.classId) sp.set('classId', data.classId);
   const search = data.search?.trim();
   if (search) sp.set('search', search);
-  if (includePagination) {
+  if (options.includeStatusFilters) {
+    if (data.hasFace !== undefined) sp.set('hasFace', String(data.hasFace));
+    if (data.hasVehicle !== undefined) {
+      sp.set('hasVehicle', String(data.hasVehicle));
+    }
+  }
+  if (options.includePagination) {
     sp.set('page', String(data.page ?? 1));
     sp.set('pageSize', String(data.pageSize ?? 20));
   }
@@ -55,7 +63,10 @@ export async function getEnrollmentSummaryAction(
   }
 
   try {
-    const qs = buildQuery(parsed.data, false);
+    const qs = buildQuery(parsed.data, {
+      includePagination: false,
+      includeStatusFilters: false,
+    });
     const res = await apiFetchAuthed(
       `${basePath(parsed.data.scope)}/enrollment/summary?${qs}`,
     );
@@ -84,7 +95,10 @@ export async function getEnrollmentListAction(
   }
 
   try {
-    const qs = buildQuery(parsed.data, true);
+    const qs = buildQuery(parsed.data, {
+      includePagination: true,
+      includeStatusFilters: true,
+    });
     const res = await apiFetchAuthed(
       `${basePath(parsed.data.scope)}/enrollment/list?${qs}`,
     );
