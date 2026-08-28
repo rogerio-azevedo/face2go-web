@@ -43,17 +43,16 @@ export async function waitForFaceSyncSettled(
 
     while (Date.now() < deadline) {
         const next = await fetchStatus();
-        if ("error" in next && !("deviceSyncStatus" in next)) {
+        if ("deviceSyncStatus" in next) {
+            if (!isFaceSyncPending(next.deviceSyncStatus)) {
+                return {
+                    deviceSyncStatus: next.deviceSyncStatus,
+                    deviceSyncError: next.deviceSyncError,
+                };
+            }
+        } else {
             if (isFatalFaceSyncPollError(next.error)) return next;
             lastError = next.error;
-        } else if (
-            "deviceSyncStatus" in next &&
-            !isFaceSyncPending(next.deviceSyncStatus)
-        ) {
-            return {
-                deviceSyncStatus: next.deviceSyncStatus,
-                deviceSyncError: next.deviceSyncError,
-            };
         }
 
         const remaining = deadline - Date.now();

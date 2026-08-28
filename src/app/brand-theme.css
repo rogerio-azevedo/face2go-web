@@ -85,6 +85,14 @@
     background-color: color-mix(in srgb, var(--brand-accent) 88%, black);
 }
 
+.brand-themed[data-brand="ienh"] .brand-cta-button {
+    background-color: #ffd400;
+}
+
+.brand-themed[data-brand="ienh"] .brand-cta-button:hover {
+    background-color: #f0c400;
+}
+
 .brand-themed .brand-tip-dot {
     background-color: var(--brand-accent);
 }
