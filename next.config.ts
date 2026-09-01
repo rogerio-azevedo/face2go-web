@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
         root: appRoot,
     },
     outputFileTracingRoot: appRoot,
+    // Vercel Image Optimization está em 402 (OPTIMIZED_IMAGE_REQUEST_PAYMENT_REQUIRED).
+    // Sem isso, next/image quebra logos, manual e orientações faciais para quem não tem cache.
+    images: {
+        unoptimized: true,
+    },
 };
 
 export default nextConfig;
