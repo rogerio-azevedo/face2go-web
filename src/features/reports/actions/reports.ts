@@ -21,6 +21,7 @@ function buildQuery(
     search?: string;
     hasFace?: boolean;
     hasVehicle?: boolean;
+    syncFailed?: boolean;
     page?: number;
     pageSize?: number;
   },
@@ -38,6 +39,9 @@ function buildQuery(
     if (data.hasFace !== undefined) sp.set('hasFace', String(data.hasFace));
     if (data.hasVehicle !== undefined) {
       sp.set('hasVehicle', String(data.hasVehicle));
+    }
+    if (data.syncFailed !== undefined) {
+      sp.set('syncFailed', String(data.syncFailed));
     }
   }
   if (options.includePagination) {

@@ -19,6 +19,7 @@ export type EnrollmentReportQueryInput = {
   search?: string;
   hasFace?: boolean;
   hasVehicle?: boolean;
+  syncFailed?: boolean;
   page: number;
   pageSize?: number;
 };
@@ -61,6 +62,7 @@ export function useEnrollmentList(input: EnrollmentReportQueryInput) {
       input.search,
       input.hasFace,
       input.hasVehicle,
+      input.syncFailed,
       input.page,
       input.pageSize,
     ],

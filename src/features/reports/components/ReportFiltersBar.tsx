@@ -20,6 +20,7 @@ type StatusFilters = {
   withoutFace: boolean;
   withVehicle: boolean;
   withoutVehicle: boolean;
+  syncFailed: boolean;
 };
 
 type ReportFiltersBarProps = {
@@ -39,6 +40,7 @@ type ReportFiltersBarProps = {
   onStatusFiltersChange: (next: Partial<StatusFilters>) => void;
   hasFace?: boolean;
   hasVehicle?: boolean;
+  syncFailed?: boolean;
   exportDisabled?: boolean;
 };
 
@@ -91,6 +93,7 @@ export function ReportFiltersBar({
   onStatusFiltersChange,
   hasFace,
   hasVehicle,
+  syncFailed,
   exportDisabled,
 }: ReportFiltersBarProps) {
   const showClassFilter = group === 'students';
@@ -162,6 +165,7 @@ export function ReportFiltersBar({
             search={search}
             hasFace={hasFace}
             hasVehicle={hasVehicle}
+            syncFailed={syncFailed}
             disabled={exportDisabled}
           />
         </div>
@@ -237,6 +241,15 @@ export function ReportFiltersBar({
             />
           </>
         ) : null}
+        <FilterCheckbox
+          id="report-sync-failed"
+          label="Usuários com falha no sincronismo"
+          checked={statusFilters.syncFailed}
+          disabled={filtersDisabled}
+          onCheckedChange={(checked) =>
+            onStatusFiltersChange({ syncFailed: checked })
+          }
+        />
       </div>
     </div>
   );

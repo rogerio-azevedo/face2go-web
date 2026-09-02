@@ -13,6 +13,9 @@ export type EnrollmentListItem = {
   hasFace: boolean;
   hasVehicle?: boolean;
   deviceSyncStatus: 'pending_sync' | 'synced' | 'sync_failed' | null;
+  deviceSyncError?: string | null;
+  hasFacialReaders: boolean;
+  hasLogin?: boolean;
 };
 
 export type EnrollmentListResult = {

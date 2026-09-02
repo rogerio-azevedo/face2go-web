@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
   const search = params.get('search');
   const hasFace = optionalBoolParam(params.get('hasFace'));
   const hasVehicle = optionalBoolParam(params.get('hasVehicle'));
+  const syncFailed = optionalBoolParam(params.get('syncFailed'));
 
   if (
     !group ||
@@ -37,6 +38,7 @@ export async function GET(request: NextRequest) {
   if (trimmed) nestParams.set('search', trimmed);
   if (hasFace) nestParams.set('hasFace', hasFace);
   if (hasVehicle) nestParams.set('hasVehicle', hasVehicle);
+  if (syncFailed) nestParams.set('syncFailed', syncFailed);
 
   const path =
     scope === 'company'

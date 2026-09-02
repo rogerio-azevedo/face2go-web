@@ -45,6 +45,7 @@ export function EnrollmentReport({
   const [withoutFace, setWithoutFace] = useState(false);
   const [withVehicle, setWithVehicle] = useState(false);
   const [withoutVehicle, setWithoutVehicle] = useState(false);
+  const [syncFailed, setSyncFailed] = useState(false);
 
   const selectedClient = clients.find((client) => client.id === clientId);
   const hasFace = withFace ? true : withoutFace ? false : undefined;
@@ -71,6 +72,7 @@ export function EnrollmentReport({
     ...queryInput,
     hasFace,
     hasVehicle,
+    syncFailed: syncFailed || undefined,
   });
 
   const clientType =
@@ -141,6 +143,7 @@ export function EnrollmentReport({
           withoutFace,
           withVehicle,
           withoutVehicle,
+          syncFailed,
         }}
         onStatusFiltersChange={(next) => {
           if (next.withFace !== undefined) setWithFace(next.withFace);
@@ -149,10 +152,12 @@ export function EnrollmentReport({
           if (next.withoutVehicle !== undefined) {
             setWithoutVehicle(next.withoutVehicle);
           }
+          if (next.syncFailed !== undefined) setSyncFailed(next.syncFailed);
           setPage(1);
         }}
         hasFace={hasFace}
         hasVehicle={hasVehicle}
+        syncFailed={syncFailed || undefined}
         exportDisabled={!hasSelection || list.total === 0}
       />
 
@@ -179,6 +184,7 @@ export function EnrollmentReport({
             loading={listQuery.isLoading}
             showClass={group === 'students'}
             showRole={group === 'members'}
+            showLogin={group !== 'students'}
             showVehicle={group !== 'students'}
             page={list.page}
             pageSize={list.pageSize}

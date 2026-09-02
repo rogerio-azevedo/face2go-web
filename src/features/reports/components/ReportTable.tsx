@@ -13,6 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { DeviceSyncStatusBadge } from '@/components/company/clientes/escola/DeviceSyncStatusBadge';
 import type { EnrollmentListItem } from '@/features/reports/types';
 import { cn } from '@/lib/utils';
 
@@ -21,6 +22,7 @@ type ReportTableProps = {
   loading: boolean;
   showClass: boolean;
   showRole: boolean;
+  showLogin: boolean;
   showVehicle: boolean;
   page: number;
   pageSize: number;
@@ -60,12 +62,20 @@ export function ReportTable({
   loading,
   showClass,
   showRole,
+  showLogin,
   showVehicle,
   page,
   pageSize,
   total,
   onPageChange,
 }: ReportTableProps) {
+  const colSpan =
+    3 +
+    (showClass ? 1 : 0) +
+    (showRole ? 1 : 0) +
+    (showLogin ? 1 : 0) +
+    (showVehicle ? 1 : 0);
+
   return (
     <div className="space-y-3">
       <div className="rounded-lg border bg-card">
@@ -75,6 +85,8 @@ export function ReportTable({
               <TableHead>Nome</TableHead>
               {showClass ? <TableHead>Turma</TableHead> : null}
               {showRole ? <TableHead>Função</TableHead> : null}
+              {showLogin ? <TableHead>Acesso login</TableHead> : null}
+              <TableHead>Leitor</TableHead>
               <TableHead className="w-16 text-center">Face</TableHead>
               {showVehicle ? (
                 <TableHead className="w-20 text-center">Veículo</TableHead>
@@ -85,12 +97,7 @@ export function ReportTable({
             {loading && rows.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={
-                    2 +
-                    (showClass ? 1 : 0) +
-                    (showRole ? 1 : 0) +
-                    (showVehicle ? 1 : 0)
-                  }
+                  colSpan={colSpan}
                   className="text-muted-foreground py-8 text-center"
                 >
                   Carregando…
@@ -100,12 +107,7 @@ export function ReportTable({
             {!loading && rows.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={
-                    2 +
-                    (showClass ? 1 : 0) +
-                    (showRole ? 1 : 0) +
-                    (showVehicle ? 1 : 0)
-                  }
+                  colSpan={colSpan}
                   className="text-muted-foreground py-8 text-center"
                 >
                   Nenhum registro encontrado para este filtro.
@@ -140,6 +142,23 @@ export function ReportTable({
                     )}
                   </TableCell>
                 ) : null}
+                {showLogin ? (
+                  <TableCell>
+                    {row.hasLogin ? (
+                      <Badge>Sim</Badge>
+                    ) : (
+                      <Badge variant="secondary">—</Badge>
+                    )}
+                  </TableCell>
+                ) : null}
+                <TableCell>
+                  <DeviceSyncStatusBadge
+                    status={row.deviceSyncStatus}
+                    hasFace={row.hasFace}
+                    hasReaders={row.hasFacialReaders}
+                    error={row.deviceSyncError}
+                  />
+                </TableCell>
                 <TableCell className="p-1 text-center">
                   <StatusIcon
                     icon={ScanFace}
