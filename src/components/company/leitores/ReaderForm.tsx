@@ -4,11 +4,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { Controller, useForm, type Resolver } from "react-hook-form";
+import { Controller, useForm, useWatch, type Resolver } from "react-hook-form";
 import { toast } from "sonner";
 
 import {
     createReaderAction,
+    provisionIntelbrasPushAction,
     updateReaderAction,
 } from "@/app/company/leitores/actions";
 import { deferInEffect } from "@/lib/defer-in-effect";
@@ -100,6 +101,7 @@ export function ReaderForm({
 }: ReaderFormProps) {
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isProvisioning, setIsProvisioning] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
     const defaultClientId = clients[0]?.id ?? "";
@@ -154,8 +156,11 @@ export function ReaderForm({
         handleSubmit,
         control,
         reset,
-        formState: { errors },
+        formState: { errors, isDirty },
     } = form;
+
+    const brand = useWatch({ control, name: "brand" });
+    const isIntelbras = brand === "intelbras";
 
     useEffect(() => {
         deferInEffect(() => {
@@ -165,6 +170,19 @@ export function ReaderForm({
             }
         });
     }, [open, defaultValues, reset]);
+
+    async function provisionAfterPersist(readerId: string) {
+        if (brand !== "intelbras") {
+            return;
+        }
+        const provision = await provisionIntelbrasPushAction(readerId);
+        if ("error" in provision) {
+            toast.error(provision.error);
+            return;
+        }
+        const label = provision.mode === "v2" ? "2.0" : "1.0";
+        toast.success(`Config enviada ao leitor (Post Eventos ${label}).`);
+    }
 
     async function submit(data: ReaderFormPayload) {
         setIsSubmitting(true);
@@ -176,6 +194,7 @@ export function ReaderForm({
                     return;
                 }
                 toast.success("Leitor cadastrado.");
+                await provisionAfterPersist(result.id);
             } else {
                 if (!reader) {
                     toast.error("Leitor não informado.");
@@ -190,11 +209,37 @@ export function ReaderForm({
                     return;
                 }
                 toast.success("Leitor atualizado.");
+                await provisionAfterPersist(reader.id);
             }
             onOpenChange(false);
             router.refresh();
         } finally {
             setIsSubmitting(false);
+        }
+    }
+
+    async function sendConfigOnly() {
+        if (!reader) {
+            toast.error("Leitor não informado.");
+            return;
+        }
+        setIsProvisioning(true);
+        try {
+            if (isDirty) {
+                const data = form.getValues();
+                const result = await updateReaderAction(
+                    reader.id,
+                    toUpdateApiBody(data),
+                );
+                if ("error" in result) {
+                    toast.error(result.error);
+                    return;
+                }
+            }
+            await provisionAfterPersist(reader.id);
+            router.refresh();
+        } finally {
+            setIsProvisioning(false);
         }
     }
 
@@ -463,8 +508,9 @@ export function ReaderForm({
                                     Credenciais no leitor
                                 </p>
                                 <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
-                                    Usuário e senha do painel HTTP (Digest) —
-                                    necessários para monitoramento Intelbras.
+                                    {isIntelbras
+                                        ? "Usuário e senha do painel HTTP (Digest). Em Intelbras, o Face2Go envia a config POST (1.0/2.0) para o aparelho; o leitor é que chama o servidor."
+                                        : "Usuário e senha do painel HTTP (Digest). Em Hikvision, o Face2Go conecta no leitor (alertStream/poll) — não há POST de eventos."}
                                     A senha é armazenada criptografada.
                                 </p>
                             </div>
@@ -603,14 +649,32 @@ export function ReaderForm({
                             variant="ghost"
                             className="hover:bg-muted w-full sm:w-auto"
                             onClick={() => onOpenChange(false)}
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || isProvisioning}
                         >
                             Cancelar
                         </Button>
+                        {mode === "edit" && isIntelbras ? (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="w-full sm:w-auto"
+                                disabled={isSubmitting || isProvisioning}
+                                onClick={() => void sendConfigOnly()}
+                            >
+                                {isProvisioning ? (
+                                    <>
+                                        <Loader2 className="mr-2 size-4 animate-spin" />
+                                        Enviando...
+                                    </>
+                                ) : (
+                                    "Enviar config"
+                                )}
+                            </Button>
+                        ) : null}
                         <Button
                             type="submit"
                             className="w-full shadow-md sm:w-auto"
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || isProvisioning}
                         >
                             {isSubmitting ? (
                                 <>

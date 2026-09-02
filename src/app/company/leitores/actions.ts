@@ -24,7 +24,7 @@ function zodFirstMessage(error: unknown): string {
 
 export async function createReaderAction(
     input: unknown,
-): Promise<{ success: true } | { error: string }> {
+): Promise<{ success: true; id: string } | { error: string }> {
     try {
         const parsed = createReaderSchema.safeParse(input);
         if (!parsed.success) {
@@ -41,10 +41,48 @@ export async function createReaderAction(
             return { error: nestErrorMessage(data) };
         }
 
+        const created = (await parseResponseJson(res)) as { id?: string };
         revalidatePath('/company/leitores');
-        return { success: true };
+        if (!created.id) {
+            return { error: 'Leitor criado sem id.' };
+        }
+        return { success: true, id: created.id };
     } catch {
         return { error: 'Sem permissão.' };
+    }
+}
+
+export type ProvisionPushResponse = {
+    mode?: 'v1' | 'v2';
+    applied?: boolean;
+};
+
+export async function provisionIntelbrasPushAction(
+    readerId: string,
+): Promise<{ success: true; mode?: 'v1' | 'v2' } | { error: string }> {
+    try {
+        const pid = z.string().uuid().safeParse(readerId);
+        if (!pid.success) {
+            return { error: 'Leitor inválido.' };
+        }
+        const res = await apiFetchAuthed(
+            `/api/readers/${pid.data}/provision-push`,
+            { method: 'POST' },
+        );
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { error: nestErrorMessage(data) };
+        }
+        const json = (await parseResponseJson(res)) as ProvisionPushResponse;
+        if (!json.applied) {
+            return {
+                error:
+                    'Não foi possível alcançar o leitor. Confira IP, porta e se ele está ligado. Provisionamento de Pindorama só funciona a partir do server de prod.',
+            };
+        }
+        return { success: true, mode: json.mode };
+    } catch {
+        return { error: 'Não foi possível alcançar o leitor.' };
     }
 }
 
