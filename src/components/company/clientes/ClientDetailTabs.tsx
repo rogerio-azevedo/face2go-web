@@ -6,41 +6,12 @@ import { SchoolTab } from "@/components/company/clientes/escola/SchoolTab";
 import { RegistrationsReviewBoard } from "@/components/registrations/RegistrationsReviewBoard";
 import { RegistrationsFaceSyncAllModal } from "@/features/registrations/components/RegistrationsFaceSyncAllModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type {
-    ClientRegistrationListRow,
-    ClientRoleRow,
-    PaginatedResponse,
-    PickupAuthorizationRow,
-    InviteRow,
-    RegistrationLinkListRow,
-    ResponsibleRow,
-    MemberRow,
-    SchoolClassRow,
-    ShiftRow,
-    StudentRow,
-    VehicleRow,
-} from "@/types/domain";
-import { emptyPaginated } from "@/lib/pagination";
-import type { ClientAddressRow } from "@/types/client-address";
 
 export type ClientDetailTabsProps = {
     clientId: string;
     clientType: string;
     isAdmin?: boolean;
     canEditAddresses?: boolean;
-    initialAddresses?: ClientAddressRow[];
-    initialLinks: RegistrationLinkListRow[];
-    initialRows: ClientRegistrationListRow[];
-    /** Só quando `clientType === "school"`: dados carregados no servidor */
-    initialSchoolClasses?: SchoolClassRow[];
-    initialSchoolStudents?: PaginatedResponse<StudentRow>;
-    initialSchoolResponsibles?: PaginatedResponse<ResponsibleRow>;
-    initialSchoolMembers?: PaginatedResponse<MemberRow>;
-    initialSchoolRoles?: ClientRoleRow[];
-    initialSchoolShifts?: ShiftRow[];
-    initialSchoolPickupAuthorizations?: PickupAuthorizationRow[];
-    initialSchoolInvites?: InviteRow[];
-    initialSchoolVehicles?: PaginatedResponse<VehicleRow>;
 };
 
 export function ClientDetailTabs({
@@ -48,18 +19,6 @@ export function ClientDetailTabs({
     clientType,
     isAdmin = false,
     canEditAddresses = false,
-    initialAddresses = [],
-    initialLinks,
-    initialRows,
-    initialSchoolClasses = [],
-    initialSchoolStudents = emptyPaginated<StudentRow>(),
-    initialSchoolResponsibles = emptyPaginated<ResponsibleRow>(),
-    initialSchoolMembers = emptyPaginated<MemberRow>(),
-    initialSchoolRoles = [],
-    initialSchoolShifts = [],
-    initialSchoolPickupAuthorizations = [],
-    initialSchoolInvites = [],
-    initialSchoolVehicles = emptyPaginated<VehicleRow>(),
 }: ClientDetailTabsProps) {
     const isSchool = clientType === "school";
 
@@ -69,16 +28,6 @@ export function ClientDetailTabs({
                 clientId={clientId}
                 isAdmin={isAdmin}
                 canEditAddresses={canEditAddresses}
-                initialAddresses={initialAddresses}
-                initialClasses={initialSchoolClasses}
-                initialStudents={initialSchoolStudents}
-                initialResponsibles={initialSchoolResponsibles}
-                initialMembers={initialSchoolMembers}
-                initialRoles={initialSchoolRoles}
-                initialShifts={initialSchoolShifts}
-                initialPickupAuthorizations={initialSchoolPickupAuthorizations}
-                initialInvites={initialSchoolInvites}
-                initialVehicles={initialSchoolVehicles}
             />
         );
     }
@@ -103,7 +52,6 @@ export function ClientDetailTabs({
                 <RegistrationsReviewBoard
                     variant="company"
                     companyClientId={clientId}
-                    initialRows={initialRows}
                 />
             </TabsContent>
 
@@ -112,16 +60,12 @@ export function ClientDetailTabs({
                     Gere links públicos e copie quando precisar. As solicitações
                     ficam na aba &quot;Solicitações recebidas&quot;.
                 </p>
-                <CompanyClientRegistrationLinksPanel
-                    clientId={clientId}
-                    initialLinks={initialLinks}
-                />
+                <CompanyClientRegistrationLinksPanel clientId={clientId} />
             </TabsContent>
 
             <TabsContent value="addresses" className="space-y-4">
                 <ClientAddressesPanel
                     clientId={clientId}
-                    initialAddresses={initialAddresses}
                     canEdit={canEditAddresses}
                 />
             </TabsContent>

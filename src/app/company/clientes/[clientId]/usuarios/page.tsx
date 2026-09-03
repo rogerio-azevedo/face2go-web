@@ -4,29 +4,8 @@ import { auth } from "@/auth";
 import { ClientDetailTabs } from "@/components/company/clientes/ClientDetailTabs";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { can } from "@/lib/permissions";
-import { listClientAddressesAction } from "@/app/company/clientes/[clientId]/enderecos/actions";
-import type { ClientAddressRow } from "@/types/client-address";
 import { apiFetchAuthed, parseResponseJson } from "@/lib/api-fetch";
-import {
-    buildSchoolListQuery,
-    emptyPaginated,
-    normalizePaginated,
-} from "@/lib/pagination";
-import type {
-    ClientRegistrationListRow,
-    ClientListRow,
-    ClientRoleRow,
-    PaginatedResponse,
-    PickupAuthorizationRow,
-    InviteRow,
-    RegistrationLinkListRow,
-    ResponsibleRow,
-    MemberRow,
-    SchoolClassRow,
-    ShiftRow,
-    StudentRow,
-    VehicleRow,
-} from "@/types/domain";
+import type { ClientListRow } from "@/types/domain";
 
 export default async function CompanyClientUsuariosPage({
     params,
@@ -55,19 +34,6 @@ export default async function CompanyClientUsuariosPage({
         (role === "company_operator" && (await can("clients", "can_update")));
 
     let clientMeta: Pick<ClientListRow, "name" | "type"> | null = null;
-    let links: RegistrationLinkListRow[] = [];
-    let rows: ClientRegistrationListRow[] = [];
-    let schoolClasses: SchoolClassRow[] = [];
-    let schoolStudents: PaginatedResponse<StudentRow> = emptyPaginated();
-    let schoolResponsibles: PaginatedResponse<ResponsibleRow> =
-        emptyPaginated();
-    let schoolMembers: PaginatedResponse<MemberRow> = emptyPaginated();
-    let schoolRoles: ClientRoleRow[] = [];
-    let schoolShifts: ShiftRow[] = [];
-    let schoolPickupAuthorizations: PickupAuthorizationRow[] = [];
-    let schoolInvites: InviteRow[] = [];
-    let schoolVehicles: PaginatedResponse<VehicleRow> = emptyPaginated();
-    let addresses: ClientAddressRow[] = [];
 
     try {
         const clientRes = await apiFetchAuthed(`/api/clients/${clientId}`);
@@ -77,110 +43,8 @@ export default async function CompanyClientUsuariosPage({
                 clientMeta = { name: data.name, type: data.type };
             }
         }
-
-        const [linksRes, regRes, addrResult] = await Promise.all([
-            apiFetchAuthed(`/api/clients/${clientId}/registration-links`),
-            apiFetchAuthed(`/api/clients/${clientId}/registrations`),
-            listClientAddressesAction(clientId),
-        ]);
-
-        if (addrResult.ok) {
-            addresses = addrResult.data;
-        }
-
-        if (linksRes.ok) {
-            links = (await parseResponseJson(linksRes)) as RegistrationLinkListRow[];
-        }
-        if (regRes.ok) {
-            rows = (await parseResponseJson(regRes)) as ClientRegistrationListRow[];
-        }
-
-        if (clientMeta?.type === "school") {
-            const listQs = buildSchoolListQuery({ page: 1 });
-            const [clsRes, stRes, prRes, mbRes, rolesRes, shRes, pkRes, invRes, vhRes] =
-                await Promise.all([
-                    apiFetchAuthed(`/api/clients/${clientId}/school-classes`),
-                    apiFetchAuthed(
-                        `/api/clients/${clientId}/students?${listQs}`,
-                    ),
-                    apiFetchAuthed(
-                        `/api/clients/${clientId}/responsibles?${listQs}`,
-                    ),
-                    apiFetchAuthed(
-                        `/api/clients/${clientId}/members?${listQs}`,
-                    ),
-                    apiFetchAuthed(`/api/clients/${clientId}/roles`),
-                    apiFetchAuthed(`/api/clients/${clientId}/shifts`),
-                    apiFetchAuthed(
-                        `/api/clients/${clientId}/pickup-authorizations`,
-                    ),
-                    apiFetchAuthed(`/api/clients/${clientId}/invites`),
-                    apiFetchAuthed(
-                        `/api/clients/${clientId}/vehicles?${listQs}`,
-                    ),
-                ]);
-            if (clsRes.ok) {
-                schoolClasses = (await parseResponseJson(
-                    clsRes,
-                )) as SchoolClassRow[];
-            }
-            if (stRes.ok) {
-                schoolStudents = normalizePaginated<StudentRow>(
-                    await parseResponseJson(stRes),
-                );
-            }
-            if (prRes.ok) {
-                schoolResponsibles = normalizePaginated<ResponsibleRow>(
-                    await parseResponseJson(prRes),
-                );
-            }
-            if (mbRes.ok) {
-                schoolMembers = normalizePaginated<MemberRow>(
-                    await parseResponseJson(mbRes),
-                );
-            }
-            if (rolesRes.ok) {
-                schoolRoles = (await parseResponseJson(
-                    rolesRes,
-                )) as ClientRoleRow[];
-            }
-            if (shRes.ok) {
-                schoolShifts = (await parseResponseJson(shRes)) as ShiftRow[];
-            }
-            if (pkRes.ok) {
-                schoolPickupAuthorizations =
-                    ((await parseResponseJson(
-                        pkRes,
-                    )) as PickupAuthorizationRow[]) ?? [];
-                if (!Array.isArray(schoolPickupAuthorizations)) {
-                    schoolPickupAuthorizations = [];
-                }
-            }
-            if (invRes.ok) {
-                schoolInvites =
-                    ((await parseResponseJson(invRes)) as InviteRow[]) ?? [];
-                if (!Array.isArray(schoolInvites)) {
-                    schoolInvites = [];
-                }
-            }
-            if (vhRes.ok) {
-                schoolVehicles = normalizePaginated<VehicleRow>(
-                    await parseResponseJson(vhRes),
-                );
-            }
-        }
     } catch {
-        links = [];
-        rows = [];
-        schoolClasses = [];
-        schoolStudents = emptyPaginated();
-        schoolResponsibles = emptyPaginated();
-        schoolMembers = emptyPaginated();
-        schoolRoles = [];
-        schoolShifts = [];
-        schoolPickupAuthorizations = [];
-        schoolInvites = [];
-        schoolVehicles = emptyPaginated();
+        clientMeta = null;
     }
 
     const clientName = clientMeta?.name ?? null;
@@ -204,18 +68,6 @@ export default async function CompanyClientUsuariosPage({
                 clientType={clientMeta?.type ?? "other"}
                 isAdmin={role === "company_admin"}
                 canEditAddresses={canEditAddresses}
-                initialAddresses={addresses}
-                initialLinks={links}
-                initialRows={rows}
-                initialSchoolClasses={schoolClasses}
-                initialSchoolStudents={schoolStudents}
-                initialSchoolResponsibles={schoolResponsibles}
-                initialSchoolMembers={schoolMembers}
-                initialSchoolRoles={schoolRoles}
-                initialSchoolShifts={schoolShifts}
-                initialSchoolPickupAuthorizations={schoolPickupAuthorizations}
-                initialSchoolInvites={schoolInvites}
-                initialSchoolVehicles={schoolVehicles}
             />
         </div>
     );

@@ -3,7 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { MapPin, Pencil, Star, Trash2 } from "lucide-react";
+import { Loader2, MapPin, Pencil, Star, Trash2 } from "lucide-react";
+
+import { deferInEffect } from "@/lib/defer-in-effect";
 
 import {
     deleteClientAddressAction,
@@ -40,11 +42,12 @@ export function ClientAddressesPanel({
     canEdit = true,
 }: {
     clientId: string;
-    initialAddresses: ClientAddressRow[];
+    initialAddresses?: ClientAddressRow[];
     canEdit?: boolean;
 }) {
     const router = useRouter();
-    const [addresses, setAddresses] = useState(initialAddresses);
+    const [addresses, setAddresses] = useState(initialAddresses ?? []);
+    const [loading, setLoading] = useState(initialAddresses === undefined);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editing, setEditing] = useState<ClientAddressRow | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<ClientAddressRow | null>(
@@ -53,8 +56,20 @@ export function ClientAddressesPanel({
     const [pending, startTransition] = useTransition();
 
     useEffect(() => {
-        setAddresses(initialAddresses);
-    }, [initialAddresses]);
+        if (initialAddresses !== undefined) {
+            setAddresses(initialAddresses);
+            return;
+        }
+        deferInEffect(() => {
+            void (async () => {
+                setLoading(true);
+                const result = await listClientAddressesAction(clientId);
+                if (result.ok) setAddresses(result.data);
+                else toast.error(result.error);
+                setLoading(false);
+            })();
+        });
+    }, [clientId, initialAddresses]);
 
     const refresh = () => {
         router.refresh();
@@ -131,6 +146,12 @@ export function ClientAddressesPanel({
                 ) : null}
             </div>
 
+            <div className="relative">
+                {loading || pending ? (
+                    <div className="bg-background/60 absolute inset-0 z-10 flex items-center justify-center rounded-md">
+                        <Loader2 className="text-muted-foreground size-6 animate-spin" />
+                    </div>
+                ) : null}
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -219,6 +240,7 @@ export function ClientAddressesPanel({
                     )}
                 </TableBody>
             </Table>
+            </div>
 
             <AddressFormDialog
                 clientId={clientId}

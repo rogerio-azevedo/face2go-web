@@ -1,9 +1,12 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { listSchoolClassesAction } from "@/features/school/actions/school-classes";
+import { listShiftsAction } from "@/app/company/clientes/[clientId]/usuarios/shifts-actions";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import type { SchoolClassRow, ShiftRow } from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,30 +27,54 @@ import { SchoolClassForm } from "./SchoolClassForm";
 
 export function SchoolClassesSection({
     clientId,
-    initialClasses,
-    shifts,
 }: {
     clientId: string;
-    initialClasses: SchoolClassRow[];
-    shifts: ShiftRow[];
 }) {
-    const router = useRouter();
     const [, startTransition] = useTransition();
+    const [classes, setClasses] = useState<SchoolClassRow[]>([]);
+    const [shifts, setShifts] = useState<ShiftRow[]>([]);
+    const [loading, setLoading] = useState(true);
     const [sheetOpen, setSheetOpen] = useState(false);
     const [editRow, setEditRow] = useState<SchoolClassRow | null>(null);
     const [search, setSearch] = useState("");
 
     const filteredClasses = useMemo(() => {
         const term = normalizeSearch(search);
-        if (!term) return initialClasses;
-        return initialClasses.filter((row) =>
+        if (!term) return classes;
+        return classes.filter((row) =>
             normalizeSearch(row.name).includes(term),
         );
-    }, [initialClasses, search]);
+    }, [classes, search]);
 
     function refresh() {
-        startTransition(() => router.refresh());
+        startTransition(async () => {
+            setLoading(true);
+            const [clsRes, shRes] = await Promise.all([
+                listSchoolClassesAction(clientId),
+                listShiftsAction(clientId),
+            ]);
+            if ("error" in clsRes) toast.error(clsRes.error);
+            else setClasses(clsRes.items);
+            if (!("error" in shRes)) setShifts(shRes.items);
+            setLoading(false);
+        });
     }
+
+    useEffect(() => {
+        deferInEffect(() => {
+            void (async () => {
+                setLoading(true);
+                const [clsRes, shRes] = await Promise.all([
+                    listSchoolClassesAction(clientId),
+                    listShiftsAction(clientId),
+                ]);
+                if ("error" in clsRes) toast.error(clsRes.error);
+                else setClasses(clsRes.items);
+                if (!("error" in shRes)) setShifts(shRes.items);
+                setLoading(false);
+            })();
+        });
+    }, [clientId]);
 
     return (
         <>
@@ -71,7 +98,12 @@ export function SchoolClassesSection({
                 </Button>
             </div>
 
-            <div className="rounded-md border">
+            <div className="relative rounded-md border">
+                {loading ? (
+                    <div className="bg-background/60 absolute inset-0 z-10 flex items-center justify-center rounded-md">
+                        <Loader2 className="text-muted-foreground size-6 animate-spin" />
+                    </div>
+                ) : null}
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -91,7 +123,7 @@ export function SchoolClassesSection({
                                     colSpan={5}
                                     className="text-muted-foreground py-10 text-center"
                                 >
-                                    {initialClasses.length === 0
+                                    {classes.length === 0
                                         ? "Nenhuma turma cadastrada."
                                         : "Nenhuma turma encontrada."}
                                 </TableCell>

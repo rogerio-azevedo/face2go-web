@@ -1,12 +1,13 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { Loader2 } from "lucide-react";
 import {
     cancelInviteAction,
     deleteInviteAction,
+    listInvitesAction,
     markUsedInviteAction,
 } from "@/app/company/clientes/[clientId]/usuarios/invites-actions";
 import { deferInEffect } from "@/lib/defer-in-effect";
@@ -95,14 +96,12 @@ function formatRange(from: string, until: string): string {
 
 export function InvitesSection({
     clientId,
-    initialInvites,
 }: {
     clientId: string;
-    initialInvites: InviteRow[];
 }) {
-    const router = useRouter();
     const [isPending, startTransition] = useTransition();
-    const [rows, setRows] = useState<InviteRow[]>(initialInvites);
+    const [rows, setRows] = useState<InviteRow[]>([]);
+    const [loading, setLoading] = useState(true);
     const [selectedRow, setSelectedRow] = useState<InviteRow | null>(null);
     const [searchGuest, setSearchGuest] = useState("");
     const [searchCreator, setSearchCreator] = useState("");
@@ -130,15 +129,33 @@ export function InvitesSection({
         });
     }, [rows, searchGuest, searchCreator]);
 
+    function refresh() {
+        startTransition(async () => {
+            setLoading(true);
+            const r = await listInvitesAction(clientId);
+            if ("error" in r) {
+                toast.error(r.error);
+            } else {
+                setRows(r.items);
+            }
+            setLoading(false);
+        });
+    }
+
     useEffect(() => {
         deferInEffect(() => {
-            setRows(initialInvites);
+            void (async () => {
+                setLoading(true);
+                const r = await listInvitesAction(clientId);
+                if ("error" in r) {
+                    toast.error(r.error);
+                } else {
+                    setRows(r.items);
+                }
+                setLoading(false);
+            })();
         });
-    }, [initialInvites]);
-
-    function refresh() {
-        startTransition(() => router.refresh());
-    }
+    }, [clientId]);
 
     return (
         <div className="space-y-4">
@@ -186,7 +203,12 @@ export function InvitesSection({
                 </div>
             </div>
 
-            <div className="rounded-md border">
+            <div className="relative rounded-md border">
+                {loading ? (
+                    <div className="bg-background/60 absolute inset-0 z-10 flex items-center justify-center rounded-md">
+                        <Loader2 className="text-muted-foreground size-6 animate-spin" />
+                    </div>
+                ) : null}
                 <Table>
                     <TableHeader>
                         <TableRow>

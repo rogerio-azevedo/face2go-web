@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
@@ -8,6 +8,7 @@ import {
     cancelPickupAuthorizationAction,
     deletePickupAuthorizationAction,
     getResponsibleByIdAction,
+    listPickupAuthorizationsAction,
     markUsedPickupAuthorizationAction,
 } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
 import { deferInEffect } from "@/lib/defer-in-effect";
@@ -100,15 +101,12 @@ function formatRange(from: string, until: string): string {
 
 export function PickupAuthorizationsSection({
     clientId,
-    initialAuthorizations,
 }: {
     clientId: string;
-    initialAuthorizations: PickupAuthorizationRow[];
 }) {
-    const router = useRouter();
     const [isPending, startTransition] = useTransition();
-    const [rows, setRows] =
-        useState<PickupAuthorizationRow[]>(initialAuthorizations);
+    const [rows, setRows] = useState<PickupAuthorizationRow[]>([]);
+    const [loading, setLoading] = useState(true);
     const [responsibleById, setResponsibleById] = useState(
         () => new Map<string, ResponsibleRow>(),
     );
@@ -140,9 +138,18 @@ export function PickupAuthorizationsSection({
 
     useEffect(() => {
         deferInEffect(() => {
-            setRows(initialAuthorizations);
+            void (async () => {
+                setLoading(true);
+                const r = await listPickupAuthorizationsAction(clientId);
+                if ("error" in r) {
+                    toast.error(r.error);
+                } else {
+                    setRows(r.items);
+                }
+                setLoading(false);
+            })();
         });
-    }, [initialAuthorizations]);
+    }, [clientId]);
 
     useEffect(() => {
         let cancelled = false;
@@ -189,7 +196,16 @@ export function PickupAuthorizationsSection({
     }, [clientId, rows]);
 
     function refresh() {
-        startTransition(() => router.refresh());
+        startTransition(async () => {
+            setLoading(true);
+            const r = await listPickupAuthorizationsAction(clientId);
+            if ("error" in r) {
+                toast.error(r.error);
+            } else {
+                setRows(r.items);
+            }
+            setLoading(false);
+        });
     }
 
     return (
@@ -235,7 +251,12 @@ export function PickupAuthorizationsSection({
                 </div>
             </div>
 
-            <div className="rounded-md border">
+            <div className="relative rounded-md border">
+                {loading ? (
+                    <div className="bg-background/60 absolute inset-0 z-10 flex items-center justify-center rounded-md">
+                        <Loader2 className="text-muted-foreground size-6 animate-spin" />
+                    </div>
+                ) : null}
                 <Table>
                     <TableHeader>
                         <TableRow>

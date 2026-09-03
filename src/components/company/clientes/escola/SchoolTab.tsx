@@ -1,18 +1,5 @@
 "use client";
 
-import type {
-    ClientRoleRow,
-    PaginatedResponse,
-    PickupAuthorizationRow,
-    InviteRow,
-    ResponsibleRow,
-    MemberRow,
-    SchoolClassRow,
-    ShiftRow,
-    StudentRow,
-    VehicleRow,
-} from "@/types/domain";
-import { emptyPaginated } from "@/lib/pagination";
 import {
     Tabs,
     TabsContent,
@@ -22,7 +9,6 @@ import {
 
 import { InvitesSection } from "./InvitesSection";
 import { ClientAddressesPanel } from "@/components/company/clientes/enderecos/ClientAddressesPanel";
-import type { ClientAddressRow } from "@/types/client-address";
 import { MembersSection } from "./MembersSection";
 import { ParentsSection } from "./ParentsSection";
 import { PickupAuthorizationsSection } from "./PickupAuthorizationsSection";
@@ -35,30 +21,10 @@ export function SchoolTab({
     clientId,
     isAdmin = false,
     canEditAddresses = false,
-    initialAddresses = [],
-    initialClasses,
-    initialStudents,
-    initialResponsibles,
-    initialMembers,
-    initialRoles,
-    initialShifts,
-    initialPickupAuthorizations = [],
-    initialInvites = [],
-    initialVehicles = emptyPaginated<VehicleRow>(),
 }: {
     clientId: string;
     isAdmin?: boolean;
-    initialClasses: SchoolClassRow[];
-    initialStudents: PaginatedResponse<StudentRow>;
-    initialResponsibles: PaginatedResponse<ResponsibleRow>;
-    initialMembers: PaginatedResponse<MemberRow>;
-    initialRoles: ClientRoleRow[];
-    initialShifts: ShiftRow[];
-    initialPickupAuthorizations?: PickupAuthorizationRow[];
-    initialInvites?: InviteRow[];
-    initialVehicles?: PaginatedResponse<VehicleRow>;
     canEditAddresses?: boolean;
-    initialAddresses?: ClientAddressRow[];
 }) {
     return (
         <div className="space-y-4">
@@ -77,64 +43,32 @@ export function SchoolTab({
                     <TabsTrigger value="addresses">Endereços</TabsTrigger>
                 </TabsList>
                 <TabsContent value="students" className="pt-4">
-                    <StudentsSection
-                        clientId={clientId}
-                        isAdmin={isAdmin}
-                        classes={initialClasses}
-                        initialStudents={initialStudents}
-                    />
+                    <StudentsSection clientId={clientId} isAdmin={isAdmin} />
                 </TabsContent>
                 <TabsContent value="parents" className="pt-4">
-                    <ParentsSection
-                        clientId={clientId}
-                        isAdmin={isAdmin}
-                        initialResponsibles={initialResponsibles}
-                    />
+                    <ParentsSection clientId={clientId} isAdmin={isAdmin} />
                 </TabsContent>
                 <TabsContent value="members" className="pt-4">
-                    <MembersSection
-                        clientId={clientId}
-                        isAdmin={isAdmin}
-                        roles={initialRoles}
-                        initialMembers={initialMembers}
-                        shifts={initialShifts}
-                    />
+                    <MembersSection clientId={clientId} isAdmin={isAdmin} />
                 </TabsContent>
                 <TabsContent value="shifts" className="pt-4">
-                    <ShiftsSection
-                        clientId={clientId}
-                        initialShifts={initialShifts}
-                    />
+                    <ShiftsSection clientId={clientId} />
                 </TabsContent>
                 <TabsContent value="classes" className="pt-4">
-                    <SchoolClassesSection
-                        clientId={clientId}
-                        initialClasses={initialClasses}
-                        shifts={initialShifts}
-                    />
+                    <SchoolClassesSection clientId={clientId} />
                 </TabsContent>
                 <TabsContent value="pickups" className="pt-4">
-                    <PickupAuthorizationsSection
-                        clientId={clientId}
-                        initialAuthorizations={initialPickupAuthorizations}
-                    />
+                    <PickupAuthorizationsSection clientId={clientId} />
                 </TabsContent>
                 <TabsContent value="invites" className="pt-4">
-                    <InvitesSection
-                        clientId={clientId}
-                        initialInvites={initialInvites}
-                    />
+                    <InvitesSection clientId={clientId} />
                 </TabsContent>
                 <TabsContent value="vehicles" className="pt-4">
-                    <VehiclesSection
-                        clientId={clientId}
-                        initialVehicles={initialVehicles}
-                    />
+                    <VehiclesSection clientId={clientId} />
                 </TabsContent>
                 <TabsContent value="addresses" className="pt-4">
                     <ClientAddressesPanel
                         clientId={clientId}
-                        initialAddresses={initialAddresses}
                         canEdit={canEditAddresses}
                     />
                 </TabsContent>

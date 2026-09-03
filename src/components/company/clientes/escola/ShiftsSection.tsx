@@ -1,10 +1,14 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { Loader2 } from "lucide-react";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import { removeShiftAction } from "@/app/company/clientes/[clientId]/usuarios/shifts-actions";
+import {
+    listShiftsAction,
+    removeShiftAction,
+} from "@/app/company/clientes/[clientId]/usuarios/shifts-actions";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -93,21 +97,44 @@ function scheduleSummaryLines(schedule: ShiftSchedule): string[] {
 
 export function ShiftsSection({
     clientId,
-    initialShifts,
 }: {
     clientId: string;
-    initialShifts: ShiftRow[];
 }) {
-    const router = useRouter();
     const [, startTransition] = useTransition();
+    const [shifts, setShifts] = useState<ShiftRow[]>([]);
+    const [loading, setLoading] = useState(true);
     const [sheetOpen, setSheetOpen] = useState(false);
     const [editRow, setEditRow] = useState<ShiftRow | null>(null);
     const [pendingDelete, setPendingDelete] = useState<ShiftRow | null>(null);
     const [deleting, setDeleting] = useState(false);
 
     function refresh() {
-        startTransition(() => router.refresh());
+        startTransition(async () => {
+            setLoading(true);
+            const r = await listShiftsAction(clientId);
+            if ("error" in r) {
+                toast.error(r.error);
+            } else {
+                setShifts(r.items);
+            }
+            setLoading(false);
+        });
     }
+
+    useEffect(() => {
+        deferInEffect(() => {
+            void (async () => {
+                setLoading(true);
+                const r = await listShiftsAction(clientId);
+                if ("error" in r) {
+                    toast.error(r.error);
+                } else {
+                    setShifts(r.items);
+                }
+                setLoading(false);
+            })();
+        });
+    }, [clientId]);
 
     async function confirmDelete() {
         if (!pendingDelete) return;
@@ -141,7 +168,12 @@ export function ShiftsSection({
                 </Button>
             </div>
 
-            <div className="rounded-md border">
+            <div className="relative rounded-md border">
+                {loading ? (
+                    <div className="bg-background/60 absolute inset-0 z-10 flex items-center justify-center rounded-md">
+                        <Loader2 className="text-muted-foreground size-6 animate-spin" />
+                    </div>
+                ) : null}
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -156,7 +188,7 @@ export function ShiftsSection({
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {initialShifts.length === 0 ? (
+                        {shifts.length === 0 ? (
                             <TableRow>
                                 <TableCell
                                     colSpan={4}
@@ -166,7 +198,7 @@ export function ShiftsSection({
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            initialShifts.map((row) => (
+                            shifts.map((row) => (
                                 <TableRow key={row.id}>
                                     <TableCell className="font-medium">
                                         {row.name}

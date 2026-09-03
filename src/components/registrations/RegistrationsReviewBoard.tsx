@@ -1,7 +1,6 @@
 "use client";
 
-import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { ArrowDown, ArrowUp, ArrowUpDown, Loader2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
@@ -17,8 +16,16 @@ import {
 } from "@/app/company/clientes/[clientId]/usuarios/actions";
 import { FaceSyncResultModal } from "@/components/company/clientes/escola/FaceSyncResultModal";
 import { DeviceSyncStatusBadge } from "@/components/company/clientes/escola/DeviceSyncStatusBadge";
+import { listRegistrationsAction } from "@/features/registrations/actions/list";
+import { emptyRegistrationsPage } from "@/lib/pagination";
 import { useRegistrationFaceSync } from "@/features/registrations/hooks/use-registration-face-sync";
-import type { ClientRegistrationListRow, DeviceSyncStatus } from "@/types/domain";
+import { deferInEffect } from "@/lib/defer-in-effect";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import type {
+    ClientRegistrationListRow,
+    DeviceSyncStatus,
+    PaginatedRegistrationsResponse,
+} from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FaceCirclePhoto } from "@/components/ui/face-circle-photo";
@@ -73,26 +80,6 @@ function extraSummary(row: ClientRegistrationListRow): string {
         return `Sala ${String(d.room)}`;
     }
     return "—";
-}
-
-function matchesRegistrationSearch(
-    row: ClientRegistrationListRow,
-    term: string,
-): boolean {
-    const q = term.trim().toLowerCase();
-    if (!q) return true;
-
-    const name = (row.name ?? "").toLowerCase();
-    if (name.includes(q)) return true;
-
-    const digits = q.replace(/\D/g, "");
-    const docDigits = (row.document ?? "").replace(/\D/g, "");
-    if (digits.length >= 3 && docDigits.includes(digits)) return true;
-
-    const local = extraSummary(row).toLowerCase();
-    if (local !== "—" && local.includes(q)) return true;
-
-    return false;
 }
 
 function compareRows(
@@ -154,14 +141,13 @@ function SortableHead({
 export function RegistrationsReviewBoard({
     variant,
     companyClientId,
-    initialRows,
 }: {
     variant: "client" | "company";
     companyClientId?: string;
-    initialRows: ClientRegistrationListRow[];
 }) {
-    const router = useRouter();
-    const [rows, setRows] = useState(initialRows);
+    const [page, setPage] = useState<PaginatedRegistrationsResponse>(
+        emptyRegistrationsPage(),
+    );
     const [tab, setTab] = useState<Tab>("draft");
     const [search, setSearch] = useState("");
     const [sortField, setSortField] = useState<SortField>("submittedAt");
@@ -173,24 +159,60 @@ export function RegistrationsReviewBoard({
     const [faceUrl, setFaceUrl] = useState<string | null>(null);
     const [rejectNotes, setRejectNotes] = useState("");
     const [syncingId, setSyncingId] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
     const [pending, startTransition] = useTransition();
+
+    const fetchList = useCallback(
+        async (nextPage: number, nextSearch: string, nextTab: Tab) => {
+            setLoading(true);
+            try {
+                const r = await listRegistrationsAction(variant, {
+                    companyClientId,
+                    page: nextPage,
+                    pageSize: page.pageSize,
+                    search: nextSearch || undefined,
+                    status: nextTab,
+                });
+                if (!r.ok) {
+                    toast.error(r.error);
+                    return null;
+                }
+                const lastPage = Math.max(
+                    1,
+                    Math.ceil(r.result.total / r.result.pageSize) || 1,
+                );
+                if (r.result.data.length === 0 && r.result.page > lastPage) {
+                    setPage((prev) => ({ ...prev, page: lastPage }));
+                    return r.result;
+                }
+                setPage(r.result);
+                return r.result;
+            } finally {
+                setLoading(false);
+            }
+        },
+        [variant, companyClientId, page.pageSize],
+    );
+
     const { syncModalState, runSync, closeSyncResult } = useRegistrationFaceSync({
         variant,
         companyClientId,
-        onAfterSync: () => router.refresh(),
+        onAfterSync: () => {
+            void fetchList(page.page, search, tab);
+        },
     });
 
     useEffect(() => {
-        setRows(initialRows);
-    }, [initialRows]);
+        deferInEffect(() => {
+            void fetchList(page.page, search, tab);
+        });
+    }, [page.page, search, tab, fetchList]);
 
     const filtered = useMemo(() => {
-        const byTab = rows.filter((r) => r.status === tab);
-        const bySearch = byTab.filter((r) => matchesRegistrationSearch(r, search));
-        return [...bySearch].sort((a, b) =>
+        return [...page.data].sort((a, b) =>
             compareRows(a, b, sortField, sortDir),
         );
-    }, [rows, tab, search, sortField, sortDir]);
+    }, [page.data, sortField, sortDir]);
 
     const toggleSort = useCallback((field: "name" | "local") => {
         setSortField((current) => {
@@ -205,7 +227,13 @@ export function RegistrationsReviewBoard({
 
     const handleSearchChange = useCallback((value: string) => {
         setSearch(value);
+        setPage((prev) => (prev.page === 1 ? prev : { ...prev, page: 1 }));
     }, []);
+
+    function handleTabChange(next: Tab) {
+        setTab(next);
+        setPage((prev) => (prev.page === 1 ? prev : { ...prev, page: 1 }));
+    }
 
     async function openDetail(row: ClientRegistrationListRow) {
         setActiveRow(row);
@@ -243,7 +271,7 @@ export function RegistrationsReviewBoard({
             }
             toast.success("Cadastro aprovado.");
             setSheetOpen(false);
-            router.refresh();
+            void fetchList(page.page, search, tab);
         });
     }
 
@@ -267,7 +295,7 @@ export function RegistrationsReviewBoard({
             }
             toast.success("Cadastro rejeitado.");
             setSheetOpen(false);
-            router.refresh();
+            void fetchList(page.page, search, tab);
         });
     }
 
@@ -285,9 +313,12 @@ export function RegistrationsReviewBoard({
                 deviceSyncStatus: result.deviceSyncStatus as DeviceSyncStatus,
                 deviceSyncError: result.deviceSyncError,
             };
-            setRows((prev) =>
-                prev.map((r) => (r.id === row.id ? { ...r, ...patch } : r)),
-            );
+            setPage((prev) => ({
+                ...prev,
+                data: prev.data.map((r) =>
+                    r.id === row.id ? { ...r, ...patch } : r,
+                ),
+            }));
             setActiveRow((prev) =>
                 prev?.id === row.id ? { ...prev, ...patch } : prev,
             );
@@ -310,11 +341,11 @@ export function RegistrationsReviewBoard({
                         type="button"
                         size="sm"
                         variant={tab === k ? "default" : "outline"}
-                        onClick={() => setTab(k)}
+                        onClick={() => handleTabChange(k)}
                     >
                         {TAB_LABELS[k]}
                         <span className="ml-1.5 rounded-md bg-background/20 px-1.5 text-xs">
-                            {initialRows.filter((r) => r.status === k).length}
+                            {page.counts[k]}
                         </span>
                     </Button>
                 ))}
@@ -328,7 +359,12 @@ export function RegistrationsReviewBoard({
                 className="sm:max-w-sm"
             />
 
-            <div className="rounded-md border">
+            <div className="relative rounded-md border">
+                {loading ? (
+                    <div className="bg-background/60 absolute inset-0 z-10 flex items-center justify-center rounded-md">
+                        <Loader2 className="text-muted-foreground size-6 animate-spin" />
+                    </div>
+                ) : null}
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -460,6 +496,16 @@ export function RegistrationsReviewBoard({
                     </TableBody>
                 </Table>
             </div>
+
+            <DataTablePagination
+                page={page.page}
+                pageSize={page.pageSize}
+                total={page.total}
+                onPageChange={(next) =>
+                    setPage((prev) => ({ ...prev, page: next }))
+                }
+                disabled={loading || pending}
+            />
 
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                 <SheetContent side="right" className="w-full sm:max-w-lg">

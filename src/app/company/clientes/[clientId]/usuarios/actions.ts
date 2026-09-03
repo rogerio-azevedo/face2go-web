@@ -12,6 +12,7 @@ import {
     parseResponseJson,
 } from '@/lib/api-fetch';
 import type { CreateRegistrationLinkBody } from '@/lib/registration-link-schedule';
+import type { RegistrationLinkListRow } from '@/types/domain';
 
 export async function approveCompanyRegistrationAction(
     clientId: string,
@@ -75,6 +76,31 @@ export async function getCompanyRegistrationFaceUrlAction(
         return { url: (data as { url: string }).url };
     } catch {
         return { error: 'Sem permissão.' };
+    }
+}
+
+export async function listCompanyRegistrationLinksAction(
+    clientId: string,
+): Promise<
+    | { ok: true; items: RegistrationLinkListRow[] }
+    | { ok: false; error: string }
+> {
+    const cid = z.string().uuid().safeParse(clientId);
+    if (!cid.success) return { ok: false, error: 'Cliente inválido.' };
+    try {
+        const res = await apiFetchAuthed(
+            `/api/clients/${cid.data}/registration-links`,
+        );
+        const data = await parseResponseJson(res);
+        if (!res.ok) return { ok: false, error: nestErrorMessage(data) };
+        return {
+            ok: true,
+            items: Array.isArray(data)
+                ? (data as RegistrationLinkListRow[])
+                : [],
+        };
+    } catch {
+        return { ok: false, error: 'Sem permissão.' };
     }
 }
 

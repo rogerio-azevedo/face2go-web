@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { listResponsiblesAction } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
 import { deferInEffect } from "@/lib/defer-in-effect";
+import { emptyPaginated } from "@/lib/pagination";
 import { useFaceSyncOffer } from "@/lib/use-face-sync-offer";
 import type { PaginatedResponse, ResponsibleRow } from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
@@ -33,18 +34,18 @@ import { FaceSyncResultModal } from "./FaceSyncResultModal";
 export function ParentsSection({
     clientId,
     isAdmin = false,
-    initialResponsibles,
 }: {
     clientId: string;
     isAdmin?: boolean;
-    initialResponsibles: PaginatedResponse<ResponsibleRow>;
 }) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
-    const [list, setList] = useState(initialResponsibles);
+    const [list, setList] = useState<PaginatedResponse<ResponsibleRow>>(
+        emptyPaginated(),
+    );
     const [search, setSearch] = useState("");
-    const [page, setPage] = useState(initialResponsibles.page);
-    const [loading, setLoading] = useState(false);
+    const [page, setPage] = useState(1);
+    const [loading, setLoading] = useState(true);
     const [createOpen, setCreateOpen] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
     const [editRow, setEditRow] = useState<ResponsibleRow | null>(null);
@@ -76,13 +77,6 @@ export function ParentsSection({
         },
         [clientId, list.pageSize],
     );
-
-    useEffect(() => {
-        deferInEffect(() => {
-            setList(initialResponsibles);
-            setPage(initialResponsibles.page);
-        });
-    }, [initialResponsibles]);
 
     useEffect(() => {
         deferInEffect(() => {

@@ -5,7 +5,12 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import { listMembersAction } from "@/app/company/clientes/[clientId]/usuarios/members-actions";
+import {
+    listClientRolesAction,
+    listMembersAction,
+} from "@/app/company/clientes/[clientId]/usuarios/members-actions";
+import { listShiftsAction } from "@/app/company/clientes/[clientId]/usuarios/shifts-actions";
+import { emptyPaginated } from "@/lib/pagination";
 import { useFaceSyncOffer } from "@/lib/use-face-sync-offer";
 import type { ClientRoleRow, MemberRow, PaginatedResponse, ShiftRow } from "@/types/domain";
 import { deferInEffect } from "@/lib/defer-in-effect";
@@ -32,22 +37,20 @@ import { MemberForm } from "./MemberForm";
 export function MembersSection({
     clientId,
     isAdmin = false,
-    roles,
-    shifts,
-    initialMembers,
 }: {
     clientId: string;
     isAdmin?: boolean;
-    roles: ClientRoleRow[];
-    shifts: ShiftRow[];
-    initialMembers: PaginatedResponse<MemberRow>;
 }) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
-    const [list, setList] = useState(initialMembers);
+    const [list, setList] = useState<PaginatedResponse<MemberRow>>(
+        emptyPaginated(),
+    );
+    const [roles, setRoles] = useState<ClientRoleRow[]>([]);
+    const [shifts, setShifts] = useState<ShiftRow[]>([]);
     const [search, setSearch] = useState("");
-    const [page, setPage] = useState(initialMembers.page);
-    const [loading, setLoading] = useState(false);
+    const [page, setPage] = useState(1);
+    const [loading, setLoading] = useState(true);
     const [createOpen, setCreateOpen] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
     const [editRow, setEditRow] = useState<MemberRow | null>(null);
@@ -82,10 +85,15 @@ export function MembersSection({
 
     useEffect(() => {
         deferInEffect(() => {
-            setList(initialMembers);
-            setPage(initialMembers.page);
+            void Promise.all([
+                listClientRolesAction(clientId),
+                listShiftsAction(clientId),
+            ]).then(([rolesRes, shiftsRes]) => {
+                if (!("error" in rolesRes)) setRoles(rolesRes.items);
+                if (!("error" in shiftsRes)) setShifts(shiftsRes.items);
+            });
         });
-    }, [initialMembers]);
+    }, [clientId]);
 
     useEffect(() => {
         deferInEffect(() => {

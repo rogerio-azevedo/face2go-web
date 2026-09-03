@@ -12,10 +12,7 @@ import {
     apiFetchAuthed,
     parseResponseJson,
 } from "@/lib/api-fetch";
-import type {
-    ClientRegistrationListRow,
-    RegistrationLinkListRow,
-} from "@/types/domain";
+import type { RegistrationLinkListRow } from "@/types/domain";
 
 export default async function ClientUsuariosPage() {
     const session = await auth();
@@ -25,7 +22,6 @@ export default async function ClientUsuariosPage() {
     }
 
     let links: RegistrationLinkListRow[] = [];
-    let registrations: ClientRegistrationListRow[] = [];
     let clientSystemUsers: Awaited<
         ReturnType<typeof fetchClientSelfSystemUsersAction>
     >["users"] = [];
@@ -36,20 +32,12 @@ export default async function ClientUsuariosPage() {
     }
 
     try {
-        const [linksRes, regRes] = await Promise.all([
-            apiFetchAuthed("/api/client/registration-links"),
-            apiFetchAuthed("/api/client/registrations"),
-        ]);
+        const linksRes = await apiFetchAuthed("/api/client/registration-links");
         if (linksRes.ok) {
             links = (await parseResponseJson(linksRes)) as RegistrationLinkListRow[];
         }
-        if (regRes.ok) {
-            registrations =
-                (await parseResponseJson(regRes)) as ClientRegistrationListRow[];
-        }
     } catch {
         links = [];
-        registrations = [];
     }
 
     return (
@@ -84,10 +72,7 @@ export default async function ClientUsuariosPage() {
                     </h2>
                     <RegistrationsFaceSyncAllModal variant="client" />
                 </div>
-                <RegistrationsReviewBoard
-                    variant="client"
-                    initialRows={registrations}
-                />
+                <RegistrationsReviewBoard variant="client" />
             </section>
         </div>
     );

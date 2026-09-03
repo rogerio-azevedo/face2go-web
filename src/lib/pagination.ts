@@ -1,4 +1,7 @@
-import type { PaginatedResponse } from "@/types/domain";
+import type {
+    PaginatedRegistrationsResponse,
+    PaginatedResponse,
+} from "@/types/domain";
 
 export const DEFAULT_SCHOOL_PAGE_SIZE = 20;
 
@@ -17,6 +20,35 @@ export function buildSchoolListQuery(params: SchoolListParams = {}): string {
     if (search) sp.set("search", search);
     if (params.classId) sp.set("classId", params.classId);
     return sp.toString();
+}
+
+export type RegistrationListParams = {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    status?: "draft" | "approved" | "rejected";
+};
+
+export function buildRegistrationListQuery(
+    params: RegistrationListParams = {},
+): string {
+    const sp = new URLSearchParams();
+    sp.set("page", String(params.page ?? 1));
+    sp.set("pageSize", String(params.pageSize ?? DEFAULT_SCHOOL_PAGE_SIZE));
+    const search = params.search?.trim();
+    if (search) sp.set("search", search);
+    if (params.status) sp.set("status", params.status);
+    return sp.toString();
+}
+
+export function emptyRegistrationsPage(): PaginatedRegistrationsResponse {
+    return {
+        data: [],
+        total: 0,
+        page: 1,
+        pageSize: DEFAULT_SCHOOL_PAGE_SIZE,
+        counts: { draft: 0, approved: 0, rejected: 0 },
+    };
 }
 
 export function emptyPaginated<T>(): PaginatedResponse<T> {

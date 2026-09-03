@@ -1,14 +1,15 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
-import { Copy, Link2, MessageCircle } from "lucide-react";
+import { useEffect, useState, useTransition } from "react";
+import { Copy, Link2, Loader2, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import {
     createCompanyRegistrationLinkAction,
     deactivateCompanyRegistrationLinkAction,
+    listCompanyRegistrationLinksAction,
 } from "@/app/company/clientes/[clientId]/usuarios/actions";
+import { deferInEffect } from "@/lib/defer-in-effect";
 import { CreateRegistrationLinkSheet } from "@/components/registrations/CreateRegistrationLinkSheet";
 import type { RegistrationLinkListRow } from "@/types/domain";
 import { registrationLinkVigenciaLabel } from "@/lib/registration-link-schedule";
@@ -38,15 +39,42 @@ function formatDate(iso: string | null) {
 
 export function CompanyClientRegistrationLinksPanel({
     clientId,
-    initialLinks,
 }: {
     clientId: string;
-    initialLinks: RegistrationLinkListRow[];
 }) {
-    const router = useRouter();
+    const [links, setLinks] = useState<RegistrationLinkListRow[]>([]);
+    const [loading, setLoading] = useState(true);
     const [sheetOpen, setSheetOpen] = useState(false);
     const [pending, startTransition] = useTransition();
     const [lastCreatedUrl, setLastCreatedUrl] = useState<string | null>(null);
+
+    function reloadLinks() {
+        startTransition(async () => {
+            setLoading(true);
+            const result = await listCompanyRegistrationLinksAction(clientId);
+            if (!result.ok) {
+                toast.error(result.error);
+            } else {
+                setLinks(result.items);
+            }
+            setLoading(false);
+        });
+    }
+
+    useEffect(() => {
+        deferInEffect(() => {
+            void (async () => {
+                setLoading(true);
+                const result = await listCompanyRegistrationLinksAction(clientId);
+                if (!result.ok) {
+                    toast.error(result.error);
+                } else {
+                    setLinks(result.items);
+                }
+                setLoading(false);
+            })();
+        });
+    }, [clientId]);
 
     function copyText(text: string, message: string) {
         void navigator.clipboard.writeText(text).then(
@@ -73,7 +101,7 @@ export function CompanyClientRegistrationLinksPanel({
                 return;
             }
             toast.success("Link desativado.");
-            router.refresh();
+            reloadLinks();
         });
     }
 
@@ -112,7 +140,7 @@ export function CompanyClientRegistrationLinksPanel({
                             return { ok: false as const, error: result.error };
                         }
                         setLastCreatedUrl(result.registrationUrl);
-                        router.refresh();
+                        reloadLinks();
                         return {
                             ok: true as const,
                             registrationUrl: result.registrationUrl,
@@ -180,7 +208,16 @@ export function CompanyClientRegistrationLinksPanel({
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {initialLinks.length === 0 ? (
+                        {loading ? (
+                            <TableRow>
+                                <TableCell
+                                    colSpan={5}
+                                    className="text-center text-sm text-muted-foreground"
+                                >
+                                    <Loader2 className="mx-auto size-5 animate-spin" />
+                                </TableCell>
+                            </TableRow>
+                        ) : links.length === 0 ? (
                             <TableRow>
                                 <TableCell
                                     colSpan={5}
@@ -191,7 +228,7 @@ export function CompanyClientRegistrationLinksPanel({
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            initialLinks.map((row) => (
+                            links.map((row) => (
                                 <TableRow key={row.id}>
                                     <TableCell className="font-mono text-xs">
                                         {row.code}

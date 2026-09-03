@@ -255,6 +255,13 @@ export type ClientRegistrationListRow = {
     deviceSyncError: string | null;
     hasFacialReaders: boolean;
 };
+
+export type RegistrationStatusCounts = {
+    draft: number;
+    approved: number;
+    rejected: number;
+};
+
 export type AccessRow = {
     id: string;
     companyId: string;
@@ -385,6 +392,11 @@ export type PaginatedResponse<T> = {
     page: number;
     pageSize: number;
 };
+
+export type PaginatedRegistrationsResponse =
+    PaginatedResponse<ClientRegistrationListRow> & {
+        counts: RegistrationStatusCounts;
+    };
 
 export type StudentAccessScheduleJson = {
     shifts?: ClassShift[];

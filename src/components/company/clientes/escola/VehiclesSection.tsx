@@ -13,6 +13,7 @@ import {
 import { DeviceSyncStatusBadge } from "@/components/company/clientes/escola/DeviceSyncStatusBadge";
 import { isPartialSyncError } from "@/lib/face-sync-result";
 import { deferInEffect } from "@/lib/defer-in-effect";
+import { emptyPaginated } from "@/lib/pagination";
 import type { PaginatedResponse, VehicleRow } from "@/types/domain";
 import {
     AlertDialog,
@@ -40,17 +41,17 @@ import { VehicleForm } from "./VehicleForm";
 
 export function VehiclesSection({
     clientId,
-    initialVehicles,
 }: {
     clientId: string;
-    initialVehicles: PaginatedResponse<VehicleRow>;
 }) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
-    const [list, setList] = useState(initialVehicles);
+    const [list, setList] = useState<PaginatedResponse<VehicleRow>>(
+        emptyPaginated(),
+    );
     const [search, setSearch] = useState("");
-    const [page, setPage] = useState(initialVehicles.page);
-    const [loading, setLoading] = useState(false);
+    const [page, setPage] = useState(1);
+    const [loading, setLoading] = useState(true);
     const [sheetOpen, setSheetOpen] = useState(false);
     const [editRow, setEditRow] = useState<VehicleRow | null>(null);
     const [pendingDelete, setPendingDelete] = useState<VehicleRow | null>(
@@ -79,13 +80,6 @@ export function VehiclesSection({
         },
         [clientId, list.pageSize],
     );
-
-    useEffect(() => {
-        deferInEffect(() => {
-            setList(initialVehicles);
-            setPage(initialVehicles.page);
-        });
-    }, [initialVehicles]);
 
     useEffect(() => {
         deferInEffect(() => {

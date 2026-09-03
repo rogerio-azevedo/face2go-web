@@ -6,7 +6,9 @@ import { useCallback, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { listStudentsAction } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
+import { listSchoolClassesAction } from "@/features/school/actions/school-classes";
 import { deferInEffect } from "@/lib/defer-in-effect";
+import { emptyPaginated } from "@/lib/pagination";
 import { useFaceSyncOffer } from "@/lib/use-face-sync-offer";
 import type { PaginatedResponse, SchoolClassRow, StudentRow } from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
@@ -51,21 +53,20 @@ function classesLabel(
 export function StudentsSection({
     clientId,
     isAdmin = false,
-    classes,
-    initialStudents,
 }: {
     clientId: string;
     isAdmin?: boolean;
-    classes: SchoolClassRow[];
-    initialStudents: PaginatedResponse<StudentRow>;
 }) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
-    const [list, setList] = useState(initialStudents);
+    const [list, setList] = useState<PaginatedResponse<StudentRow>>(
+        emptyPaginated(),
+    );
+    const [classes, setClasses] = useState<SchoolClassRow[]>([]);
     const [search, setSearch] = useState("");
     const [filterClassId, setFilterClassId] = useState("");
-    const [page, setPage] = useState(initialStudents.page);
-    const [loading, setLoading] = useState(false);
+    const [page, setPage] = useState(1);
+    const [loading, setLoading] = useState(true);
     const [createOpen, setCreateOpen] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
     const [editRow, setEditRow] = useState<StudentRow | null>(null);
@@ -101,10 +102,12 @@ export function StudentsSection({
 
     useEffect(() => {
         deferInEffect(() => {
-            setList(initialStudents);
-            setPage(initialStudents.page);
+            void (async () => {
+                const r = await listSchoolClassesAction(clientId);
+                if (!("error" in r)) setClasses(r.items);
+            })();
         });
-    }, [initialStudents]);
+    }, [clientId]);
 
     useEffect(() => {
         deferInEffect(() => {
