@@ -86,17 +86,28 @@ function guestApprovalLabel(
     }
 }
 
-function formatRange(from: string, until: string): string {
-    const opt: Intl.DateTimeFormatOptions = {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
+function formatRangePart(iso: string): string {
+    const date = new Date(iso);
+    const isMidnight = date.getHours() === 0 && date.getMinutes() === 0;
+    return date.toLocaleString(
+        "pt-BR",
+        isMidnight
+            ? { day: "2-digit", month: "2-digit", year: "numeric" }
+            : {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+              },
+    );
+}
+
+function formatRange(from: string, until: string): { from: string; until: string } {
+    return {
+        from: formatRangePart(from),
+        until: formatRangePart(until),
     };
-    const a = new Date(from);
-    const b = new Date(until);
-    return `${a.toLocaleString("pt-BR", opt)} — ${b.toLocaleString("pt-BR", opt)}`;
 }
 
 export function PickupAuthorizationsSection({
@@ -194,6 +205,10 @@ export function PickupAuthorizationsSection({
             cancelled = true;
         };
     }, [clientId, rows]);
+
+    const selectedRange = selectedRow
+        ? formatRange(selectedRow.validFrom, selectedRow.validUntil)
+        : null;
 
     function refresh() {
         startTransition(async () => {
@@ -298,24 +313,30 @@ export function PickupAuthorizationsSection({
                                     row.effectiveStatus === "cancelled" ||
                                     row.effectiveStatus === "expired" ||
                                     row.effectiveStatus === "used";
+                                const range = formatRange(
+                                    row.validFrom,
+                                    row.validUntil,
+                                );
 
                                 return (
                                     <TableRow key={row.id}>
-                                        <TableCell className="font-medium max-w-[180px]">
+                                        <TableCell className="min-w-0 max-w-[180px] whitespace-normal break-words font-medium">
                                             {studentNames || "—"}
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className="min-w-0 max-w-[180px] whitespace-normal break-words">
                                             {requester?.name ??
                                                 row.requestedByResponsibleId}
                                         </TableCell>
-                                        <TableCell className="max-w-[200px] break-words text-sm">
+                                        <TableCell className="min-w-0 max-w-[200px] whitespace-normal break-words text-sm">
                                             {picker}
                                         </TableCell>
-                                        <TableCell className="whitespace-normal text-xs sm:text-sm">
-                                            {formatRange(
-                                                row.validFrom,
-                                                row.validUntil,
-                                            )}
+                                        <TableCell className="min-w-0 whitespace-normal text-xs leading-tight tabular-nums sm:text-sm">
+                                            <span className="block">
+                                                {range.from}
+                                            </span>
+                                            <span className="block">
+                                                {range.until}
+                                            </span>
                                         </TableCell>
                                         <TableCell>
                                             <Badge
@@ -449,10 +470,9 @@ export function PickupAuthorizationsSection({
                                         Validade
                                     </p>
                                     <p>
-                                        {formatRange(
-                                            selectedRow.validFrom,
-                                            selectedRow.validUntil,
-                                        )}
+                                        {selectedRange
+                                            ? `${selectedRange.from} — ${selectedRange.until}`
+                                            : null}
                                     </p>
                                 </div>
                                 <div>
