@@ -2,7 +2,9 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import DeviceUsersClient from "./DeviceUsersClient";
+import { apiFetchAuthed } from "@/lib/api-fetch";
 import { can } from "@/lib/permissions";
+import type { ReaderListRow } from "@/types/domain";
 
 export default async function DeviceUsersPage({
     params,
@@ -25,8 +27,17 @@ export default async function DeviceUsersPage({
         redirect("/company/dashboard");
     }
 
-    // Since this is Next.js 15+ App router, params is a Promise
-    const resolvedParams = await params;
+    const { readerId } = await params;
+    let readerName: string | undefined;
+    try {
+        const res = await apiFetchAuthed("/api/readers");
+        if (res.ok) {
+            const readers = (await res.json()) as ReaderListRow[];
+            readerName = readers.find((r) => r.id === readerId)?.name;
+        }
+    } catch {
+        readerName = undefined;
+    }
 
-    return <DeviceUsersClient readerId={resolvedParams.readerId} />;
+    return <DeviceUsersClient readerId={readerId} readerName={readerName} />;
 }

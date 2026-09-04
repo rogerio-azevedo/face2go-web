@@ -1,34 +1,31 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, Eye, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import {
+    batchDeleteDeviceUsersAction,
     getDeviceUsersAction,
     getDeviceUserFaceAction,
     removeDeviceUserAction,
+    wipeAllDeviceUsersAction,
     type DeviceUser,
 } from "@/app/company/leitores/actions";
+import {
+    DeviceUserFaceSheet,
+    DeviceUsersConfirmDialogs,
+} from "@/features/readers/components/DeviceUsersDialogs";
+import { DeviceUsersSyncAllModal } from "@/features/readers/components/DeviceUsersSyncAllModal";
+import { DeviceUsersTable } from "@/features/readers/components/DeviceUsersTable";
+import {
+    DeviceUsersToolbar,
+    type DeviceUsersOriginFilter,
+} from "@/features/readers/components/DeviceUsersToolbar";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/button";
-import { SearchInput } from "@/components/ui/search-input";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
 import { deferInEffect } from "@/lib/defer-in-effect";
-import {
-    Sheet,
-    SheetContent,
-    SheetHeader,
-    SheetTitle,
-} from "@/components/ui/sheet";
 
 const LIMIT = 50;
 
@@ -40,18 +37,39 @@ function totalForPagination(
     return Math.max(result.found, offset + result.records.length);
 }
 
-export default function DeviceUsersClient({ readerId }: { readerId: string }) {
+export default function DeviceUsersClient({
+    readerId,
+    readerName,
+}: {
+    readerId: string;
+    readerName?: string;
+}) {
     const router = useRouter();
     const [users, setUsers] = useState<DeviceUser[]>([]);
     const [totalFound, setTotalFound] = useState(0);
     const [offset, setOffset] = useState(0);
     const [search, setSearch] = useState("");
+    const [originFilter, setOriginFilter] =
+        useState<DeviceUsersOriginFilter>("all");
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [isLoading, setIsLoading] = useState(true);
     const [isFetchingFace, setIsFetchingFace] = useState(false);
     const [selectedUserPhoto, setSelectedUserPhoto] = useState<string | null>(null);
-    const [selectedUserName, setSelectedUserName] = useState<string>("");
+    const [selectedUserName, setSelectedUserName] = useState("");
     const [isSheetOpen, setIsSheetOpen] = useState(false);
+    const [confirmSelectedOpen, setConfirmSelectedOpen] = useState(false);
+    const [confirmWipeOpen, setConfirmWipeOpen] = useState(false);
+    const [syncOpen, setSyncOpen] = useState(false);
+    const [clientType, setClientType] = useState<string | null>(null);
     const [pending, startTransition] = useTransition();
+
+    const showRebuild = clientType != null && clientType !== "school";
+
+    const visibleUsers = useMemo(() => {
+        if (originFilter === "system") return users.filter((u) => u.inSystem);
+        if (originFilter === "orphan") return users.filter((u) => !u.inSystem);
+        return users;
+    }, [users, originFilter]);
 
     const fetchUsers = useCallback(
         async (currentOffset: number, searchTerm: string) => {
@@ -65,11 +83,13 @@ export default function DeviceUsersClient({ readerId }: { readerId: string }) {
             if (res.ok) {
                 setUsers(res.data.records);
                 setTotalFound(totalForPagination(res.data, currentOffset));
+                if (res.data.clientType) setClientType(res.data.clientType);
             } else {
                 toast.error(res.error || "Erro ao carregar usuários.");
                 setUsers([]);
                 setTotalFound(0);
             }
+            setSelectedIds(new Set());
             setIsLoading(false);
         },
         [readerId],
@@ -86,20 +106,12 @@ export default function DeviceUsersClient({ readerId }: { readerId: string }) {
         });
     }, [offset, search, fetchUsers]);
 
-    const handleNext = () => {
-        if (offset + LIMIT < totalFound) {
-            setOffset((prev) => prev + LIMIT);
-        }
-    };
-
-    const handlePrev = () => {
-        if (offset - LIMIT >= 0) {
-            setOffset((prev) => prev - LIMIT);
-        }
-    };
-
     const handleDelete = (userId: string) => {
-        if (!confirm("Tem certeza que deseja remover este usuário DIRETAMENTE do leitor facial? Essa ação não apaga o cadastro do sistema, apenas do equipamento.")) {
+        if (
+            !confirm(
+                "Tem certeza que deseja remover este usuário DIRETAMENTE do leitor facial? Essa ação não apaga o cadastro do sistema, apenas do equipamento.",
+            )
+        ) {
             return;
         }
 
@@ -110,7 +122,6 @@ export default function DeviceUsersClient({ readerId }: { readerId: string }) {
                 return;
             }
             toast.success("Usuário removido do leitor.");
-            // Recarrega a página atual
             void fetchUsers(offset, search);
         });
     };
@@ -133,11 +144,53 @@ export default function DeviceUsersClient({ readerId }: { readerId: string }) {
         }
     };
 
+    const handleBatchDelete = () => {
+        const ids = [...selectedIds];
+        startTransition(async () => {
+            const res = await batchDeleteDeviceUsersAction(readerId, ids);
+            setConfirmSelectedOpen(false);
+            if (!res.ok) {
+                toast.error(res.error);
+                return;
+            }
+            toast.success(`${res.data.deleted.length} usuário(s) removido(s) do leitor.`);
+            if (res.data.failed.length > 0) {
+                toast.error(`Falha em ${res.data.failed.length} usuário(s).`);
+            }
+            void fetchUsers(offset, search);
+        });
+    };
+
+    const handleWipeAll = () => {
+        startTransition(async () => {
+            const res = await wipeAllDeviceUsersAction(readerId);
+            setConfirmWipeOpen(false);
+            if (!res.ok) {
+                toast.error(res.error);
+                return;
+            }
+            const extra =
+                res.data.failed.length > 0
+                    ? ` Falha em ${res.data.failed.length} usuário(s).`
+                    : "";
+            toast.success(
+                res.data.strategy === "hikvision-all"
+                    ? `Todos os usuários foram apagados neste leitor.${extra}`
+                    : `${res.data.deleted} usuário(s) apagado(s) neste leitor.${extra}`,
+            );
+            void fetchUsers(offset, search);
+        });
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <PageHeader
-                    title="Usuários no Dispositivo"
+                    title={
+                        readerName
+                            ? `Usuários — ${readerName}`
+                            : "Usuários no Dispositivo"
+                    }
                     description="Listagem de usuários atualmente salvos na memória do leitor facial."
                 />
                 <Button variant="outline" onClick={() => router.back()}>
@@ -146,102 +199,52 @@ export default function DeviceUsersClient({ readerId }: { readerId: string }) {
             </div>
 
             <div className="rounded-md border bg-card text-card-foreground">
-                <div className="flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                    <SearchInput
-                        value={search}
-                        onValueChange={handleSearchChange}
-                        placeholder="Buscar por nome..."
-                        className="sm:max-w-xs"
-                    />
-                    {search.trim() ? (
-                        <p className="text-sm text-muted-foreground">
-                            Filtrando por &quot;{search.trim()}&quot;
-                        </p>
-                    ) : null}
-                </div>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>User ID</TableHead>
-                            <TableHead>Nome</TableHead>
-                            <TableHead>Nº Cartão</TableHead>
-                            <TableHead>Face</TableHead>
-                            <TableHead>Validade Início</TableHead>
-                            <TableHead>Validade Fim</TableHead>
-                            <TableHead className="text-right">Ações</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading ? (
-                            <TableRow>
-                                <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
-                                    Consultando leitor...
-                                </TableCell>
-                            </TableRow>
-                        ) : users.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
-                                    Nenhum usuário encontrado na memória.
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            users.map((u, i) => (
-                                <TableRow key={`${u.UserID}-${i}`}>
-                                    <TableCell className="font-medium">{u.UserID}</TableCell>
-                                    <TableCell>{u.CardName}</TableCell>
-                                    <TableCell>{u.CardNo || "—"}</TableCell>
-                                    <TableCell>
-                                        {u.HasFace === true ? (
-                                            <span className="text-emerald-700 text-xs font-medium">
-                                                Sim
-                                            </span>
-                                        ) : u.HasFace === false ? (
-                                            <span className="text-muted-foreground text-xs">
-                                                Não
-                                            </span>
-                                        ) : (
-                                            <span className="text-muted-foreground text-xs">
-                                                —
-                                            </span>
-                                        )}
-                                    </TableCell>
-                                    <TableCell>{u.ValidDateStart || "—"}</TableCell>
-                                    <TableCell>{u.ValidDateEnd || "—"}</TableCell>
-                                    <TableCell className="text-right">
-                                        <div className="flex items-center justify-end gap-1">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
-                                                disabled={pending || isFetchingFace}
-                                                onClick={() => handleViewFace(u.UserID, u.CardName)}
-                                                title="Ver foto no leitor"
-                                            >
-                                                <Eye className="size-4" />
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                                                disabled={pending}
-                                                onClick={() => handleDelete(u.UserID)}
-                                                title="Excluir do dispositivo"
-                                            >
-                                                <Trash2 className="size-4" />
-                                            </Button>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
+                <DeviceUsersToolbar
+                    search={search}
+                    onSearchChange={handleSearchChange}
+                    originFilter={originFilter}
+                    onOriginFilterChange={setOriginFilter}
+                    selectedCount={selectedIds.size}
+                    pending={pending}
+                    showRebuild={showRebuild}
+                    onRemoveSelected={() => setConfirmSelectedOpen(true)}
+                    onWipeAll={() => setConfirmWipeOpen(true)}
+                    onSyncAll={() => setSyncOpen(true)}
+                />
+                <DeviceUsersTable
+                    users={visibleUsers}
+                    isLoading={isLoading}
+                    pending={pending}
+                    isFetchingFace={isFetchingFace}
+                    selectedIds={selectedIds}
+                    onToggle={(userId, checked) => {
+                        setSelectedIds((prev) => {
+                            const next = new Set(prev);
+                            if (checked) next.add(userId);
+                            else next.delete(userId);
+                            return next;
+                        });
+                    }}
+                    onToggleAll={(checked) => {
+                        setSelectedIds((prev) => {
+                            const next = new Set(prev);
+                            for (const row of visibleUsers) {
+                                if (checked) next.add(row.UserID);
+                                else next.delete(row.UserID);
+                            }
+                            return next;
+                        });
+                    }}
+                    onViewFace={handleViewFace}
+                    onDelete={handleDelete}
+                />
 
-                <div className="flex items-center justify-between px-4 py-3 border-t">
+                <div className="flex items-center justify-between border-t px-4 py-3">
                     <div className="text-sm text-muted-foreground">
                         {totalFound > 0 ? (
                             <span>
-                                Mostrando {offset + 1} a {Math.min(offset + LIMIT, totalFound)} de {totalFound} usuários
+                                Mostrando {offset + 1} a {Math.min(offset + LIMIT, totalFound)} de{" "}
+                                {totalFound} usuários
                             </span>
                         ) : (
                             <span>Total: 0</span>
@@ -251,51 +254,51 @@ export default function DeviceUsersClient({ readerId }: { readerId: string }) {
                         <Button
                             variant="outline"
                             size="sm"
-                            onClick={handlePrev}
+                            onClick={() => setOffset((prev) => prev - LIMIT)}
                             disabled={offset === 0 || isLoading}
                         >
-                            <ChevronLeft className="size-4 mr-1" />
+                            <ChevronLeft className="mr-1 size-4" />
                             Anterior
                         </Button>
                         <Button
                             variant="outline"
                             size="sm"
-                            onClick={handleNext}
+                            onClick={() => setOffset((prev) => prev + LIMIT)}
                             disabled={offset + LIMIT >= totalFound || isLoading}
                         >
                             Próxima
-                            <ChevronRight className="size-4 ml-1" />
+                            <ChevronRight className="ml-1 size-4" />
                         </Button>
                     </div>
                 </div>
             </div>
 
-            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                <SheetContent side="right" className="sm:max-w-md">
-                    <SheetHeader>
-                        <SheetTitle>Foto no Dispositivo</SheetTitle>
-                    </SheetHeader>
-                    <div className="flex flex-col items-center justify-center gap-6 py-10">
-                        <div className="text-center">
-                            <p className="text-sm font-medium">{selectedUserName}</p>
-                            <p className="text-xs text-muted-foreground">Extraída diretamente da memória do leitor</p>
-                        </div>
-                        {selectedUserPhoto ? (
-                            <div className="overflow-hidden rounded-xl border bg-muted shadow-sm">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                    src={`data:image/jpeg;base64,${selectedUserPhoto}`}
-                                    alt="Foto do usuário"
-                                    className="max-h-[400px] w-auto object-contain"
-                                />
-                            </div>
-                        ) : null}
-                        <Button variant="outline" className="w-full" onClick={() => setIsSheetOpen(false)}>
-                            Fechar
-                        </Button>
-                    </div>
-                </SheetContent>
-            </Sheet>
+            <DeviceUsersConfirmDialogs
+                selectedCount={selectedIds.size}
+                confirmSelectedOpen={confirmSelectedOpen}
+                onConfirmSelectedOpenChange={setConfirmSelectedOpen}
+                onConfirmSelected={handleBatchDelete}
+                confirmWipeOpen={confirmWipeOpen}
+                onConfirmWipeOpenChange={setConfirmWipeOpen}
+                onConfirmWipe={handleWipeAll}
+                pending={pending}
+            />
+
+            <DeviceUsersSyncAllModal
+                readerId={readerId}
+                open={syncOpen}
+                onOpenChange={setSyncOpen}
+                onFinished={() => {
+                    void fetchUsers(offset, search);
+                }}
+            />
+
+            <DeviceUserFaceSheet
+                open={isSheetOpen}
+                onOpenChange={setIsSheetOpen}
+                name={selectedUserName}
+                photoBase64={selectedUserPhoto}
+            />
         </div>
     );
 }

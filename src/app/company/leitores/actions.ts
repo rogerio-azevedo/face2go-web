@@ -4,9 +4,11 @@ import { revalidatePath } from 'next/cache';
 
 import {
     apiFetchAuthed,
+    getApiBaseUrl,
     nestErrorMessage,
     parseResponseJson,
 } from '@/lib/api-fetch';
+import { auth } from '@/auth';
 import type { ReadersMonitorStatusResponse } from '@/types/domain';
 import {
     createReaderSchema,
@@ -194,6 +196,12 @@ export async function toggleReaderActiveAction(
     }
 }
 
+export type DeviceUserPersonType =
+    | "responsible"
+    | "student"
+    | "member"
+    | "guest";
+
 export type DeviceUser = {
     UserID: string;
     CardName: string;
@@ -201,12 +209,17 @@ export type DeviceUser = {
     ValidDateStart?: string;
     ValidDateEnd?: string;
     HasFace?: boolean | null;
+    inSystem: boolean;
+    systemName: string | null;
+    personType: DeviceUserPersonType | null;
+    nameMismatch: boolean;
 };
 
 export type DeviceUsersListResult = {
     totalCount: number;
     found: number;
     records: DeviceUser[];
+    clientType?: string;
 };
 
 export async function getDeviceUsersAction(
@@ -230,7 +243,19 @@ export async function getDeviceUsersAction(
             return { ok: false, error: nestErrorMessage(data) };
         }
         const data = (await res.json()) as DeviceUsersListResult;
-        return { ok: true, data };
+        return {
+            ok: true,
+            data: {
+                ...data,
+                records: (data.records ?? []).map((row) => ({
+                    ...row,
+                    inSystem: row.inSystem === true,
+                    systemName: row.systemName ?? null,
+                    personType: row.personType ?? null,
+                    nameMismatch: row.nameMismatch === true,
+                })),
+            },
+        };
     } catch {
         return { ok: false, error: 'Erro de comunicação.' };
     }
@@ -254,6 +279,81 @@ export async function removeDeviceUserAction(
         return { success: true };
     } catch {
         return { error: 'Erro de comunicação.' };
+    }
+}
+
+export type DeviceUsersBatchDeleteResult = {
+    deleted: string[];
+    failed: { userId: string; error: string }[];
+};
+
+export type DeviceUsersWipeAllResult = {
+    strategy: "hikvision-all" | "hikvision-fallback" | "intelbras-batch";
+    deleted: number;
+    failed: { userId: string; error: string }[];
+};
+
+export async function batchDeleteDeviceUsersAction(
+    readerId: string,
+    userIds: string[],
+): Promise<
+    { ok: true; data: DeviceUsersBatchDeleteResult } | { ok: false; error: string }
+> {
+    try {
+        const res = await apiFetchAuthed(
+            `/api/readers/${readerId}/device-users/batch-delete`,
+            {
+                method: "POST",
+                body: JSON.stringify({ userIds }),
+            },
+        );
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { ok: false, error: nestErrorMessage(data) };
+        }
+        const data = (await res.json()) as DeviceUsersBatchDeleteResult;
+        return { ok: true, data };
+    } catch {
+        return { ok: false, error: "Erro de comunicação." };
+    }
+}
+
+export async function wipeAllDeviceUsersAction(
+    readerId: string,
+): Promise<
+    { ok: true; data: DeviceUsersWipeAllResult } | { ok: false; error: string }
+> {
+    try {
+        const res = await apiFetchAuthed(
+            `/api/readers/${readerId}/device-users/wipe-all`,
+            { method: "POST" },
+        );
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { ok: false, error: nestErrorMessage(data) };
+        }
+        const data = (await res.json()) as DeviceUsersWipeAllResult;
+        return { ok: true, data };
+    } catch {
+        return { ok: false, error: "Erro de comunicação." };
+    }
+}
+
+export async function getDeviceUsersSyncAllSseUrlAction(
+    readerId: string,
+): Promise<{ url: string } | { error: string }> {
+    const id = z.string().uuid().safeParse(readerId);
+    if (!id.success) return { error: "Leitor inválido." };
+    try {
+        const session = await auth();
+        const token = session?.accessToken;
+        if (!token) return { error: "Não autenticado." };
+        const base = getApiBaseUrl();
+        return {
+            url: `${base}/api/readers/${id.data}/device-users/sync-all/progress?token=${encodeURIComponent(token)}`,
+        };
+    } catch {
+        return { error: "Não autenticado." };
     }
 }
 
