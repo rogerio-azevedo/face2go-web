@@ -1,27 +1,13 @@
 "use client";
 
-import { CheckCircle2, Loader2, RefreshCw, TriangleAlert, XCircle } from "lucide-react";
+import { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
-import {
-    getResponsiblesGlobalFaceSyncSseUrlAction,
-    getStudentsGlobalFaceSyncSseUrlAction,
-} from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogMedia,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { enqueueSchoolFaceSyncAction } from "@/features/school/actions/face-sync";
+import { useSchoolFaceSync } from "@/features/school/hooks/use-school-face-sync";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { useGlobalFaceSync } from "@/lib/use-global-face-sync";
 
 type FaceGlobalSyncModalProps = {
     clientId: string;
@@ -32,23 +18,37 @@ type FaceGlobalSyncModalProps = {
 const LABELS = {
     students: {
         button: "Sincronizar todos os alunos",
-        title: "Sync global de alunos",
-        description:
-            "Envia em lote as faces de alunos pendentes ou com falha para todos os leitores ativos.",
-        entity: "alunos",
+        queued: "Sync de alunos enfileirado. Pode sair desta tela.",
+        running: "Sincronizando alunos",
     },
     responsibles: {
         button: "Sincronizar todos os responsáveis",
-        title: "Sync global de responsáveis",
-        description:
-            "Envia em lote as faces de responsáveis pendentes ou com falha para todos os leitores ativos.",
-        entity: "responsáveis",
+        queued: "Sync de responsáveis enfileirado. Pode sair desta tela.",
+        running: "Sincronizando responsáveis",
     },
 } as const;
 
-function progressPercent(processed: number, total: number): number {
-    if (total <= 0) return 0;
-    return Math.min(100, Math.round((processed / total) * 100));
+function bannerText(
+    job: {
+        kind: string;
+        entityKind?: string;
+        processed: number;
+        total: number;
+    },
+    kind: "students" | "responsibles",
+): string {
+    const total = job.total > 0 ? job.total : "…";
+    if (job.kind === "face.reader") {
+        return `Sync neste leitor — ${job.processed} de ${total}`;
+    }
+    if (job.kind === "face.person") {
+        return "Sync de uma pessoa em andamento";
+    }
+    const label =
+        job.entityKind === "responsible" || kind === "responsibles"
+            ? LABELS.responsibles.running
+            : LABELS.students.running;
+    return `${label} — ${job.processed} de ${total}`;
 }
 
 export function FaceGlobalSyncModal({
@@ -58,193 +58,49 @@ export function FaceGlobalSyncModal({
 }: FaceGlobalSyncModalProps) {
     const router = useRouter();
     const labels = LABELS[kind];
-    const { phase, progress, errorMessage, start, reset, cancel } =
-        useGlobalFaceSync();
-    const [open, setOpen] = useState(false);
-
-    const isActive = phase === "connecting" || phase === "running";
-
-    const handleOpenChange = useCallback(
-        (nextOpen: boolean) => {
-            if (!nextOpen) {
-                if (isActive) cancel();
-                else reset();
-                if (phase === "done") router.refresh();
-            }
-            setOpen(nextOpen);
-        },
-        [cancel, isActive, phase, reset, router],
+    const handleFinished = useCallback(() => {
+        toast.success("Sincronização concluída em segundo plano.");
+        router.refresh();
+    }, [router]);
+    const { syncBusy, activeJob, refetch } = useSchoolFaceSync(
+        clientId,
+        handleFinished,
     );
 
     const handleStart = useCallback(async () => {
-        const urlResult =
-            kind === "students"
-                ? await getStudentsGlobalFaceSyncSseUrlAction(clientId)
-                : await getResponsiblesGlobalFaceSyncSseUrlAction(clientId);
-
-        if ("error" in urlResult) {
-            toast.error(urlResult.error);
+        const res = await enqueueSchoolFaceSyncAction(clientId, kind);
+        if (!res.ok) {
+            toast.error(res.error);
             return;
         }
-
-        start(urlResult.url);
-    }, [clientId, kind, start]);
-
-    const handleClose = useCallback(() => {
-        if (isActive) cancel();
-        else reset();
-        setOpen(false);
-        if (phase === "done") router.refresh();
-    }, [cancel, isActive, phase, reset, router]);
-
-    const pct = progressPercent(progress.processed, progress.total);
+        await refetch();
+        toast.success(labels.queued);
+    }, [clientId, kind, labels.queued, refetch]);
 
     return (
-        <>
+        <div className="flex flex-col items-stretch gap-2 sm:items-end">
             <Button
                 type="button"
                 variant="outline"
                 size="default"
                 className="gap-2 shrink-0"
-                disabled={disabled || isActive}
-                onClick={() => {
-                    reset();
-                    setOpen(true);
-                    void handleStart();
-                }}
+                disabled={disabled || syncBusy}
+                onClick={() => void handleStart()}
             >
-                {isActive ? (
+                {syncBusy ? (
                     <Loader2 className="size-4 animate-spin" />
                 ) : (
                     <RefreshCw className="size-4" />
                 )}
                 {labels.button}
             </Button>
-
-            <AlertDialog open={open} onOpenChange={handleOpenChange}>
-                <AlertDialogContent className="max-w-md sm:max-w-md">
-                    {phase === "connecting" || phase === "running" ? (
-                        <AlertDialogHeader className="place-items-start text-left">
-                            <AlertDialogMedia className="bg-muted mb-0">
-                                <Loader2 className="size-6 animate-spin" />
-                            </AlertDialogMedia>
-                            <AlertDialogTitle>{labels.title}</AlertDialogTitle>
-                            <div className="w-full space-y-4 text-left">
-                                <p className="text-muted-foreground text-sm">
-                                    {labels.description}
-                                </p>
-                                <div className="space-y-2">
-                                    <div className="flex justify-between text-sm">
-                                        <span>
-                                            {progress.processed} de{" "}
-                                            {progress.total || "…"}{" "}
-                                            concluídos
-                                        </span>
-                                        <span className="text-muted-foreground">
-                                            {pct}%
-                                        </span>
-                                    </div>
-                                    <div className="bg-muted h-2 overflow-hidden rounded-full">
-                                        <div
-                                            className="bg-primary h-full transition-all duration-300"
-                                            style={{ width: `${pct}%` }}
-                                        />
-                                    </div>
-                                </div>
-                                <p className="text-muted-foreground text-xs">
-                                    Sucesso: {progress.synced} · Falhas:{" "}
-                                    {progress.failed}
-                                </p>
-                            </div>
-                        </AlertDialogHeader>
-                    ) : null}
-
-                    {phase === "done" ? (
-                        <>
-                            <AlertDialogHeader className="place-items-start text-left">
-                                <AlertDialogMedia className="mb-0 bg-emerald-100 text-emerald-700">
-                                    <CheckCircle2 className="size-6" />
-                                </AlertDialogMedia>
-                                <AlertDialogTitle>
-                                    Sincronização concluída
-                                </AlertDialogTitle>
-                                <AlertDialogDescription className="sr-only">
-                                    Sync global finalizado.
-                                </AlertDialogDescription>
-                                <div className="space-y-2 text-left text-sm">
-                                    <p>
-                                        {progress.synced} {labels.entity}{" "}
-                                        sincronizados com sucesso
-                                        {progress.failed > 0
-                                            ? ` · ${progress.failed} com falha`
-                                            : ""}
-                                        .
-                                    </p>
-                                    {progress.total === 0 ? (
-                                        <p className="text-muted-foreground">
-                                            Nenhum {labels.entity.slice(0, -1)}{" "}
-                                            pendente de sincronização.
-                                        </p>
-                                    ) : null}
-                                </div>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogAction onClick={handleClose}>
-                                    Fechar
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </>
-                    ) : null}
-
-                    {phase === "error" ? (
-                        <>
-                            <AlertDialogHeader className="place-items-start text-left">
-                                <AlertDialogMedia
-                                    className={cn(
-                                        "mb-0",
-                                        progress.synced > 0
-                                            ? "bg-amber-100 text-amber-700"
-                                            : "bg-destructive/10 text-destructive",
-                                    )}
-                                >
-                                    {progress.synced > 0 ? (
-                                        <TriangleAlert className="size-6" />
-                                    ) : (
-                                        <XCircle className="size-6" />
-                                    )}
-                                </AlertDialogMedia>
-                                <AlertDialogTitle>
-                                    {progress.synced > 0
-                                        ? "Sincronização interrompida"
-                                        : "Falha na sincronização"}
-                                </AlertDialogTitle>
-                                <AlertDialogDescription className="sr-only">
-                                    Erro durante o sync global.
-                                </AlertDialogDescription>
-                                <div className="space-y-2 text-left text-sm">
-                                    <p className="text-muted-foreground">
-                                        {errorMessage ??
-                                            "Ocorreu um erro durante o sync global."}
-                                    </p>
-                                    {progress.processed > 0 ? (
-                                        <p>
-                                            Processados antes da interrupção:{" "}
-                                            {progress.processed} (
-                                            {progress.synced} ok,{" "}
-                                            {progress.failed} falha).
-                                        </p>
-                                    ) : null}
-                                </div>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogAction onClick={handleClose}>
-                                    Fechar
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </>
-                    ) : null}
-                </AlertDialogContent>
-            </AlertDialog>
-        </>
+            {activeJob ? (
+                <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
+                    <Loader2 className="size-3.5 shrink-0 animate-spin" />
+                    {bannerText(activeJob, kind)}
+                    <span>· pode sair desta tela</span>
+                </p>
+            ) : null}
+        </div>
     );
 }

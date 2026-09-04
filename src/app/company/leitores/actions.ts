@@ -4,11 +4,9 @@ import { revalidatePath } from 'next/cache';
 
 import {
     apiFetchAuthed,
-    getApiBaseUrl,
     nestErrorMessage,
     parseResponseJson,
 } from '@/lib/api-fetch';
-import { auth } from '@/auth';
 import type { ReadersMonitorStatusResponse } from '@/types/domain';
 import {
     createReaderSchema,
@@ -339,21 +337,68 @@ export async function wipeAllDeviceUsersAction(
     }
 }
 
-export async function getDeviceUsersSyncAllSseUrlAction(
+export type DeviceSyncJobStatus = {
+    jobId: string;
+    kind: string;
+    status: "queued" | "running" | "done" | "failed";
+    force: boolean;
+    targetId: string;
+    processed: number;
+    total: number;
+    error: string | null;
+};
+
+export type DeviceUsersSyncStatus = {
+    clientId: string;
+    jobs: DeviceSyncJobStatus[];
+};
+
+export async function getDeviceUsersSyncStatusAction(
     readerId: string,
-): Promise<{ url: string } | { error: string }> {
+): Promise<
+    { ok: true; data: DeviceUsersSyncStatus } | { ok: false; error: string }
+> {
     const id = z.string().uuid().safeParse(readerId);
-    if (!id.success) return { error: "Leitor inválido." };
+    if (!id.success) return { ok: false, error: "Leitor inválido." };
     try {
-        const session = await auth();
-        const token = session?.accessToken;
-        if (!token) return { error: "Não autenticado." };
-        const base = getApiBaseUrl();
-        return {
-            url: `${base}/api/readers/${id.data}/device-users/sync-all/progress?token=${encodeURIComponent(token)}`,
-        };
+        const res = await apiFetchAuthed(
+            `/api/readers/${id.data}/device-users/sync-status`,
+        );
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { ok: false, error: nestErrorMessage(data) };
+        }
+        const data = (await res.json()) as DeviceUsersSyncStatus;
+        return { ok: true, data };
     } catch {
-        return { error: "Não autenticado." };
+        return { ok: false, error: "Erro de comunicação." };
+    }
+}
+
+export async function enqueueDeviceUsersSyncAction(
+    readerId: string,
+    force = false,
+): Promise<
+    { ok: true; data: DeviceSyncJobStatus } | { ok: false; error: string }
+> {
+    const id = z.string().uuid().safeParse(readerId);
+    if (!id.success) return { ok: false, error: "Leitor inválido." };
+    try {
+        const res = await apiFetchAuthed(
+            `/api/readers/${id.data}/device-users/sync-all`,
+            {
+                method: "POST",
+                body: JSON.stringify({ force }),
+            },
+        );
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { ok: false, error: nestErrorMessage(data) };
+        }
+        const data = (await res.json()) as DeviceSyncJobStatus;
+        return { ok: true, data };
+    } catch {
+        return { ok: false, error: "Erro de comunicação." };
     }
 }
 

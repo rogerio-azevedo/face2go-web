@@ -26,6 +26,9 @@ export function DeviceUsersConfirmDialogs({
     confirmWipeOpen,
     onConfirmWipeOpenChange,
     onConfirmWipe,
+    confirmForceOpen,
+    onConfirmForceOpenChange,
+    onConfirmForce,
     pending,
 }: {
     selectedCount: number;
@@ -35,6 +38,9 @@ export function DeviceUsersConfirmDialogs({
     confirmWipeOpen: boolean;
     onConfirmWipeOpenChange: (open: boolean) => void;
     onConfirmWipe: () => void;
+    confirmForceOpen: boolean;
+    onConfirmForceOpenChange: (open: boolean) => void;
+    onConfirmForce: () => void;
     pending: boolean;
 }) {
     return (
@@ -82,6 +88,29 @@ export function DeviceUsersConfirmDialogs({
                             onClick={onConfirmWipe}
                         >
                             Apagar todos neste leitor
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog
+                open={confirmForceOpen}
+                onOpenChange={onConfirmForceOpenChange}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Forçar sync neste leitor?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Reenvia todas as faces para este equipamento, mesmo quem já
+                            estava synced. O trabalho segue em segundo plano — você pode
+                            sair desta tela. Outros syncs deste cliente ficam bloqueados
+                            até terminar.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={pending}>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction disabled={pending} onClick={onConfirmForce}>
+                            Forçar neste leitor
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

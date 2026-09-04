@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import {
     batchDeleteDeviceUsersAction,
+    enqueueDeviceUsersSyncAction,
     getDeviceUsersAction,
     getDeviceUserFaceAction,
     removeDeviceUserAction,
@@ -17,8 +18,8 @@ import {
     DeviceUserFaceSheet,
     DeviceUsersConfirmDialogs,
 } from "@/features/readers/components/DeviceUsersDialogs";
-import { DeviceUsersSyncAllModal } from "@/features/readers/components/DeviceUsersSyncAllModal";
 import { DeviceUsersTable } from "@/features/readers/components/DeviceUsersTable";
+import { useDeviceReaderSync } from "@/features/readers/hooks/use-device-reader-sync";
 import {
     DeviceUsersToolbar,
     type DeviceUsersOriginFilter,
@@ -59,11 +60,12 @@ export default function DeviceUsersClient({
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [confirmSelectedOpen, setConfirmSelectedOpen] = useState(false);
     const [confirmWipeOpen, setConfirmWipeOpen] = useState(false);
-    const [syncOpen, setSyncOpen] = useState(false);
+    const [confirmForceOpen, setConfirmForceOpen] = useState(false);
     const [clientType, setClientType] = useState<string | null>(null);
     const [pending, startTransition] = useTransition();
 
-    const showRebuild = clientType != null && clientType !== "school";
+    const showSync = clientType != null;
+    const showWipe = clientType != null && clientType !== "school";
 
     const visibleUsers = useMemo(() => {
         if (originFilter === "system") return users.filter((u) => u.inSystem);
@@ -94,6 +96,33 @@ export default function DeviceUsersClient({
         },
         [readerId],
     );
+
+    const handleSyncFinished = useCallback(() => {
+        toast.success("Sincronização concluída em segundo plano.");
+        void fetchUsers(offset, search);
+    }, [fetchUsers, offset, search]);
+
+    const { syncBusy, activeJob, refetch: refetchSync } = useDeviceReaderSync(
+        readerId,
+        handleSyncFinished,
+    );
+
+    const enqueueSync = (force: boolean) => {
+        startTransition(async () => {
+            const res = await enqueueDeviceUsersSyncAction(readerId, force);
+            if (!res.ok) {
+                toast.error(res.error);
+                return;
+            }
+            setConfirmForceOpen(false);
+            await refetchSync();
+            toast.success(
+                force
+                    ? "Forçar neste leitor enfileirado. Pode sair desta tela."
+                    : "Sincronização enfileirada. Pode sair desta tela.",
+            );
+        });
+    };
 
     const handleSearchChange = useCallback((value: string) => {
         setSearch(value);
@@ -206,10 +235,15 @@ export default function DeviceUsersClient({
                     onOriginFilterChange={setOriginFilter}
                     selectedCount={selectedIds.size}
                     pending={pending}
-                    showRebuild={showRebuild}
+                    showSync={showSync}
+                    showWipe={showWipe}
+                    syncBusy={syncBusy}
+                    activeJob={activeJob}
+                    readerId={readerId}
                     onRemoveSelected={() => setConfirmSelectedOpen(true)}
                     onWipeAll={() => setConfirmWipeOpen(true)}
-                    onSyncAll={() => setSyncOpen(true)}
+                    onSyncAll={() => enqueueSync(false)}
+                    onForceSync={() => setConfirmForceOpen(true)}
                 />
                 <DeviceUsersTable
                     users={visibleUsers}
@@ -281,16 +315,10 @@ export default function DeviceUsersClient({
                 confirmWipeOpen={confirmWipeOpen}
                 onConfirmWipeOpenChange={setConfirmWipeOpen}
                 onConfirmWipe={handleWipeAll}
+                confirmForceOpen={confirmForceOpen}
+                onConfirmForceOpenChange={setConfirmForceOpen}
+                onConfirmForce={() => enqueueSync(true)}
                 pending={pending}
-            />
-
-            <DeviceUsersSyncAllModal
-                readerId={readerId}
-                open={syncOpen}
-                onOpenChange={setSyncOpen}
-                onFinished={() => {
-                    void fetchUsers(offset, search);
-                }}
             />
 
             <DeviceUserFaceSheet

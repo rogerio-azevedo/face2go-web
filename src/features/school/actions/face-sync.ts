@@ -2,10 +2,8 @@
 
 import { z } from 'zod';
 
-import { auth } from '@/auth';
 import {
   apiFetchAuthed,
-  getApiBaseUrl,
   nestErrorMessage,
   parseResponseJson,
 } from '@/lib/api-fetch';
@@ -119,36 +117,64 @@ export async function getPersonFaceSyncStatusAction(
   }
 }
 
-export async function getStudentsGlobalFaceSyncSseUrlAction(
+export type SchoolFaceSyncJob = {
+  jobId: string;
+  kind: string;
+  status: 'queued' | 'running' | 'done' | 'failed';
+  force: boolean;
+  targetId: string;
+  entityKind?: string;
+  processed: number;
+  total: number;
+  error: string | null;
+};
+
+export type SchoolFaceSyncStatus = {
+  clientId: string;
+  jobs: SchoolFaceSyncJob[];
+};
+
+export async function getSchoolFaceSyncStatusAction(
   clientId: string,
-): Promise<{ url: string } | { error: string }> {
+): Promise<
+  { ok: true; data: SchoolFaceSyncStatus } | { ok: false; error: string }
+> {
   const cid = z.string().uuid().safeParse(clientId);
-  if (!cid.success) return { error: 'Cliente inválido.' };
+  if (!cid.success) return { ok: false, error: 'Cliente inválido.' };
   try {
-    const session = await auth();
-    const token = session?.accessToken;
-    if (!token) return { error: 'Não autenticado.' };
-    const base = getApiBaseUrl();
-    const url = `${base}/api/clients/${cid.data}/students/face/global-sync/progress?token=${encodeURIComponent(token)}`;
-    return { url };
+    const res = await apiFetchAuthed(
+      `/api/clients/${cid.data}/students/face/global-sync/status`,
+    );
+    if (!res.ok) {
+      const data = await parseResponseJson(res);
+      return { ok: false, error: nestErrorMessage(data) };
+    }
+    const data = (await res.json()) as SchoolFaceSyncStatus;
+    return { ok: true, data };
   } catch {
-    return { error: 'Não autenticado.' };
+    return { ok: false, error: 'Erro de comunicação.' };
   }
 }
 
-export async function getResponsiblesGlobalFaceSyncSseUrlAction(
+export async function enqueueSchoolFaceSyncAction(
   clientId: string,
-): Promise<{ url: string } | { error: string }> {
+  kind: 'students' | 'responsibles',
+): Promise<{ ok: true; data: SchoolFaceSyncJob } | { ok: false; error: string }> {
   const cid = z.string().uuid().safeParse(clientId);
-  if (!cid.success) return { error: 'Cliente inválido.' };
+  if (!cid.success) return { ok: false, error: 'Cliente inválido.' };
+  const path =
+    kind === 'students'
+      ? `/api/clients/${cid.data}/students/face/global-sync`
+      : `/api/clients/${cid.data}/responsibles/face/global-sync`;
   try {
-    const session = await auth();
-    const token = session?.accessToken;
-    if (!token) return { error: 'Não autenticado.' };
-    const base = getApiBaseUrl();
-    const url = `${base}/api/clients/${cid.data}/responsibles/face/global-sync/progress?token=${encodeURIComponent(token)}`;
-    return { url };
+    const res = await apiFetchAuthed(path, { method: 'POST' });
+    if (!res.ok) {
+      const data = await parseResponseJson(res);
+      return { ok: false, error: nestErrorMessage(data) };
+    }
+    const data = (await res.json()) as SchoolFaceSyncJob;
+    return { ok: true, data };
   } catch {
-    return { error: 'Não autenticado.' };
+    return { ok: false, error: 'Erro de comunicação.' };
   }
 }
