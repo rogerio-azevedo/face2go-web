@@ -1,12 +1,29 @@
 import type { FacialGuidelinesCopy } from "@/lib/public-brands/types";
 
+type FacialGuidelinesCopyOptions = {
+    appName: string;
+    readersLabel?: string;
+};
+
 export function buildFacialGuidelinesCopy(
-    appName: string,
+    appNameOrOptions: string | FacialGuidelinesCopyOptions,
 ): FacialGuidelinesCopy {
+    const { appName, readersLabel } =
+        typeof appNameOrOptions === "string"
+            ? {
+                  appName: appNameOrOptions,
+                  readersLabel: "leitores da escola",
+              }
+            : {
+                  appName: appNameOrOptions.appName,
+                  readersLabel:
+                      appNameOrOptions.readersLabel ?? "leitores da escola",
+              };
+
     return {
         title: "Orientações para captura facial",
         subtitle: "Captura de face para leitores faciais",
-        intro: `Siga estas orientações para garantir o melhor reconhecimento nos leitores da escola. Uma foto ruim não só impede o seu acesso — também prejudica o cadastro de outras pessoas no ${appName}.`,
+        intro: `Siga estas orientações para garantir o melhor reconhecimento nos ${readersLabel}. Uma foto ruim não só impede o seu acesso — também prejudica o cadastro de outras pessoas no ${appName}.`,
         idealHeading: "Exemplos ideais",
         inadequateHeading: "Exemplos inadequados",
         practicesHeading: "Boas práticas",

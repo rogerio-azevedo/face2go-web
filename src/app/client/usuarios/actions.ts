@@ -11,6 +11,7 @@ import {
     nestErrorMessage,
     parseResponseJson,
 } from '@/lib/api-fetch';
+import { parseRegistrationFaceSyncEnqueue } from '@/lib/face-sync-result';
 import type { CreateRegistrationLinkBody } from '@/lib/registration-link-schedule';
 
 export async function createClientRegistrationLinkAction(
@@ -154,9 +155,43 @@ export async function syncClientRegistrationFaceAction(
         const data = (await parseResponseJson(res)) as {
             deviceSyncStatus?: string;
             deviceSyncError?: string | null;
+            jobId?: string;
+            status?: string;
         };
         if (!res.ok) return { error: nestErrorMessage(data) };
         revalidatePath('/client/usuarios');
+        const parsed = parseRegistrationFaceSyncEnqueue(data);
+        return {
+            success: true,
+            deviceSyncStatus: parsed.deviceSyncStatus,
+            deviceSyncError: parsed.deviceSyncError,
+        };
+    } catch {
+        return { error: 'Sem permissão.' };
+    }
+}
+
+export async function getClientRegistrationFaceSyncStatusAction(
+    registrationId: string,
+): Promise<
+    | {
+          success: true;
+          deviceSyncStatus: string;
+          deviceSyncError: string | null;
+      }
+    | { error: string }
+> {
+    const id = z.string().uuid().safeParse(registrationId);
+    if (!id.success) return { error: 'ID inválido.' };
+    try {
+        const res = await apiFetchAuthed(`/api/client/faces/${id.data}/sync`, {
+            cache: 'no-store',
+        });
+        const data = (await parseResponseJson(res)) as {
+            deviceSyncStatus?: string | null;
+            deviceSyncError?: string | null;
+        };
+        if (!res.ok) return { error: nestErrorMessage(data) };
         return {
             success: true,
             deviceSyncStatus: String(data.deviceSyncStatus ?? ''),

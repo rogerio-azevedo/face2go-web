@@ -3,9 +3,19 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
-import { syncClientRegistrationFaceAction } from "@/app/client/usuarios/actions";
-import { syncCompanyRegistrationFaceAction } from "@/app/company/clientes/[clientId]/usuarios/actions";
+import {
+    getClientRegistrationFaceSyncStatusAction,
+    syncClientRegistrationFaceAction,
+} from "@/app/client/usuarios/actions";
+import {
+    getCompanyRegistrationFaceSyncStatusAction,
+    syncCompanyRegistrationFaceAction,
+} from "@/app/company/clientes/[clientId]/usuarios/actions";
 import type { FaceSyncModalState } from "@/components/company/clientes/escola/FaceSyncResultModal";
+import {
+    isFaceSyncPending,
+    waitForFaceSyncSettled,
+} from "@/lib/face-sync-result";
 
 export function useRegistrationFaceSync(params: {
     variant: "client" | "company";
@@ -38,15 +48,44 @@ export function useRegistrationFaceSync(params: {
                     setSyncModalState({ phase: "idle" });
                     return null;
                 }
+
+                let status = res.deviceSyncStatus;
+                let error = res.deviceSyncError;
+                if (isFaceSyncPending(status)) {
+                    const settled = await waitForFaceSyncSettled(async () => {
+                        const snapshot =
+                            variant === "client"
+                                ? await getClientRegistrationFaceSyncStatusAction(
+                                      registrationId,
+                                  )
+                                : await getCompanyRegistrationFaceSyncStatusAction(
+                                      companyClientId ?? "",
+                                      registrationId,
+                                  );
+                        if ("error" in snapshot) return snapshot;
+                        return {
+                            deviceSyncStatus: snapshot.deviceSyncStatus,
+                            deviceSyncError: snapshot.deviceSyncError,
+                        };
+                    });
+                    if ("error" in settled) {
+                        toast.error(settled.error);
+                        setSyncModalState({ phase: "idle" });
+                        return null;
+                    }
+                    status = settled.deviceSyncStatus;
+                    error = settled.deviceSyncError;
+                }
+
                 setSyncModalState({
                     phase: "done",
                     name,
-                    status: res.deviceSyncStatus,
-                    error: res.deviceSyncError,
+                    status,
+                    error,
                 });
                 return {
-                    deviceSyncStatus: res.deviceSyncStatus,
-                    deviceSyncError: res.deviceSyncError,
+                    deviceSyncStatus: status,
+                    deviceSyncError: error,
                 };
             } catch {
                 toast.error("Não foi possível sincronizar.");

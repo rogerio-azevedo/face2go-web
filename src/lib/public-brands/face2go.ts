@@ -40,10 +40,13 @@ export const face2goBrand: PublicBrandConfig = {
     facialMetadata: {
         title: "Orientações para captura facial • Face2Go",
         description:
-            "Como tirar uma foto facial correta para leitores da escola: posição, iluminação, distância e exemplos do que evitar.",
-        ogImage: "/og/face2go-invite.png",
+            "Como tirar uma foto facial correta para leitores de acesso: posição, iluminação, distância e exemplos do que evitar.",
+        ogImage: "/og/face2go-generic.png",
     },
-    facialGuidelines: buildFacialGuidelinesCopy(APP_NAME),
+    facialGuidelines: buildFacialGuidelinesCopy({
+        appName: "Face2Go",
+        readersLabel: "leitores faciais",
+    }),
     copy: {
         intro:
             "Guia para pais e responsáveis usarem o Face2Go — Escola Segura no celular: cadastro facial, autorizações, acessos e veículos.",

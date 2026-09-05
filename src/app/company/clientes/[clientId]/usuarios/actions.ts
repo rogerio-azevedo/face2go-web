@@ -11,6 +11,7 @@ import {
     nestErrorMessage,
     parseResponseJson,
 } from '@/lib/api-fetch';
+import { parseRegistrationFaceSyncEnqueue } from '@/lib/face-sync-result';
 import type { CreateRegistrationLinkBody } from '@/lib/registration-link-schedule';
 import type { RegistrationLinkListRow } from '@/types/domain';
 
@@ -183,9 +184,46 @@ export async function syncCompanyRegistrationFaceAction(
         const data = (await parseResponseJson(res)) as {
             deviceSyncStatus?: string;
             deviceSyncError?: string | null;
+            jobId?: string;
+            status?: string;
         };
         if (!res.ok) return { error: nestErrorMessage(data) };
         revalidatePath(`/company/clientes/${cid.data}/usuarios`);
+        const parsed = parseRegistrationFaceSyncEnqueue(data);
+        return {
+            success: true,
+            deviceSyncStatus: parsed.deviceSyncStatus,
+            deviceSyncError: parsed.deviceSyncError,
+        };
+    } catch {
+        return { error: 'Sem permissão.' };
+    }
+}
+
+export async function getCompanyRegistrationFaceSyncStatusAction(
+    clientId: string,
+    registrationId: string,
+): Promise<
+    | {
+          success: true;
+          deviceSyncStatus: string;
+          deviceSyncError: string | null;
+      }
+    | { error: string }
+> {
+    const cid = z.string().uuid().safeParse(clientId);
+    const rid = z.string().uuid().safeParse(registrationId);
+    if (!cid.success || !rid.success) return { error: 'ID inválido.' };
+    try {
+        const res = await apiFetchAuthed(
+            `/api/clients/${cid.data}/faces/${rid.data}/sync`,
+            { cache: 'no-store' },
+        );
+        const data = (await parseResponseJson(res)) as {
+            deviceSyncStatus?: string | null;
+            deviceSyncError?: string | null;
+        };
+        if (!res.ok) return { error: nestErrorMessage(data) };
         return {
             success: true,
             deviceSyncStatus: String(data.deviceSyncStatus ?? ''),
