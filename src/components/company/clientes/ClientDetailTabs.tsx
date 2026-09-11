@@ -52,6 +52,7 @@ export function ClientDetailTabs({
                 <RegistrationsReviewBoard
                     variant="company"
                     companyClientId={clientId}
+                    isAdmin={isAdmin}
                 />
             </TabsContent>
 

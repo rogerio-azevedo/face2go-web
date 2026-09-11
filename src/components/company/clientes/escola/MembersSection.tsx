@@ -30,7 +30,6 @@ import {
 
 import { DeviceSyncStatusBadge } from "./DeviceSyncStatusBadge";
 import { FaceSyncOfferModal } from "./FaceSyncOfferModal";
-import { FaceSyncResultModal } from "./FaceSyncResultModal";
 import { MemberEditSheet } from "./MemberEditSheet";
 import { MemberForm } from "./MemberForm";
 
@@ -118,10 +117,6 @@ export function MembersSection({
         } finally {
             setSyncingId(null);
         }
-    }
-
-    function handleSyncModalClose() {
-        faceSyncOffer.closeSyncResult();
     }
 
     const tableBusy = loading || isPending;
@@ -330,11 +325,6 @@ export function MembersSection({
                 personName={faceSyncOffer.offerTarget?.name ?? ""}
                 onConfirm={() => void faceSyncOffer.confirmOffer()}
                 onDismiss={faceSyncOffer.dismissOffer}
-            />
-
-            <FaceSyncResultModal
-                state={faceSyncOffer.syncModalState}
-                onClose={handleSyncModalClose}
             />
         </>
     );

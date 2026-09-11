@@ -199,6 +199,70 @@ export async function getClientRegistrationFaceSyncStatusAction(
     }
 }
 
+export async function updateClientRegistrationAction(
+    registrationId: string,
+    body: {
+        name: string;
+        document: string;
+        phone: string;
+        email: string;
+        additionalData?: Record<string, unknown>;
+    },
+): Promise<{ success: true } | { error: string }> {
+    const id = z.string().uuid().safeParse(registrationId);
+    if (!id.success) return { error: 'ID inválido.' };
+    try {
+        const res = await apiFetchAuthed(
+            `/api/client/registrations/${id.data}`,
+            { method: 'PATCH', body: JSON.stringify(body) },
+        );
+        const data = await parseResponseJson(res);
+        if (!res.ok) return { error: nestErrorMessage(data) };
+        revalidatePath('/client/usuarios');
+        return { success: true };
+    } catch {
+        return { error: 'Sem permissão.' };
+    }
+}
+
+export async function deleteClientRegistrationAction(
+    registrationId: string,
+): Promise<{ success: true } | { error: string }> {
+    const id = z.string().uuid().safeParse(registrationId);
+    if (!id.success) return { error: 'ID inválido.' };
+    try {
+        const res = await apiFetchAuthed(
+            `/api/client/registrations/${id.data}`,
+            { method: 'DELETE' },
+        );
+        const data = await parseResponseJson(res);
+        if (!res.ok) return { error: nestErrorMessage(data) };
+        revalidatePath('/client/usuarios');
+        return { success: true };
+    } catch {
+        return { error: 'Sem permissão.' };
+    }
+}
+
+export async function restoreClientRegistrationAction(
+    registrationId: string,
+): Promise<{ success: true } | { error: string }> {
+    const id = z.string().uuid().safeParse(registrationId);
+    if (!id.success) return { error: 'ID inválido.' };
+    try {
+        const res = await apiFetchAuthed(
+            `/api/client/registrations/${id.data}/restore`,
+            { method: 'POST' },
+        );
+        const data = await parseResponseJson(res);
+        if (!res.ok) return { error: nestErrorMessage(data) };
+        revalidatePath('/client/usuarios');
+        return { success: true };
+    } catch {
+        return { error: 'Sem permissão.' };
+    }
+}
+
 export async function enqueueClientFaceSyncAllAction(
     force = false,
 ): Promise<

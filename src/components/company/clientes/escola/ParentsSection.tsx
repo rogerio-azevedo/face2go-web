@@ -29,7 +29,6 @@ import { ParentForm } from "./ParentForm";
 import { DeviceSyncStatusBadge } from "./DeviceSyncStatusBadge";
 import { FaceGlobalSyncModal } from "./FaceGlobalSyncModal";
 import { FaceSyncOfferModal } from "./FaceSyncOfferModal";
-import { FaceSyncResultModal } from "./FaceSyncResultModal";
 
 export function ParentsSection({
     clientId,
@@ -101,10 +100,6 @@ export function ParentsSection({
         } finally {
             setSyncingId(null);
         }
-    }
-
-    function handleSyncModalClose() {
-        faceSyncOffer.closeSyncResult();
     }
 
     const tableBusy = loading || isPending;
@@ -302,11 +297,6 @@ export function ParentsSection({
                 personName={faceSyncOffer.offerTarget?.name ?? ""}
                 onConfirm={() => void faceSyncOffer.confirmOffer()}
                 onDismiss={faceSyncOffer.dismissOffer}
-            />
-
-            <FaceSyncResultModal
-                state={faceSyncOffer.syncModalState}
-                onClose={handleSyncModalClose}
             />
         </>
     );

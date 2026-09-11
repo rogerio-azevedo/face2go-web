@@ -29,7 +29,10 @@ function normalizeRegistrationsPage(
             draft: Number(counts?.draft ?? 0),
             approved: Number(counts?.approved ?? 0),
             rejected: Number(counts?.rejected ?? 0),
+            deleted: Number(counts?.deleted ?? 0),
         },
+        clientType:
+            typeof v.clientType === "string" ? v.clientType : null,
     };
 }
 

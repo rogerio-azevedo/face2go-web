@@ -6,15 +6,20 @@ import { toast } from "sonner";
 
 import {
     approveClientRegistrationAction,
+    deleteClientRegistrationAction,
     getClientRegistrationFaceUrlAction,
     rejectClientRegistrationAction,
+    restoreClientRegistrationAction,
 } from "@/app/client/usuarios/actions";
 import {
     approveCompanyRegistrationAction,
+    deleteCompanyRegistrationAction,
     getCompanyRegistrationFaceUrlAction,
     rejectCompanyRegistrationAction,
+    restoreCompanyRegistrationAction,
 } from "@/app/company/clientes/[clientId]/usuarios/actions";
-import { FaceSyncResultModal } from "@/components/company/clientes/escola/FaceSyncResultModal";
+import { RegistrationEditSheet } from "@/features/registrations/components/RegistrationEditSheet";
+import { RegistrationRowActions } from "@/features/registrations/components/RegistrationRowActions";
 import { DeviceSyncStatusBadge } from "@/components/company/clientes/escola/DeviceSyncStatusBadge";
 import { listRegistrationsAction } from "@/features/registrations/actions/list";
 import { emptyRegistrationsPage } from "@/lib/pagination";
@@ -48,7 +53,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 
-type Tab = "draft" | "approved" | "rejected";
+type Tab = "draft" | "approved" | "rejected" | "deleted";
 type SortField = "submittedAt" | "name" | "local";
 type SortDir = "asc" | "desc";
 
@@ -56,6 +61,7 @@ const TAB_LABELS: Record<Tab, string> = {
     draft: "Aguardando aprovação",
     approved: "Aprovados",
     rejected: "Rejeitados",
+    deleted: "Excluídos",
 };
 
 function formatWhen(iso: string | null) {
@@ -141,9 +147,11 @@ function SortableHead({
 export function RegistrationsReviewBoard({
     variant,
     companyClientId,
+    isAdmin = false,
 }: {
     variant: "client" | "company";
     companyClientId?: string;
+    isAdmin?: boolean;
 }) {
     const [page, setPage] = useState<PaginatedRegistrationsResponse>(
         emptyRegistrationsPage(),
@@ -159,6 +167,9 @@ export function RegistrationsReviewBoard({
     const [faceUrl, setFaceUrl] = useState<string | null>(null);
     const [rejectNotes, setRejectNotes] = useState("");
     const [syncingId, setSyncingId] = useState<string | null>(null);
+    const [editRow, setEditRow] = useState<ClientRegistrationListRow | null>(
+        null,
+    );
     const [loading, setLoading] = useState(true);
     const [pending, startTransition] = useTransition();
 
@@ -194,7 +205,7 @@ export function RegistrationsReviewBoard({
         [variant, companyClientId, page.pageSize],
     );
 
-    const { syncModalState, runSync, closeSyncResult } = useRegistrationFaceSync({
+    const { runSync } = useRegistrationFaceSync({
         variant,
         companyClientId,
         onAfterSync: () => {
@@ -332,6 +343,38 @@ export function RegistrationsReviewBoard({
         void runSyncFace(activeRow);
     }
 
+    async function runDelete(row: ClientRegistrationListRow) {
+        const res =
+            variant === "client"
+                ? await deleteClientRegistrationAction(row.id)
+                : await deleteCompanyRegistrationAction(
+                      companyClientId ?? "",
+                      row.id,
+                  );
+        if ("error" in res) {
+            toast.error(res.error);
+            return;
+        }
+        toast.success("Cadastro excluído.");
+        void fetchList(page.page, search, tab);
+    }
+
+    async function runRestore(row: ClientRegistrationListRow) {
+        const res =
+            variant === "client"
+                ? await restoreClientRegistrationAction(row.id)
+                : await restoreCompanyRegistrationAction(
+                      companyClientId ?? "",
+                      row.id,
+                  );
+        if ("error" in res) {
+            toast.error(res.error);
+            return;
+        }
+        toast.success("Cadastro restaurado. A face será reenviada aos leitores.");
+        void fetchList(page.page, search, tab);
+    }
+
     return (
         <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
@@ -403,7 +446,14 @@ export function RegistrationsReviewBoard({
                             </TableRow>
                         ) : (
                             filtered.map((row) => (
-                                <TableRow key={row.id}>
+                                <TableRow
+                                    key={row.id}
+                                    className={
+                                        tab === "deleted"
+                                            ? "text-muted-foreground"
+                                            : undefined
+                                    }
+                                >
                                     <TableCell className="align-middle">
                                         <div className="size-8 shrink-0 overflow-hidden rounded-full bg-teal-100 ring-2 ring-teal-100">
                                             <FaceCirclePhoto
@@ -415,7 +465,14 @@ export function RegistrationsReviewBoard({
                                     </TableCell>
                                     <TableCell className="font-medium">
                                         <div className="flex flex-col gap-1">
-                                            <span>{row.name ?? "—"}</span>
+                                            <span className="flex flex-wrap items-center gap-1.5">
+                                                {row.name ?? "—"}
+                                                {tab === "deleted" ? (
+                                                    <Badge variant="secondary">
+                                                        Excluído
+                                                    </Badge>
+                                                ) : null}
+                                            </span>
                                             {tab === "approved" &&
                                                 row.faceId != null &&
                                                 row.hasFacialReaders ? (
@@ -462,33 +519,19 @@ export function RegistrationsReviewBoard({
                                         {formatWhen(row.submittedAt)}
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        <div className="flex flex-col items-end gap-1">
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => openDetail(row)}
-                                            >
-                                                Ver
-                                            </Button>
-                                            {tab === "approved" &&
-                                            row.faceId != null ? (
-                                                <Button
-                                                    type="button"
-                                                    variant="secondary"
-                                                    size="sm"
-                                                    disabled={
-                                                        pending ||
-                                                        syncingId === row.id
-                                                    }
-                                                    onClick={() =>
-                                                        void runSyncFace(row)
-                                                    }
-                                                >
-                                                    Sync leitor
-                                                </Button>
-                                            ) : null}
-                                        </div>
+                                        <RegistrationRowActions
+                                            row={row}
+                                            tab={tab}
+                                            isAdmin={isAdmin}
+                                            busy={
+                                                pending || syncingId === row.id
+                                            }
+                                            onView={() => void openDetail(row)}
+                                            onSync={() => void runSyncFace(row)}
+                                            onEdit={() => setEditRow(row)}
+                                            onDelete={() => runDelete(row)}
+                                            onRestore={() => runRestore(row)}
+                                        />
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -650,9 +693,18 @@ export function RegistrationsReviewBoard({
                 </SheetContent>
             </Sheet>
 
-            <FaceSyncResultModal
-                state={syncModalState}
-                onClose={closeSyncResult}
+            <RegistrationEditSheet
+                open={editRow != null}
+                onOpenChange={(open) => {
+                    if (!open) setEditRow(null);
+                }}
+                row={editRow}
+                clientType={page.clientType ?? null}
+                variant={variant}
+                companyClientId={companyClientId}
+                onSuccess={() => {
+                    void fetchList(page.page, search, tab);
+                }}
             />
         </div>
     );

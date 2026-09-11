@@ -231,6 +231,76 @@ export async function getCompanyRegistrationFaceSyncStatusAction(
     }
 }
 
+export async function updateCompanyRegistrationAction(
+    clientId: string,
+    registrationId: string,
+    body: {
+        name: string;
+        document: string;
+        phone: string;
+        email: string;
+        additionalData?: Record<string, unknown>;
+    },
+): Promise<{ success: true } | { error: string }> {
+    const cid = z.string().uuid().safeParse(clientId);
+    const rid = z.string().uuid().safeParse(registrationId);
+    if (!cid.success || !rid.success) return { error: 'ID inválido.' };
+    try {
+        const res = await apiFetchAuthed(
+            `/api/clients/${cid.data}/registrations/${rid.data}`,
+            { method: 'PATCH', body: JSON.stringify(body) },
+        );
+        const data = await parseResponseJson(res);
+        if (!res.ok) return { error: nestErrorMessage(data) };
+        revalidatePath(`/company/clientes/${cid.data}/usuarios`);
+        return { success: true };
+    } catch {
+        return { error: 'Sem permissão.' };
+    }
+}
+
+export async function deleteCompanyRegistrationAction(
+    clientId: string,
+    registrationId: string,
+): Promise<{ success: true } | { error: string }> {
+    const cid = z.string().uuid().safeParse(clientId);
+    const rid = z.string().uuid().safeParse(registrationId);
+    if (!cid.success || !rid.success) return { error: 'ID inválido.' };
+    try {
+        const res = await apiFetchAuthed(
+            `/api/clients/${cid.data}/registrations/${rid.data}`,
+            { method: 'DELETE' },
+        );
+        const data = await parseResponseJson(res);
+        if (!res.ok) return { error: nestErrorMessage(data) };
+        revalidatePath(`/company/clientes/${cid.data}/usuarios`);
+        return { success: true };
+    } catch {
+        return { error: 'Sem permissão.' };
+    }
+}
+
+export async function restoreCompanyRegistrationAction(
+    clientId: string,
+    registrationId: string,
+): Promise<{ success: true } | { error: string }> {
+    const cid = z.string().uuid().safeParse(clientId);
+    const rid = z.string().uuid().safeParse(registrationId);
+    if (!cid.success || !rid.success) return { error: 'ID inválido.' };
+    try {
+        const res = await apiFetchAuthed(
+            `/api/clients/${cid.data}/registrations/${rid.data}/restore`,
+            { method: 'POST' },
+        );
+        const data = await parseResponseJson(res);
+        if (!res.ok) return { error: nestErrorMessage(data) };
+        revalidatePath(`/company/clientes/${cid.data}/usuarios`);
+        return { success: true };
+    } catch {
+        return { error: 'Sem permissão.' };
+    }
+}
+
 export async function enqueueCompanyFaceSyncAllAction(
     clientId: string,
     force = false,

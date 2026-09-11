@@ -32,7 +32,6 @@ import { StudentForm } from "./StudentForm";
 import { DeviceSyncStatusBadge } from "./DeviceSyncStatusBadge";
 import { FaceGlobalSyncModal } from "./FaceGlobalSyncModal";
 import { FaceSyncOfferModal } from "./FaceSyncOfferModal";
-import { FaceSyncResultModal } from "./FaceSyncResultModal";
 
 function classesLabel(
     classes: SchoolClassRow[],
@@ -137,10 +136,6 @@ export function StudentsSection({
         } finally {
             setSyncingId(null);
         }
-    }
-
-    function handleSyncModalClose() {
-        faceSyncOffer.closeSyncResult();
     }
 
     const rows = list.data.map((s) => ({
@@ -359,11 +354,6 @@ export function StudentsSection({
                 personName={faceSyncOffer.offerTarget?.name ?? ""}
                 onConfirm={() => void faceSyncOffer.confirmOffer()}
                 onDismiss={faceSyncOffer.dismissOffer}
-            />
-
-            <FaceSyncResultModal
-                state={faceSyncOffer.syncModalState}
-                onClose={handleSyncModalClose}
             />
         </>
     );

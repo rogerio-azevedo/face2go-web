@@ -1,20 +1,16 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
 import { syncMemberFaceAction } from "@/app/company/clientes/[clientId]/usuarios/members-actions";
 import {
-    getPersonFaceSyncStatusAction,
     syncResponsibleFaceAction,
     syncStudentFaceAction,
 } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
-import type { FaceSyncModalState } from "@/components/company/clientes/escola/FaceSyncResultModal";
 import type { FaceSyncSaveHint } from "@/lib/face-sync-after-edit";
-import {
-    isFaceSyncPending,
-    waitForFaceSyncSettled,
-} from "@/lib/face-sync-result";
+import { isFaceSyncPending } from "@/lib/face-sync-result";
 
 type FaceSyncOfferTarget = { id: string; name: string };
 
@@ -24,12 +20,10 @@ export function useFaceSyncOffer(params: {
     onAfterSync?: () => void;
 }) {
     const { clientId, kind, onAfterSync } = params;
+    const queryClient = useQueryClient();
     const [offerTarget, setOfferTarget] = useState<FaceSyncOfferTarget | null>(
         null,
     );
-    const [syncModalState, setSyncModalState] = useState<FaceSyncModalState>({
-        phase: "idle",
-    });
 
     const promptFromSave = useCallback((hint?: FaceSyncSaveHint) => {
         if (hint?.requiresFaceSync) {
@@ -47,15 +41,9 @@ export function useFaceSyncOffer(params: {
         setOfferTarget(null);
     }, []);
 
-    const closeSyncResult = useCallback(() => {
-        setSyncModalState({ phase: "idle" });
-        onAfterSync?.();
-    }, [onAfterSync]);
-
     const runSync = useCallback(
         async (id: string, name: string) => {
             setOfferTarget(null);
-            setSyncModalState({ phase: "syncing", name });
             try {
                 const res =
                     kind === "student"
@@ -65,46 +53,27 @@ export function useFaceSyncOffer(params: {
                           : await syncResponsibleFaceAction(clientId, id);
                 if ("error" in res) {
                     toast.error(res.error);
-                    setSyncModalState({ phase: "idle" });
                     return;
                 }
-
-                let status = res.deviceSyncStatus;
-                let error = res.deviceSyncError;
-                if (isFaceSyncPending(status)) {
-                    const settled = await waitForFaceSyncSettled(async () => {
-                        const snapshot = await getPersonFaceSyncStatusAction(
-                            clientId,
-                            id,
-                            kind,
-                        );
-                        if ("error" in snapshot) return snapshot;
-                        return {
-                            deviceSyncStatus: snapshot.deviceSyncStatus,
-                            deviceSyncError: snapshot.deviceSyncError,
-                        };
-                    });
-                    if ("error" in settled) {
-                        toast.error(settled.error);
-                        setSyncModalState({ phase: "idle" });
-                        return;
-                    }
-                    status = settled.deviceSyncStatus;
-                    error = settled.deviceSyncError;
+                if (!isFaceSyncPending(res.deviceSyncStatus)) {
+                    toast.error(
+                        res.deviceSyncError ?? "Não foi possível sincronizar.",
+                    );
+                    onAfterSync?.();
+                    return;
                 }
-
-                setSyncModalState({
-                    phase: "done",
-                    name,
-                    status,
-                    error,
+                toast.success(
+                    `Sync de ${name} enfileirado. Pode sair desta tela.`,
+                );
+                void queryClient.invalidateQueries({
+                    queryKey: ["school-face-sync", clientId],
                 });
+                onAfterSync?.();
             } catch {
                 toast.error("Não foi possível sincronizar.");
-                setSyncModalState({ phase: "idle" });
             }
         },
-        [clientId, kind],
+        [clientId, kind, onAfterSync, queryClient],
     );
 
     const confirmOffer = useCallback(async () => {
@@ -115,12 +84,10 @@ export function useFaceSyncOffer(params: {
 
     return {
         offerTarget,
-        syncModalState,
         promptFromSave,
         promptFromLinkChange,
         dismissOffer,
         confirmOffer,
         runSync,
-        closeSyncResult,
     };
 }

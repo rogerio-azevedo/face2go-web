@@ -72,7 +72,10 @@ export default async function ClientUsuariosPage() {
                     </h2>
                     <RegistrationsFaceSyncAllModal variant="client" />
                 </div>
-                <RegistrationsReviewBoard variant="client" />
+                <RegistrationsReviewBoard
+                    variant="client"
+                    isAdmin={role === "client_admin"}
+                />
             </section>
         </div>
     );

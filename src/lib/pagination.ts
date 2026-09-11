@@ -26,7 +26,7 @@ export type RegistrationListParams = {
     page?: number;
     pageSize?: number;
     search?: string;
-    status?: "draft" | "approved" | "rejected";
+    status?: "draft" | "approved" | "rejected" | "deleted";
 };
 
 export function buildRegistrationListQuery(
@@ -47,7 +47,8 @@ export function emptyRegistrationsPage(): PaginatedRegistrationsResponse {
         total: 0,
         page: 1,
         pageSize: DEFAULT_SCHOOL_PAGE_SIZE,
-        counts: { draft: 0, approved: 0, rejected: 0 },
+        counts: { draft: 0, approved: 0, rejected: 0, deleted: 0 },
+        clientType: null,
     };
 }
 

@@ -243,6 +243,7 @@ export type ClientRegistrationListRow = {
     email: string | null;
     additionalData: Record<string, unknown> | null;
     status: "draft" | "approved" | "rejected";
+    isActive: boolean;
     submittedAt: string | null;
     approvedAt: string | null;
     rejectionNotes: string | null;
@@ -260,6 +261,7 @@ export type RegistrationStatusCounts = {
     draft: number;
     approved: number;
     rejected: number;
+    deleted: number;
 };
 
 export type AccessRow = {
@@ -396,6 +398,7 @@ export type PaginatedResponse<T> = {
 export type PaginatedRegistrationsResponse =
     PaginatedResponse<ClientRegistrationListRow> & {
         counts: RegistrationStatusCounts;
+        clientType?: string | null;
     };
 
 export type StudentAccessScheduleJson = {
