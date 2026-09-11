@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { AppSidebar } from "@/components/shared/Sidebar/app-sidebar";
 import { Header } from "@/components/shared/Header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { AccessBlockedAttemptListener } from "@/features/readers/components/AccessBlockedAttemptListener";
 import { getSidebarNavAccess, getCompanyFeatureFlags } from "@/lib/permissions";
 
 export default async function CompanyLayout({
@@ -39,6 +40,7 @@ export default async function CompanyLayout({
                     {children}
                 </div>
             </SidebarInset>
+            <AccessBlockedAttemptListener />
         </SidebarProvider>
     );
 }

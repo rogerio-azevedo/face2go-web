@@ -203,6 +203,42 @@ export async function updateStudentAction(
   }
 }
 
+export async function blockStudentAction(
+  clientId: string,
+  studentId: string,
+  reason: string,
+): Promise<{ success: true } | { error: string }> {
+  try {
+    const cid = ids.safeParse({ clientId });
+    const sid = z.string().uuid().safeParse(studentId);
+    if (!cid.success || !sid.success) return { error: 'Dados inválidos.' };
+    const parsed = z
+      .string()
+      .trim()
+      .min(3, 'Informe o motivo do bloqueio (mín. 3 caracteres).')
+      .max(2000)
+      .safeParse(reason);
+    if (!parsed.success) return { error: zodFirstMessage(parsed.error) };
+
+    const res = await apiFetchAuthed(
+      `/api/clients/${clientId}/students/${studentId}/block`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ reason: parsed.data }),
+      },
+    );
+    if (!res.ok) {
+      const data = await parseResponseJson(res);
+      return { error: nestErrorMessage(data) };
+    }
+
+    revalidateSchoolRoutes(clientId);
+    return { success: true };
+  } catch {
+    return { error: 'Sem permissão.' };
+  }
+}
+
 export async function deleteStudentAction(
   clientId: string,
   studentId: string,

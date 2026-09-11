@@ -249,6 +249,7 @@ export function AccessesTable({
                             <TableHead>Cliente</TableHead>
                             <TableHead>Horário</TableHead>
                             <TableHead>Sentido</TableHead>
+                            <TableHead>Resultado</TableHead>
                             <TableHead>Evento</TableHead>
                             <TableHead className="text-center">
                                 <span className="sr-only">Visualizar foto</span>
@@ -263,7 +264,7 @@ export function AccessesTable({
                         {data.items.length === 0 ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={7}
+                                    colSpan={8}
                                     className="h-24 text-center text-muted-foreground"
                                 >
                                     Nenhum acesso encontrado para os filtros
@@ -277,7 +278,14 @@ export function AccessesTable({
                                     `Face #${row.userId}`;
 
                                 return (
-                                    <TableRow key={row.id}>
+                                    <TableRow
+                                        key={row.id}
+                                        className={
+                                            row.status === "denied"
+                                                ? "bg-destructive/5"
+                                                : undefined
+                                        }
+                                    >
                                         <TableCell className="font-medium">
                                             {personLabel}
                                         </TableCell>
@@ -314,6 +322,20 @@ export function AccessesTable({
                                                 <span className="text-muted-foreground">
                                                     —
                                                 </span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {row.status === "denied" ? (
+                                                <Badge variant="destructive">
+                                                    Bloqueado
+                                                </Badge>
+                                            ) : (
+                                                <Badge
+                                                    variant="outline"
+                                                    className="font-normal"
+                                                >
+                                                    Liberado
+                                                </Badge>
                                             )}
                                         </TableCell>
                                         <TableCell>

@@ -29,6 +29,7 @@ function normalizeRegistrationsPage(
             draft: Number(counts?.draft ?? 0),
             approved: Number(counts?.approved ?? 0),
             rejected: Number(counts?.rejected ?? 0),
+            blocked: Number(counts?.blocked ?? 0),
             deleted: Number(counts?.deleted ?? 0),
         },
         clientType:

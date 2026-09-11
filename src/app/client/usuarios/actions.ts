@@ -110,6 +110,33 @@ export async function getClientRegistrationFaceUrlAction(
     }
 }
 
+export async function blockClientRegistrationAction(
+    registrationId: string,
+    reason: string,
+): Promise<{ success: true } | { error: string }> {
+    const id = z.string().uuid().safeParse(registrationId);
+    const parsedReason = z.string().trim().min(3).max(2000).safeParse(reason);
+    if (!id.success) return { error: 'ID inválido.' };
+    if (!parsedReason.success) {
+        return { error: 'Informe o motivo do bloqueio (mínimo 3 caracteres).' };
+    }
+    try {
+        const res = await apiFetchAuthed(
+            `/api/client/registrations/${id.data}/block`,
+            {
+                method: 'POST',
+                body: JSON.stringify({ reason: parsedReason.data }),
+            },
+        );
+        const data = await parseResponseJson(res);
+        if (!res.ok) return { error: nestErrorMessage(data) };
+        revalidatePath('/client/usuarios');
+        return { success: true };
+    } catch {
+        return { error: 'Sem permissão.' };
+    }
+}
+
 export async function rejectClientRegistrationAction(
     registrationId: string,
     notes?: string | null,

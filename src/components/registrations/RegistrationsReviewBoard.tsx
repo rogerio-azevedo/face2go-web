@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import {
     approveClientRegistrationAction,
+    blockClientRegistrationAction,
     deleteClientRegistrationAction,
     getClientRegistrationFaceUrlAction,
     rejectClientRegistrationAction,
@@ -13,6 +14,7 @@ import {
 } from "@/app/client/usuarios/actions";
 import {
     approveCompanyRegistrationAction,
+    blockCompanyRegistrationAction,
     deleteCompanyRegistrationAction,
     getCompanyRegistrationFaceUrlAction,
     rejectCompanyRegistrationAction,
@@ -53,7 +55,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 
-type Tab = "draft" | "approved" | "rejected" | "deleted";
+type Tab = "draft" | "approved" | "rejected" | "blocked" | "deleted";
 type SortField = "submittedAt" | "name" | "local";
 type SortDir = "asc" | "desc";
 
@@ -61,6 +63,7 @@ const TAB_LABELS: Record<Tab, string> = {
     draft: "Aguardando aprovação",
     approved: "Aprovados",
     rejected: "Rejeitados",
+    blocked: "Bloqueados",
     deleted: "Excluídos",
 };
 
@@ -310,6 +313,32 @@ export function RegistrationsReviewBoard({
         });
     }
 
+    function doBlock() {
+        if (!activeRow) return;
+        const reason = rejectNotes.trim();
+        if (reason.length < 3) {
+            toast.error("Informe o motivo do bloqueio (mínimo 3 caracteres).");
+            return;
+        }
+        startTransition(async () => {
+            const res =
+                variant === "client"
+                    ? await blockClientRegistrationAction(activeRow.id, reason)
+                    : await blockCompanyRegistrationAction(
+                          companyClientId!,
+                          activeRow.id,
+                          reason,
+                      );
+            if ("error" in res) {
+                toast.error(res.error);
+                return;
+            }
+            toast.success("Cadastro bloqueado. A face será enviada ao leitor sem abrir a porta.");
+            setSheetOpen(false);
+            void fetchList(page.page, search, tab);
+        });
+    }
+
     async function runSyncFace(row: ClientRegistrationListRow) {
         if (variant === "company" && !companyClientId) {
             toast.error("Cliente inválido.");
@@ -473,7 +502,8 @@ export function RegistrationsReviewBoard({
                                                     </Badge>
                                                 ) : null}
                                             </span>
-                                            {tab === "approved" &&
+                                            {(tab === "approved" ||
+                                                tab === "blocked") &&
                                                 row.faceId != null &&
                                                 row.hasFacialReaders ? (
                                                 <div className="flex flex-wrap items-center gap-1">
@@ -583,10 +613,25 @@ export function RegistrationsReviewBoard({
                                             ? "Aguardando"
                                             : activeRow.status === "approved"
                                               ? "Aprovado"
-                                              : "Rejeitado"}
+                                              : activeRow.status === "blocked"
+                                                ? "Bloqueado"
+                                                : "Rejeitado"}
                                     </Badge>
                                 </div>
-                                {activeRow.status === "approved" ? (
+                                {activeRow.status === "blocked" ? (
+                                    <div className="space-y-1 text-xs">
+                                        <p>
+                                            Motivo:{" "}
+                                            {activeRow.blockReason ?? "—"}
+                                        </p>
+                                        <p className="text-muted-foreground">
+                                            Bloqueado em{" "}
+                                            {formatWhen(activeRow.blockedAt)}
+                                        </p>
+                                    </div>
+                                ) : null}
+                                {activeRow.status === "approved" ||
+                                activeRow.status === "blocked" ? (
                                     <div className="flex flex-col gap-2">
                                         <p className="text-xs text-muted-foreground">
                                             Face ID no leitor:{" "}
@@ -639,10 +684,13 @@ export function RegistrationsReviewBoard({
                                         Sem foto.
                                     </p>
                                 )}
-                                {activeRow.status === "draft" ? (
+                                {activeRow.status === "draft" ||
+                                activeRow.status === "approved" ? (
                                     <div className="space-y-2">
                                         <Label htmlFor="reject-notes">
-                                            Motivo da rejeição (opcional)
+                                            {activeRow.status === "approved"
+                                                ? "Motivo do bloqueio"
+                                                : "Motivo (rejeição opcional / bloqueio obrigatório)"}
                                         </Label>
                                         <textarea
                                             id="reject-notes"
@@ -651,7 +699,7 @@ export function RegistrationsReviewBoard({
                                                 setRejectNotes(e.target.value)
                                             }
                                             className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 min-h-[72px] w-full rounded-lg border px-2.5 py-2 text-sm outline-none focus-visible:ring-3"
-                                            placeholder="Observação para o solicitante…"
+                                            placeholder="Descreva o motivo…"
                                         />
                                     </div>
                                 ) : null}
@@ -670,13 +718,43 @@ export function RegistrationsReviewBoard({
                             </Button>
                             <Button
                                 type="button"
+                                variant="outline"
+                                disabled={pending}
+                                onClick={doBlock}
+                            >
+                                Bloquear
+                            </Button>
+                            <Button
+                                type="button"
                                 disabled={pending}
                                 onClick={doApprove}
                             >
                                 Aprovar
                             </Button>
                         </SheetFooter>
-                    ) : activeRow?.status === "approved" &&
+                    ) : activeRow?.status === "approved" ? (
+                        <SheetFooter className="flex-row flex-wrap gap-2 sm:justify-end">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                disabled={pending}
+                                onClick={doBlock}
+                            >
+                                Bloquear
+                            </Button>
+                            {activeRow.faceId != null &&
+                            activeRow.hasFacialReaders ? (
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    disabled={pending}
+                                    onClick={doSyncActiveFace}
+                                >
+                                    Sincronizar leitor
+                                </Button>
+                            ) : null}
+                        </SheetFooter>
+                    ) : activeRow?.status === "blocked" &&
                       activeRow.faceId != null &&
                       activeRow.hasFacialReaders ? (
                         <SheetFooter className="sm:justify-end">

@@ -216,6 +216,42 @@ export async function updateResponsibleAction(
   }
 }
 
+export async function blockResponsibleAction(
+  clientId: string,
+  responsibleId: string,
+  reason: string,
+): Promise<{ success: true } | { error: string }> {
+  try {
+    const cid = ids.safeParse({ clientId });
+    const pid = z.string().uuid().safeParse(responsibleId);
+    if (!cid.success || !pid.success) return { error: 'Dados inválidos.' };
+    const parsed = z
+      .string()
+      .trim()
+      .min(3, 'Informe o motivo do bloqueio (mín. 3 caracteres).')
+      .max(2000)
+      .safeParse(reason);
+    if (!parsed.success) return { error: zodFirstMessage(parsed.error) };
+
+    const res = await apiFetchAuthed(
+      `/api/clients/${clientId}/responsibles/${responsibleId}/block`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ reason: parsed.data }),
+      },
+    );
+    if (!res.ok) {
+      const data = await parseResponseJson(res);
+      return { error: nestErrorMessage(data) };
+    }
+
+    revalidateSchoolRoutes(clientId);
+    return { success: true };
+  } catch {
+    return { error: 'Sem permissão.' };
+  }
+}
+
 export async function deleteResponsibleAction(
   clientId: string,
   responsibleId: string,

@@ -242,11 +242,14 @@ export type ClientRegistrationListRow = {
     phone: string | null;
     email: string | null;
     additionalData: Record<string, unknown> | null;
-    status: "draft" | "approved" | "rejected";
+    status: "draft" | "approved" | "rejected" | "blocked";
     isActive: boolean;
     submittedAt: string | null;
     approvedAt: string | null;
     rejectionNotes: string | null;
+    blockReason: string | null;
+    blockedAt: string | null;
+    blockedByUserId: string | null;
     createdAt: string;
     hasFacePhoto: boolean;
     faceUrl: string | null;
@@ -261,6 +264,7 @@ export type RegistrationStatusCounts = {
     draft: number;
     approved: number;
     rejected: number;
+    blocked: number;
     deleted: number;
 };
 
@@ -280,6 +284,7 @@ export type AccessRow = {
     createdAt: string;
     snapR2Key: string | null;
     readerDirection: "in" | "out" | null;
+    status?: "granted" | "denied";
 };
 
 export type AccessesListResponse = {
@@ -435,6 +440,9 @@ export type StudentRow = {
     deviceSyncError: string | null;
     accessSchedule: StudentAccessScheduleJson;
     isActive: boolean;
+    blockReason: string | null;
+    blockedAt: string | null;
+    blockedByUserId: string | null;
     createdAt: string;
     updatedAt: string;
     classes: StudentClassRow[];
@@ -456,6 +464,9 @@ export type ResponsibleRow = {
     deviceSyncedAt: string | null;
     deviceSyncError: string | null;
     isActive: boolean;
+    blockReason: string | null;
+    blockedAt: string | null;
+    blockedByUserId: string | null;
     createdAt: string;
     updatedAt: string;
     hasFacialReaders: boolean;
@@ -494,6 +505,9 @@ export type MemberRow = {
     deviceSyncedAt: string | null;
     deviceSyncError: string | null;
     isActive: boolean;
+    blockReason: string | null;
+    blockedAt: string | null;
+    blockedByUserId: string | null;
     canEnrollStudentFace: boolean;
     canEnrollMemberFace: boolean;
     createdAt: string;

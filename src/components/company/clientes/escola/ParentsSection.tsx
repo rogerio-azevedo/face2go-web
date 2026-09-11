@@ -189,7 +189,11 @@ export function ParentsSection({
                                         )}
                                     </TableCell>
                                     <TableCell>
-                                        {row.isActive ? (
+                                        {row.blockedAt ? (
+                                            <Badge variant="destructive">
+                                                Bloqueado
+                                            </Badge>
+                                        ) : row.isActive ? (
                                             <Badge>Ativo</Badge>
                                         ) : (
                                             <Badge variant="secondary">

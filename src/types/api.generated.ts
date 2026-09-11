@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/device-sync-jobs/{jobId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status de um job de sync de dispositivo */
+        get: operations["DeviceSyncJobsController_getJob"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/companies/{id}/features": {
         parameters: {
             query?: never;
@@ -47,7 +64,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Sincronizar placa do veículo com as câmeras LPR Intelbras do cliente */
+        /** Enfileirar sync da placa com as câmeras LPR (jobId) */
         post: operations["CompanyLprPlateSyncController_syncOne"];
         delete?: never;
         options?: never;
@@ -62,7 +79,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** SSE — progresso da sincronização em lote de placas LPR (token na query aceito) */
+        /** SSE — observa a fila de sync de placas (token na query aceito) */
         get: operations["CompanyLprPlateSyncController_syncAllProgress"];
         put?: never;
         post?: never;
@@ -81,7 +98,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Sincronizar placa com as câmeras LPR Intelbras do meu cliente */
+        /** Enfileirar sync da placa (jobId) */
         post: operations["ClientLprPlateSyncController_syncOne"];
         delete?: never;
         options?: never;
@@ -96,7 +113,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** SSE — progresso da sincronização em lote (token na query) */
+        /** SSE — observa a fila de sync de placas (token na query) */
         get: operations["ClientLprPlateSyncController_syncAllProgress"];
         put?: never;
         post?: never;
@@ -610,23 +627,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/readers/{readerId}/device-users": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Listar usuários cadastrados no dispositivo (direto da memória) */
-        get: operations["ReadersController_getDeviceUsers"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/readers/monitor/status": {
         parameters: {
             query?: never;
@@ -747,6 +747,125 @@ export interface paths {
         patch: operations["ReadersController_setActive"];
         trace?: never;
     };
+    "/readers/{readerId}/device-users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar usuários cadastrados no dispositivo (direto da memória) */
+        get: operations["ReadersDeviceUsersController_getDeviceUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/readers/{readerId}/device-users/batch-delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remover vários usuários da memória do dispositivo */
+        post: operations["ReadersDeviceUsersController_batchDeleteDeviceUsers"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/readers/{readerId}/device-users/remove-orphans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remover do leitor os usuários que não existem no Face2Go (órfãos) */
+        post: operations["ReadersDeviceUsersController_removeOrphans"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/readers/{readerId}/device-users/wipe-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Apagar todos os usuários da memória deste leitor (clientes não-escola) */
+        post: operations["ReadersDeviceUsersController_wipeAll"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/readers/{readerId}/device-users/sync-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Jobs de sync de faces ativos neste cliente (queued/running) */
+        get: operations["ReadersDeviceUsersController_getSyncStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/readers/{readerId}/device-users/sync-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enfileira sync neste leitor e devolve o job (não bloqueia) */
+        post: operations["ReadersDeviceUsersController_enqueueSyncAll"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/readers/{readerId}/device-users/sync-all/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** SSE — observa sync neste leitor (query force=1 reenvia todos; token na query aceito) */
+        get: operations["ReadersDeviceUsersController_syncAllProgress"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/readers/{readerId}/device-users/{userId}": {
         parameters: {
             query?: never;
@@ -758,7 +877,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** Remover um usuário da memória do dispositivo */
-        delete: operations["ReadersController_removeDeviceUser"];
+        delete: operations["ReadersDeviceUsersController_removeDeviceUser"];
         options?: never;
         head?: never;
         patch?: never;
@@ -772,7 +891,7 @@ export interface paths {
             cookie?: never;
         };
         /** Obter a foto do rosto do usuário (direto do leitor) */
-        get: operations["ReadersController_getDeviceUserFace"];
+        get: operations["ReadersDeviceUsersController_getDeviceUserFace"];
         put?: never;
         post?: never;
         delete?: never;
@@ -807,6 +926,144 @@ export interface paths {
         };
         /** Listar acessos faciais (MongoDB), por empresa */
         get: operations["AccessesController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{clientId}/faces/sync-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enfileira sync em lote dos cadastros (não bloqueia) */
+        post: operations["CompanyFaceSyncController_enqueueSyncAll"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{clientId}/faces/sync-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Resumo dos jobs de faces ativos neste cliente (queued/running) */
+        get: operations["CompanyFaceSyncController_getBatchSyncStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{clientId}/faces/{registrationId}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status do sync facial de um cadastro aprovado */
+        get: operations["CompanyFaceSyncController_getSyncStatus"];
+        put?: never;
+        /** Enfileirar sync da face de um cadastro aprovado (202 + jobId) */
+        post: operations["CompanyFaceSyncController_syncOne"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{clientId}/faces/sync-all/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** SSE — observa a fila de sync em lote (query force=1 reenvia todos; token na query aceito) */
+        get: operations["CompanyFaceSyncController_syncAllProgress"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/client/faces/sync-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enfileira sync em lote dos cadastros (não bloqueia) */
+        post: operations["ClientFaceSyncController_enqueueSyncAll"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/client/faces/sync-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Resumo dos jobs de faces ativos neste cliente (queued/running) */
+        get: operations["ClientFaceSyncController_getBatchSyncStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/client/faces/{registrationId}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status do sync facial de um cadastro */
+        get: operations["ClientFaceSyncController_getSyncStatus"];
+        put?: never;
+        /** Enfileirar sync da face (202 + jobId) */
+        post: operations["ClientFaceSyncController_syncOne"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/client/faces/sync-all/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** SSE — observa a fila de sync em lote (query force=1 reenvia todos; token na query) */
+        get: operations["ClientFaceSyncController_syncAllProgress"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1141,6 +1398,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/client/registrations/{registrationId}/block": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Bloquear cadastro: envia a face ao leitor no perfil Bloqueados e registra o motivo */
+        post: operations["ClientRegistrationsController_block"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/client/registrations/{registrationId}/reject": {
         parameters: {
             query?: never;
@@ -1152,6 +1426,41 @@ export interface paths {
         put?: never;
         /** Rejeitar cadastro */
         post: operations["ClientRegistrationsController_reject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/client/registrations/{registrationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Excluir cadastro aprovado (soft delete) e remover face dos leitores */
+        delete: operations["ClientRegistrationsController_softDelete"];
+        options?: never;
+        head?: never;
+        /** Editar cadastro aprovado do meu cliente */
+        patch: operations["ClientRegistrationsController_update"];
+        trace?: never;
+    };
+    "/client/registrations/{registrationId}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restaurar cadastro excluído e resincronizar face nos leitores */
+        post: operations["ClientRegistrationsController_restore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1209,6 +1518,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/clients/{clientId}/registrations/{registrationId}/block": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Bloquear cadastro: envia a face ao leitor no perfil Bloqueados e registra o motivo */
+        post: operations["CompanyRegistrationsController_block"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/clients/{clientId}/registrations/{registrationId}/reject": {
         parameters: {
             query?: never;
@@ -1226,7 +1552,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/clients/{clientId}/faces/{registrationId}/sync": {
+    "/clients/{clientId}/registrations/{registrationId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1235,32 +1561,16 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Sincronizar face de um cadastro aprovado com os leitores do cliente */
-        post: operations["CompanyFaceSyncController_syncOne"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/clients/{clientId}/faces/sync-all/progress": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** SSE — progresso da sincronização em lote (token na query aceito) */
-        get: operations["CompanyFaceSyncController_syncAllProgress"];
-        put?: never;
         post?: never;
-        delete?: never;
+        /** Excluir cadastro aprovado (soft delete) e remover face dos leitores */
+        delete: operations["CompanyRegistrationsController_softDelete"];
         options?: never;
         head?: never;
-        patch?: never;
+        /** Editar cadastro aprovado */
+        patch: operations["CompanyRegistrationsController_update"];
         trace?: never;
     };
-    "/client/faces/{registrationId}/sync": {
+    "/clients/{clientId}/registrations/{registrationId}/restore": {
         parameters: {
             query?: never;
             header?: never;
@@ -1269,25 +1579,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Sincronizar face com os leitores do meu cliente */
-        post: operations["ClientFaceSyncController_syncOne"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/client/faces/sync-all/progress": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** SSE — progresso da sincronização em lote (token na query) */
-        get: operations["ClientFaceSyncController_syncAllProgress"];
-        put?: never;
-        post?: never;
+        /** Restaurar cadastro excluído e resincronizar face nos leitores */
+        post: operations["CompanyRegistrationsController_restore"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1695,17 +1988,34 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/clients/{clientId}/students/face/global-sync/progress": {
+    "/clients/{clientId}/students/face/global-sync/status": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** SSE — progresso da sincronização global de alunos (token na query) */
-        get: operations["StudentsController_globalSyncProgress"];
+        /** Jobs de sync de faces ativos neste cliente (escola) */
+        get: operations["StudentsController_getGlobalSyncStatus"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{clientId}/students/face/global-sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enfileira sync global de alunos pendentes (não bloqueia) */
+        post: operations["StudentsController_enqueueGlobalSync"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1817,17 +2127,34 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/clients/{clientId}/responsibles/face/global-sync/progress": {
+    "/clients/{clientId}/responsibles/face/global-sync/status": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** SSE — progresso da sincronização global de responsáveis (token na query) */
-        get: operations["ResponsiblesController_globalSyncProgress"];
+        /** Jobs de sync de faces ativos neste cliente (escola) */
+        get: operations["ResponsiblesController_getGlobalSyncStatus"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{clientId}/responsibles/face/global-sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enfileira sync global de responsáveis pendentes (não bloqueia) */
+        post: operations["ResponsiblesController_enqueueGlobalSync"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3920,6 +4247,30 @@ export interface components {
             geocodingPrecision?: "rooftop" | "street" | "approximate";
             hereLocationId?: string;
         };
+        BatchDeleteDeviceUsersDto: {
+            userIds: string[];
+        };
+        RemoveDeviceUserOrphansDto: {
+            /** @default false */
+            dryRun: boolean;
+        };
+        EnqueueDeviceSyncBodyDto: {
+            /** @default false */
+            force: boolean;
+        };
+        BlockRegistrationDto: {
+            reason: string;
+        };
+        UpdateRegistrationDto: {
+            name: string;
+            document: string;
+            phone: string;
+            /** Format: email */
+            email: string;
+            additionalData?: {
+                [key: string]: unknown;
+            };
+        };
         EnrollmentSummaryDto: {
             /** Format: uuid */
             clientId: string;
@@ -4064,6 +4415,25 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    DeviceSyncJobsController_getJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                jobId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     CompanyFeaturesController_list: {
         parameters: {
             query?: never;
@@ -4962,29 +5332,6 @@ export interface operations {
             };
         };
     };
-    ReadersController_getDeviceUsers: {
-        parameters: {
-            query: {
-                limit: string;
-                offset: string;
-                search: string;
-            };
-            header?: never;
-            path: {
-                readerId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     ReadersController_monitorStatus: {
         parameters: {
             query: {
@@ -5137,7 +5484,158 @@ export interface operations {
             };
         };
     };
-    ReadersController_removeDeviceUser: {
+    ReadersDeviceUsersController_getDeviceUsers: {
+        parameters: {
+            query: {
+                limit: string;
+                offset: string;
+                search: string;
+            };
+            header?: never;
+            path: {
+                readerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReadersDeviceUsersController_batchDeleteDeviceUsers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                readerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BatchDeleteDeviceUsersDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReadersDeviceUsersController_removeOrphans: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                readerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RemoveDeviceUserOrphansDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReadersDeviceUsersController_wipeAll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                readerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReadersDeviceUsersController_getSyncStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                readerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReadersDeviceUsersController_enqueueSyncAll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                readerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnqueueDeviceSyncBodyDto"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReadersDeviceUsersController_syncAllProgress: {
+        parameters: {
+            query: {
+                force: string;
+            };
+            header?: never;
+            path: {
+                readerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReadersDeviceUsersController_removeDeviceUser: {
         parameters: {
             query?: never;
             header?: never;
@@ -5157,7 +5655,7 @@ export interface operations {
             };
         };
     };
-    ReadersController_getDeviceUserFace: {
+    ReadersDeviceUsersController_getDeviceUserFace: {
         parameters: {
             query?: never;
             header?: never;
@@ -5204,6 +5702,204 @@ export interface operations {
                 startDate: string;
                 endDate: string;
                 page: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CompanyFaceSyncController_enqueueSyncAll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnqueueDeviceSyncBodyDto"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CompanyFaceSyncController_getBatchSyncStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CompanyFaceSyncController_getSyncStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                registrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CompanyFaceSyncController_syncOne: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                registrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CompanyFaceSyncController_syncAllProgress: {
+        parameters: {
+            query?: {
+                force?: string;
+            };
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientFaceSyncController_enqueueSyncAll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnqueueDeviceSyncBodyDto"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientFaceSyncController_getBatchSyncStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientFaceSyncController_getSyncStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                registrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientFaceSyncController_syncOne: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                registrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientFaceSyncController_syncAllProgress: {
+        parameters: {
+            query?: {
+                force?: string;
             };
             header?: never;
             path?: never;
@@ -5598,7 +6294,7 @@ export interface operations {
     ClientRegistrationsController_list: {
         parameters: {
             query?: {
-                status?: "draft" | "approved" | "rejected";
+                status?: "draft" | "approved" | "rejected" | "blocked" | "deleted";
                 page?: string;
                 pageSize?: string;
                 search?: string;
@@ -5655,7 +6351,91 @@ export interface operations {
             };
         };
     };
+    ClientRegistrationsController_block: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                registrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BlockRegistrationDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ClientRegistrationsController_reject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                registrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientRegistrationsController_softDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                registrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientRegistrationsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                registrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateRegistrationDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientRegistrationsController_restore: {
         parameters: {
             query?: never;
             header?: never;
@@ -5677,7 +6457,7 @@ export interface operations {
     CompanyRegistrationsController_list: {
         parameters: {
             query?: {
-                status?: "draft" | "approved" | "rejected";
+                status?: "draft" | "approved" | "rejected" | "blocked" | "deleted";
                 page?: string;
                 pageSize?: string;
                 search?: string;
@@ -5738,6 +6518,30 @@ export interface operations {
             };
         };
     };
+    CompanyRegistrationsController_block: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                registrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BlockRegistrationDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     CompanyRegistrationsController_reject: {
         parameters: {
             query?: never;
@@ -5758,32 +6562,13 @@ export interface operations {
             };
         };
     };
-    CompanyFaceSyncController_syncOne: {
+    CompanyRegistrationsController_softDelete: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 clientId: string;
                 registrationId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    CompanyFaceSyncController_syncAllProgress: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                clientId: string;
             };
             cookie?: never;
         };
@@ -5797,18 +6582,23 @@ export interface operations {
             };
         };
     };
-    ClientFaceSyncController_syncOne: {
+    CompanyRegistrationsController_update: {
         parameters: {
             query?: never;
             header?: never;
             path: {
+                clientId: string;
                 registrationId: string;
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateRegistrationDto"];
+            };
+        };
         responses: {
-            201: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5816,16 +6606,19 @@ export interface operations {
             };
         };
     };
-    ClientFaceSyncController_syncAllProgress: {
+    CompanyRegistrationsController_restore: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                clientId: string;
+                registrationId: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6545,7 +7338,7 @@ export interface operations {
             };
         };
     };
-    StudentsController_globalSyncProgress: {
+    StudentsController_getGlobalSyncStatus: {
         parameters: {
             query?: never;
             header?: never;
@@ -6557,6 +7350,25 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    StudentsController_enqueueGlobalSync: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6747,7 +7559,7 @@ export interface operations {
             };
         };
     };
-    ResponsiblesController_globalSyncProgress: {
+    ResponsiblesController_getGlobalSyncStatus: {
         parameters: {
             query?: never;
             header?: never;
@@ -6759,6 +7571,25 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ResponsiblesController_enqueueGlobalSync: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -1,13 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Trash2 } from "lucide-react";
+import { Ban, Loader2, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm, type Resolver, useWatch, Controller } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 
 import {
+    blockMemberAction,
     deleteMemberAction,
     updateMemberAction,
 } from "@/app/company/clientes/[clientId]/usuarios/members-actions";
@@ -41,6 +42,8 @@ import {
     normalizeCpf,
 } from "@/lib/utils/document";
 
+import { BlockPersonDialog } from "./BlockPersonDialog";
+
 type EditVals = z.infer<ReturnType<typeof updateMemberSchemaForEdit>>;
 
 export function MemberEditSheet({
@@ -67,6 +70,8 @@ export function MemberEditSheet({
     const [busy, setBusy] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [blockOpen, setBlockOpen] = useState(false);
+    const [blocking, setBlocking] = useState(false);
 
     const hasAccount = Boolean(member?.userId);
 
@@ -132,6 +137,26 @@ export function MemberEditSheet({
         if (!open || !member) return;
         editForm.reset(editFormDefaults);
     }, [open, member, editForm, editFormDefaults, editSchema]);
+
+    async function confirmBlock(reason: string) {
+        if (!member) return;
+        setBlocking(true);
+        try {
+            const r = await blockMemberAction(clientId, member.id, reason);
+            if ("error" in r) {
+                toast.error(r.error);
+                return;
+            }
+            setBlockOpen(false);
+            onOpenChange(false);
+            toast.success(
+                "Membro bloqueado. A face vai ao leitor no perfil Bloqueados.",
+            );
+            onSuccess?.();
+        } finally {
+            setBlocking(false);
+        }
+    }
 
     async function confirmDelete() {
         if (!member) return;
@@ -347,19 +372,49 @@ export function MemberEditSheet({
                             {...editForm.register("canEnrollMemberFace")}
                         />
 
+                        {member.blockedAt ? (
+                            <div className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm">
+                                <p className="font-medium">Bloqueado</p>
+                                <p className="text-muted-foreground mt-1 text-xs">
+                                    Motivo: {member.blockReason ?? "—"}
+                                </p>
+                            </div>
+                        ) : null}
                         <SheetFooter className="mt-auto flex-col gap-2 px-0 pb-6 sm:flex-row sm:justify-between">
-                            {isAdmin ? (
-                                <Button
-                                    type="button"
-                                    variant="destructive"
-                                    onClick={() => setDeleteOpen(true)}
-                                >
-                                    <Trash2 className="mr-2 size-4" />
-                                    Excluir
-                                </Button>
-                            ) : (
-                                <span />
-                            )}
+                            <div className="flex flex-wrap gap-2">
+                                {isAdmin ? (
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        disabled={busy || deleting || blocking}
+                                        onClick={() => setDeleteOpen(true)}
+                                    >
+                                        <Trash2 className="mr-2 size-4" />
+                                        Excluir
+                                    </Button>
+                                ) : null}
+                                {!member.blockedAt ? (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        disabled={
+                                            busy ||
+                                            deleting ||
+                                            blocking ||
+                                            !member.photoKey
+                                        }
+                                        title={
+                                            member.photoKey
+                                                ? "Enviar face ao leitor no perfil Bloqueados"
+                                                : "Cadastre uma foto antes de bloquear"
+                                        }
+                                        onClick={() => setBlockOpen(true)}
+                                    >
+                                        <Ban className="size-4" />
+                                        Bloquear
+                                    </Button>
+                                ) : null}
+                            </div>
                             <div className="flex gap-2">
                                 <Button
                                     type="button"
@@ -404,6 +459,14 @@ export function MemberEditSheet({
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            <BlockPersonDialog
+                open={blockOpen}
+                onOpenChange={setBlockOpen}
+                personName={member.name}
+                busy={blocking}
+                onConfirm={confirmBlock}
+            />
         </>
     );
 }

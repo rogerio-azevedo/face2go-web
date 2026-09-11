@@ -244,7 +244,11 @@ export function StudentsSection({
                                         {classesLabel(classes, row.classes)}
                                     </TableCell>
                                     <TableCell>
-                                        {row.isActive ? (
+                                        {row.blockedAt ? (
+                                            <Badge variant="destructive">
+                                                Bloqueado
+                                            </Badge>
+                                        ) : row.isActive ? (
                                             <Badge>Ativo</Badge>
                                         ) : (
                                             <Badge variant="secondary">

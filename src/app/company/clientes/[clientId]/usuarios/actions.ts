@@ -33,6 +33,35 @@ export async function approveCompanyRegistrationAction(
     }
 }
 
+export async function blockCompanyRegistrationAction(
+    clientId: string,
+    registrationId: string,
+    reason: string,
+): Promise<{ success: true } | { error: string }> {
+    const cid = z.string().uuid().safeParse(clientId);
+    const rid = z.string().uuid().safeParse(registrationId);
+    const parsedReason = z.string().trim().min(3).max(2000).safeParse(reason);
+    if (!cid.success || !rid.success) return { error: 'ID inválido.' };
+    if (!parsedReason.success) {
+        return { error: 'Informe o motivo do bloqueio (mínimo 3 caracteres).' };
+    }
+    try {
+        const res = await apiFetchAuthed(
+            `/api/clients/${cid.data}/registrations/${rid.data}/block`,
+            {
+                method: 'POST',
+                body: JSON.stringify({ reason: parsedReason.data }),
+            },
+        );
+        const data = await parseResponseJson(res);
+        if (!res.ok) return { error: nestErrorMessage(data) };
+        revalidatePath(`/company/clientes/${cid.data}/usuarios`);
+        return { success: true };
+    } catch {
+        return { error: 'Sem permissão.' };
+    }
+}
+
 export async function rejectCompanyRegistrationAction(
     clientId: string,
     registrationId: string,

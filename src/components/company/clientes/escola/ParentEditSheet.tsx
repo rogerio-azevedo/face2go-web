@@ -1,13 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Trash2 } from "lucide-react";
+import { Ban, Loader2, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm, type Resolver, useWatch, Controller } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 
 import {
+    blockResponsibleAction,
     deleteResponsibleAction,
     updateResponsibleAction,
 } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
@@ -41,6 +42,7 @@ import { Switch } from "@/components/ui/switch";
 import { updateResponsibleSchemaForEdit } from "@/lib/validations/school";
 import { applyCpfMaskInput, CPF_FORMATTED_MAX_LENGTH, formatCpf, normalizeCpf } from "@/lib/utils/document";
 
+import { BlockPersonDialog } from "./BlockPersonDialog";
 import { ParentLinkedStudentsPanel } from "./ParentLinkedStudentsPanel";
 
 type EditVals = z.infer<ReturnType<typeof updateResponsibleSchemaForEdit>>;
@@ -69,6 +71,8 @@ export function ParentEditSheet({
     const [busy, setBusy] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [blockOpen, setBlockOpen] = useState(false);
+    const [blocking, setBlocking] = useState(false);
 
     const hasAccount = Boolean(parent?.userId);
 
@@ -116,6 +120,26 @@ export function ParentEditSheet({
         if (!open || !parent) return;
         editForm.reset(editFormDefaults);
     }, [open, parent, editForm, editFormDefaults, editSchema]);
+
+    async function confirmBlock(reason: string) {
+        if (!parent) return;
+        setBlocking(true);
+        try {
+            const r = await blockResponsibleAction(clientId, parent.id, reason);
+            if ("error" in r) {
+                toast.error(r.error);
+                return;
+            }
+            setBlockOpen(false);
+            onOpenChange(false);
+            toast.success(
+                "Responsável bloqueado. A face vai ao leitor no perfil Bloqueados.",
+            );
+            onSuccess?.();
+        } finally {
+            setBlocking(false);
+        }
+    }
 
     async function confirmDelete() {
         if (!parent) return;
@@ -256,20 +280,49 @@ export function ParentEditSheet({
                             />
                             <Label>Ativo</Label>
                         </div>
+                        {parent.blockedAt ? (
+                            <div className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm">
+                                <p className="font-medium">Bloqueado</p>
+                                <p className="text-muted-foreground mt-1 text-xs">
+                                    Motivo: {parent.blockReason ?? "—"}
+                                </p>
+                            </div>
+                        ) : null}
                         <SheetFooter className="mt-auto flex-row gap-2 px-0 sm:justify-between">
-                            {isAdmin ? (
-                                <Button
-                                    type="button"
-                                    variant="destructive"
-                                    disabled={busy || deleting}
-                                    onClick={() => setDeleteOpen(true)}
-                                >
-                                    <Trash2 className="size-4" />
-                                    Excluir
-                                </Button>
-                            ) : (
-                                <span />
-                            )}
+                            <div className="flex flex-wrap gap-2">
+                                {isAdmin ? (
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        disabled={busy || deleting || blocking}
+                                        onClick={() => setDeleteOpen(true)}
+                                    >
+                                        <Trash2 className="size-4" />
+                                        Excluir
+                                    </Button>
+                                ) : null}
+                                {!parent.blockedAt ? (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        disabled={
+                                            busy ||
+                                            deleting ||
+                                            blocking ||
+                                            !parent.photoKey
+                                        }
+                                        title={
+                                            parent.photoKey
+                                                ? "Enviar face ao leitor no perfil Bloqueados"
+                                                : "Cadastre uma foto antes de bloquear"
+                                        }
+                                        onClick={() => setBlockOpen(true)}
+                                    >
+                                        <Ban className="size-4" />
+                                        Bloquear
+                                    </Button>
+                                ) : null}
+                            </div>
                             <div className="flex gap-2">
                                 <Button
                                     type="button"
@@ -333,6 +386,14 @@ export function ParentEditSheet({
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            <BlockPersonDialog
+                open={blockOpen}
+                onOpenChange={setBlockOpen}
+                personName={parent.name}
+                busy={blocking}
+                onConfirm={confirmBlock}
+            />
         </Sheet>
     );
 }
