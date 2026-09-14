@@ -23,7 +23,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-type ListTab = "draft" | "approved" | "rejected" | "deleted";
+type ListTab = "draft" | "approved" | "rejected" | "blocked" | "deleted";
 
 export function RegistrationRowActions({
     row,
