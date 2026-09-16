@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Ban, Loader2, Trash2 } from "lucide-react";
+import { Ban, Loader2, Trash2, Unlock } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm, type Resolver, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ import type { z } from "zod";
 import {
     blockStudentAction,
     deleteStudentAction,
+    unblockStudentAction,
     updateStudentAction,
 } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
 import type { StudentRow } from "@/types/domain";
@@ -42,6 +43,7 @@ import { Switch } from "@/components/ui/switch";
 import { updateStudentSchema } from "@/lib/validations/school";
 
 import { BlockPersonDialog } from "./BlockPersonDialog";
+import { UnblockPersonDialog } from "./UnblockPersonDialog";
 import { StudentLinkedClassesPanel } from "./StudentLinkedClassesPanel";
 import { StudentLinkedResponsiblesPanel } from "./StudentLinkedResponsiblesPanel";
 
@@ -62,6 +64,7 @@ export function StudentEditSheet({
     onDeleted,
     onLinksChanged,
     onFaceSyncOffer,
+    onBlockToggled,
 }: {
     open: boolean;
     onOpenChange: (open: boolean) => void;
@@ -72,11 +75,16 @@ export function StudentEditSheet({
     onDeleted?: () => void;
     onLinksChanged?: () => void;
     onFaceSyncOffer?: (hint?: FaceSyncSaveHint) => void;
+    onBlockToggled?: (next: {
+        blockedAt: string | null;
+        blockReason: string | null;
+    }) => void;
 }) {
     const [busy, setBusy] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [blockOpen, setBlockOpen] = useState(false);
+    const [unblockOpen, setUnblockOpen] = useState(false);
     const [blocking, setBlocking] = useState(false);
 
     const defaults = useMemo(() => {
@@ -129,11 +137,32 @@ export function StudentEditSheet({
                 return;
             }
             setBlockOpen(false);
-            onOpenChange(false);
             toast.success(
                 "Aluno bloqueado. A face vai ao leitor no perfil Bloqueados.",
             );
-            onSuccess?.();
+            onBlockToggled?.({
+                blockedAt: new Date().toISOString(),
+                blockReason: reason,
+            });
+        } finally {
+            setBlocking(false);
+        }
+    }
+
+    async function confirmUnblock() {
+        if (!student) return;
+        setBlocking(true);
+        try {
+            const r = await unblockStudentAction(clientId, student.id);
+            if ("error" in r) {
+                toast.error(r.error);
+                return;
+            }
+            setUnblockOpen(false);
+            toast.success(
+                "Aluno desbloqueado. A face volta ao leitor com os horários normais.",
+            );
+            onBlockToggled?.({ blockedAt: null, blockReason: null });
         } finally {
             setBlocking(false);
         }
@@ -282,7 +311,18 @@ export function StudentEditSheet({
                                         Excluir
                                     </Button>
                                 ) : null}
-                                {!student.blockedAt ? (
+                                {student.blockedAt ? (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        disabled={busy || deleting || blocking}
+                                        title="Restaurar face no leitor com os horários normais"
+                                        onClick={() => setUnblockOpen(true)}
+                                    >
+                                        <Unlock className="size-4" />
+                                        Desbloquear
+                                    </Button>
+                                ) : (
                                     <Button
                                         type="button"
                                         variant="outline"
@@ -302,7 +342,7 @@ export function StudentEditSheet({
                                         <Ban className="size-4" />
                                         Bloquear
                                     </Button>
-                                ) : null}
+                                )}
                             </div>
                             <div className="flex gap-2">
                                 <Button
@@ -377,6 +417,13 @@ export function StudentEditSheet({
                 personName={student.name}
                 busy={blocking}
                 onConfirm={confirmBlock}
+            />
+            <UnblockPersonDialog
+                open={unblockOpen}
+                onOpenChange={setUnblockOpen}
+                personName={student.name}
+                busy={blocking}
+                onConfirm={confirmUnblock}
             />
         </Sheet>
     );

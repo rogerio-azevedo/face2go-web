@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Ban, Loader2, Trash2 } from "lucide-react";
+import { Ban, Loader2, Trash2, Unlock } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm, type Resolver, useWatch, Controller } from "react-hook-form";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ import type { z } from "zod";
 import {
     blockResponsibleAction,
     deleteResponsibleAction,
+    unblockResponsibleAction,
     updateResponsibleAction,
 } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
 import type { ResponsibleRow } from "@/types/domain";
@@ -44,6 +45,7 @@ import { applyCpfMaskInput, CPF_FORMATTED_MAX_LENGTH, formatCpf, normalizeCpf } 
 
 import { BlockPersonDialog } from "./BlockPersonDialog";
 import { ParentLinkedStudentsPanel } from "./ParentLinkedStudentsPanel";
+import { UnblockPersonDialog } from "./UnblockPersonDialog";
 
 type EditVals = z.infer<ReturnType<typeof updateResponsibleSchemaForEdit>>;
 
@@ -57,6 +59,7 @@ export function ParentEditSheet({
     onDeleted,
     onLinksChanged,
     onFaceSyncOffer,
+    onBlockToggled,
 }: {
     open: boolean;
     onOpenChange: (open: boolean) => void;
@@ -67,11 +70,16 @@ export function ParentEditSheet({
     onDeleted?: () => void;
     onLinksChanged?: () => void;
     onFaceSyncOffer?: (hint?: FaceSyncSaveHint) => void;
+    onBlockToggled?: (next: {
+        blockedAt: string | null;
+        blockReason: string | null;
+    }) => void;
 }) {
     const [busy, setBusy] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [blockOpen, setBlockOpen] = useState(false);
+    const [unblockOpen, setUnblockOpen] = useState(false);
     const [blocking, setBlocking] = useState(false);
 
     const hasAccount = Boolean(parent?.userId);
@@ -131,11 +139,32 @@ export function ParentEditSheet({
                 return;
             }
             setBlockOpen(false);
-            onOpenChange(false);
             toast.success(
                 "Responsável bloqueado. A face vai ao leitor no perfil Bloqueados.",
             );
-            onSuccess?.();
+            onBlockToggled?.({
+                blockedAt: new Date().toISOString(),
+                blockReason: reason,
+            });
+        } finally {
+            setBlocking(false);
+        }
+    }
+
+    async function confirmUnblock() {
+        if (!parent) return;
+        setBlocking(true);
+        try {
+            const r = await unblockResponsibleAction(clientId, parent.id);
+            if ("error" in r) {
+                toast.error(r.error);
+                return;
+            }
+            setUnblockOpen(false);
+            toast.success(
+                "Responsável desbloqueado. A face volta ao leitor com os horários normais.",
+            );
+            onBlockToggled?.({ blockedAt: null, blockReason: null });
         } finally {
             setBlocking(false);
         }
@@ -301,7 +330,18 @@ export function ParentEditSheet({
                                         Excluir
                                     </Button>
                                 ) : null}
-                                {!parent.blockedAt ? (
+                                {parent.blockedAt ? (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        disabled={busy || deleting || blocking}
+                                        title="Restaurar face no leitor com os horários normais"
+                                        onClick={() => setUnblockOpen(true)}
+                                    >
+                                        <Unlock className="size-4" />
+                                        Desbloquear
+                                    </Button>
+                                ) : (
                                     <Button
                                         type="button"
                                         variant="outline"
@@ -321,7 +361,7 @@ export function ParentEditSheet({
                                         <Ban className="size-4" />
                                         Bloquear
                                     </Button>
-                                ) : null}
+                                )}
                             </div>
                             <div className="flex gap-2">
                                 <Button
@@ -393,6 +433,13 @@ export function ParentEditSheet({
                 personName={parent.name}
                 busy={blocking}
                 onConfirm={confirmBlock}
+            />
+            <UnblockPersonDialog
+                open={unblockOpen}
+                onOpenChange={setUnblockOpen}
+                personName={parent.name}
+                busy={blocking}
+                onConfirm={confirmUnblock}
             />
         </Sheet>
     );

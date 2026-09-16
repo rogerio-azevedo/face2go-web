@@ -345,6 +345,18 @@ export function StudentsSection({
                     refresh();
                     faceSyncOffer.promptFromSave(hint);
                 }}
+                onBlockToggled={(next) => {
+                    setEditRow((prev) => (prev ? { ...prev, ...next } : prev));
+                    setList((prev) => ({
+                        ...prev,
+                        data: prev.data.map((row) =>
+                            editRow && row.id === editRow.id
+                                ? { ...row, ...next }
+                                : row,
+                        ),
+                    }));
+                    refresh();
+                }}
                 onDeleted={() => {
                     toast.success("Aluno excluído.");
                     refresh();

@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Ban, Loader2, Trash2 } from "lucide-react";
+import { Ban, Loader2, Trash2, Unlock } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm, type Resolver, useWatch, Controller } from "react-hook-form";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ import type { z } from "zod";
 import {
     blockMemberAction,
     deleteMemberAction,
+    unblockMemberAction,
     updateMemberAction,
 } from "@/app/company/clientes/[clientId]/usuarios/members-actions";
 import type { ClientRoleRow, MemberRow, ShiftRow } from "@/types/domain";
@@ -43,6 +44,7 @@ import {
 } from "@/lib/utils/document";
 
 import { BlockPersonDialog } from "./BlockPersonDialog";
+import { UnblockPersonDialog } from "./UnblockPersonDialog";
 
 type EditVals = z.infer<ReturnType<typeof updateMemberSchemaForEdit>>;
 
@@ -56,6 +58,7 @@ export function MemberEditSheet({
     shifts,
     onSuccess,
     onDeleted,
+    onBlockToggled,
 }: {
     open: boolean;
     onOpenChange: (open: boolean) => void;
@@ -66,11 +69,16 @@ export function MemberEditSheet({
     shifts: ShiftRow[];
     onSuccess?: () => void;
     onDeleted?: () => void;
+    onBlockToggled?: (next: {
+        blockedAt: string | null;
+        blockReason: string | null;
+    }) => void;
 }) {
     const [busy, setBusy] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [blockOpen, setBlockOpen] = useState(false);
+    const [unblockOpen, setUnblockOpen] = useState(false);
     const [blocking, setBlocking] = useState(false);
 
     const hasAccount = Boolean(member?.userId);
@@ -148,11 +156,32 @@ export function MemberEditSheet({
                 return;
             }
             setBlockOpen(false);
-            onOpenChange(false);
             toast.success(
                 "Membro bloqueado. A face vai ao leitor no perfil Bloqueados.",
             );
-            onSuccess?.();
+            onBlockToggled?.({
+                blockedAt: new Date().toISOString(),
+                blockReason: reason,
+            });
+        } finally {
+            setBlocking(false);
+        }
+    }
+
+    async function confirmUnblock() {
+        if (!member) return;
+        setBlocking(true);
+        try {
+            const r = await unblockMemberAction(clientId, member.id);
+            if ("error" in r) {
+                toast.error(r.error);
+                return;
+            }
+            setUnblockOpen(false);
+            toast.success(
+                "Membro desbloqueado. A face volta ao leitor com os horários normais.",
+            );
+            onBlockToggled?.({ blockedAt: null, blockReason: null });
         } finally {
             setBlocking(false);
         }
@@ -393,7 +422,18 @@ export function MemberEditSheet({
                                         Excluir
                                     </Button>
                                 ) : null}
-                                {!member.blockedAt ? (
+                                {member.blockedAt ? (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        disabled={busy || deleting || blocking}
+                                        title="Restaurar face no leitor com os horários normais"
+                                        onClick={() => setUnblockOpen(true)}
+                                    >
+                                        <Unlock className="size-4" />
+                                        Desbloquear
+                                    </Button>
+                                ) : (
                                     <Button
                                         type="button"
                                         variant="outline"
@@ -413,7 +453,7 @@ export function MemberEditSheet({
                                         <Ban className="size-4" />
                                         Bloquear
                                     </Button>
-                                ) : null}
+                                )}
                             </div>
                             <div className="flex gap-2">
                                 <Button
@@ -466,6 +506,13 @@ export function MemberEditSheet({
                 personName={member.name}
                 busy={blocking}
                 onConfirm={confirmBlock}
+            />
+            <UnblockPersonDialog
+                open={unblockOpen}
+                onOpenChange={setUnblockOpen}
+                personName={member.name}
+                busy={blocking}
+                onConfirm={confirmUnblock}
             />
         </>
     );

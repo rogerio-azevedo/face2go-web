@@ -217,6 +217,29 @@ export async function blockMemberAction(
     }
 }
 
+export async function unblockMemberAction(
+    clientId: string,
+    memberId: string,
+): Promise<{ success: true } | { error: string }> {
+    try {
+        const cid = z.string().uuid().safeParse(clientId);
+        const mid = z.string().uuid().safeParse(memberId);
+        if (!cid.success || !mid.success) return { error: "ID inválido." };
+        const res = await apiFetchAuthed(
+            `/api/clients/${cid.data}/members/${mid.data}/unblock`,
+            { method: "POST" },
+        );
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { error: nestErrorMessage(data) };
+        }
+        revalidateSchoolRoutes(clientId);
+        return { success: true };
+    } catch {
+        return { error: "Sem permissão." };
+    }
+}
+
 export async function deleteMemberAction(
     clientId: string,
     memberId: string,

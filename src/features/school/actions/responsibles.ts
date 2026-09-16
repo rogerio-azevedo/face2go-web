@@ -252,6 +252,31 @@ export async function blockResponsibleAction(
   }
 }
 
+export async function unblockResponsibleAction(
+  clientId: string,
+  responsibleId: string,
+): Promise<{ success: true } | { error: string }> {
+  try {
+    const cid = ids.safeParse({ clientId });
+    const pid = z.string().uuid().safeParse(responsibleId);
+    if (!cid.success || !pid.success) return { error: 'Dados inválidos.' };
+
+    const res = await apiFetchAuthed(
+      `/api/clients/${clientId}/responsibles/${responsibleId}/unblock`,
+      { method: 'POST' },
+    );
+    if (!res.ok) {
+      const data = await parseResponseJson(res);
+      return { error: nestErrorMessage(data) };
+    }
+
+    revalidateSchoolRoutes(clientId);
+    return { success: true };
+  } catch {
+    return { error: 'Sem permissão.' };
+  }
+}
+
 export async function deleteResponsibleAction(
   clientId: string,
   responsibleId: string,

@@ -239,6 +239,31 @@ export async function blockStudentAction(
   }
 }
 
+export async function unblockStudentAction(
+  clientId: string,
+  studentId: string,
+): Promise<{ success: true } | { error: string }> {
+  try {
+    const cid = ids.safeParse({ clientId });
+    const sid = z.string().uuid().safeParse(studentId);
+    if (!cid.success || !sid.success) return { error: 'Dados inválidos.' };
+
+    const res = await apiFetchAuthed(
+      `/api/clients/${clientId}/students/${studentId}/unblock`,
+      { method: 'POST' },
+    );
+    if (!res.ok) {
+      const data = await parseResponseJson(res);
+      return { error: nestErrorMessage(data) };
+    }
+
+    revalidateSchoolRoutes(clientId);
+    return { success: true };
+  } catch {
+    return { error: 'Sem permissão.' };
+  }
+}
+
 export async function deleteStudentAction(
   clientId: string,
   studentId: string,
