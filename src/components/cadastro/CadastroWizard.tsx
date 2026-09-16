@@ -12,15 +12,49 @@ import {
 import { CadastroFaceStep } from "@/components/cadastro/CadastroFaceStep";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { applyCpfMaskInput, CPF_FORMATTED_MAX_LENGTH, normalizeCpf } from "@/lib/utils/document";
+import {
+    applyCpfCnpjMaskInput,
+    CNPJ_FORMATTED_MAX_LENGTH,
+    isValidCnpj,
+    isValidCpf,
+    isValidCpfOrCnpj,
+    onlyDigits,
+} from "@/lib/utils/document";
+import {
+    applyPhoneMaskInput,
+    PHONE_FORMATTED_MAX_LENGTH,
+} from "@/lib/utils/phone";
+import {
+    defaultConfigForClientType,
+    isFieldRequired,
+    isFieldVisible,
+    type ResolvedRegistrationFieldsConfig,
+} from "@/features/registrations/validations/registration-config";
 
 type Preview = {
     clientName: string;
     clientType: string;
     logoUrl: string | null;
+    fields?: ResolvedRegistrationFieldsConfig;
 };
+
+function optionalLabel(base: string, required: boolean) {
+    return required ? base : `${base} (opcional)`;
+}
+
+function cpfCnpjFieldError(value: string): string | null {
+    const digits = onlyDigits(value);
+    if (digits.length === 11) {
+        return isValidCpf(digits) ? null : "CPF inválido. Confira os números.";
+    }
+    if (digits.length === 14) {
+        return isValidCnpj(digits) ? null : "CNPJ inválido. Confira os números.";
+    }
+    return null;
+}
 
 export function CadastroWizard({ code }: { code: string }) {
     const [registrationId] = useState(() =>
@@ -36,14 +70,25 @@ export function CadastroWizard({ code }: { code: string }) {
     const [document, setDocument] = useState("");
     const [phone, setPhone] = useState("");
     const [email, setEmail] = useState("");
+    const [birthDate, setBirthDate] = useState("");
     const [block, setBlock] = useState("");
     const [unit, setUnit] = useState("");
     const [room, setRoom] = useState("");
 
+    const [truthDeclared, setTruthDeclared] = useState(false);
     const [faceImageKey, setFaceImageKey] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
 
-    const clientType = preview?.clientType as ClientType | undefined;
+    const fields = useMemo(
+        () =>
+            preview?.fields ??
+            defaultConfigForClientType(preview?.clientType ?? "other"),
+        [preview],
+    );
+    const showLocalStep =
+        isFieldVisible(fields.block) ||
+        isFieldVisible(fields.unit) ||
+        isFieldVisible(fields.room);
 
     useEffect(() => {
         let cancel = false;
@@ -93,40 +138,64 @@ export function CadastroWizard({ code }: { code: string }) {
         };
     }, [code]);
 
-    const needsCondo = clientType === "condominium";
-    const needsRoom =
-        clientType === "office" || clientType === "clinic";
-
     const canStep1 = useMemo(() => {
-        return (
-            name.trim().length >= 2 &&
-            document.trim().length >= 5 &&
-            phone.trim().length >= 8 &&
-            email.includes("@")
-        );
-    }, [name, document, phone, email]);
+        if (name.trim().length < 2) return false;
+        if (isFieldVisible(fields.document)) {
+            const digits = onlyDigits(document);
+            if (isFieldRequired(fields.document) && !digits) return false;
+            if (digits && !isValidCpfOrCnpj(document)) return false;
+        }
+        if (isFieldVisible(fields.phone)) {
+            const phoneDigits = onlyDigits(phone);
+            if (isFieldRequired(fields.phone) && phoneDigits.length < 8) {
+                return false;
+            }
+            if (phoneDigits && phoneDigits.length < 8) return false;
+        }
+        if (isFieldVisible(fields.email)) {
+            if (isFieldRequired(fields.email) && !email.includes("@")) {
+                return false;
+            }
+            if (email.trim() && !email.includes("@")) return false;
+        }
+        if (isFieldVisible(fields.birthDate)) {
+            if (isFieldRequired(fields.birthDate) && !birthDate) return false;
+        }
+        if (!truthDeclared) return false;
+        return true;
+    }, [name, document, phone, email, birthDate, fields, truthDeclared]);
+
+    const documentError = useMemo(
+        () =>
+            isFieldVisible(fields.document) ? cpfCnpjFieldError(document) : null,
+        [document, fields.document],
+    );
 
     const canStep2 = useMemo(() => {
-        if (needsCondo) return block.trim() && unit.trim();
-        if (needsRoom) return room.trim();
+        if (isFieldRequired(fields.block) && !block.trim()) return false;
+        if (isFieldRequired(fields.unit) && !unit.trim()) return false;
+        if (isFieldRequired(fields.room) && !room.trim()) return false;
         return true;
-    }, [needsCondo, needsRoom, block, unit, room]);
+    }, [fields, block, unit, room]);
+
+    function goToPhoto() {
+        setStep(3);
+    }
+
+    function goToLocalOrPhoto() {
+        if (showLocalStep) setStep(2);
+        else goToPhoto();
+    }
 
     async function handleSubmit() {
         if (!faceImageKey) {
             toast.error("Envie uma foto.");
             return;
         }
-        const regId = registrationId;
-        let additionalData: Record<string, string> | undefined;
-        if (needsCondo) {
-            additionalData = {
-                block: block.trim(),
-                unit: unit.trim(),
-            };
-        } else if (needsRoom) {
-            additionalData = { room: room.trim() };
-        }
+        const additionalData: Record<string, string> = {};
+        if (isFieldVisible(fields.block)) additionalData.block = block.trim();
+        if (isFieldVisible(fields.unit)) additionalData.unit = unit.trim();
+        if (isFieldVisible(fields.room)) additionalData.room = room.trim();
 
         setSubmitting(true);
         try {
@@ -136,13 +205,26 @@ export function CadastroWizard({ code }: { code: string }) {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        registrationId: regId,
+                        registrationId,
                         name: name.trim(),
-                        document: normalizeCpf(document) || document.trim(),
-                        phone: phone.trim(),
-                        email: email.trim(),
+                        document: isFieldVisible(fields.document)
+                            ? onlyDigits(document) || undefined
+                            : undefined,
+                        phone: isFieldVisible(fields.phone)
+                            ? phone.trim() || undefined
+                            : undefined,
+                        email: isFieldVisible(fields.email)
+                            ? email.trim() || undefined
+                            : undefined,
+                        birthDate: isFieldVisible(fields.birthDate)
+                            ? birthDate || null
+                            : undefined,
                         faceImageKey,
-                        additionalData,
+                        additionalData:
+                            Object.keys(additionalData).length > 0
+                                ? additionalData
+                                : undefined,
+                        truthDeclared: true,
                     }),
                 },
             );
@@ -220,6 +302,8 @@ export function CadastroWizard({ code }: { code: string }) {
         );
     }
 
+    const photoStepNumber = showLocalStep ? 3 : 2;
+
     return (
         <div className="mx-auto max-w-lg space-y-6 py-8 px-4">
             <div className="text-center">
@@ -235,13 +319,17 @@ export function CadastroWizard({ code }: { code: string }) {
                 <span className={step >= 1 ? "font-medium text-foreground" : ""}>
                     1 Dados
                 </span>
-                <span>·</span>
-                <span className={step >= 2 ? "font-medium text-foreground" : ""}>
-                    2 Local
-                </span>
+                {showLocalStep ? (
+                    <>
+                        <span>·</span>
+                        <span className={step >= 2 ? "font-medium text-foreground" : ""}>
+                            2 Local
+                        </span>
+                    </>
+                ) : null}
                 <span>·</span>
                 <span className={step >= 3 ? "font-medium text-foreground" : ""}>
-                    3 Foto
+                    {photoStepNumber} Foto
                 </span>
             </div>
 
@@ -260,45 +348,121 @@ export function CadastroWizard({ code }: { code: string }) {
                                 autoComplete="name"
                             />
                         </div>
-                        <div className="space-y-1.5">
-                            <Label htmlFor="doc">CPF ou documento</Label>
-                            <Input
-                                id="doc"
-                                value={document}
-                                onChange={(e) =>
-                                    setDocument(applyCpfMaskInput(e.target.value))
+                        {isFieldVisible(fields.document) ? (
+                            <div className="space-y-1.5">
+                                <Label htmlFor="doc">
+                                    {optionalLabel(
+                                        "CPF ou CNPJ",
+                                        isFieldRequired(fields.document),
+                                    )}
+                                </Label>
+                                <Input
+                                    id="doc"
+                                    value={document}
+                                    onChange={(e) =>
+                                        setDocument(
+                                            applyCpfCnpjMaskInput(e.target.value),
+                                        )
+                                    }
+                                    placeholder="000.000.000-00"
+                                    inputMode="numeric"
+                                    autoComplete="off"
+                                    maxLength={CNPJ_FORMATTED_MAX_LENGTH}
+                                    aria-invalid={!!documentError}
+                                    aria-describedby={
+                                        documentError ? "doc-error" : undefined
+                                    }
+                                />
+                                {documentError ? (
+                                    <p
+                                        id="doc-error"
+                                        role="alert"
+                                        className="text-sm text-destructive"
+                                    >
+                                        {documentError}
+                                    </p>
+                                ) : null}
+                            </div>
+                        ) : null}
+                        {isFieldVisible(fields.phone) ? (
+                            <div className="space-y-1.5">
+                                <Label htmlFor="ph">
+                                    {optionalLabel(
+                                        "Telefone",
+                                        isFieldRequired(fields.phone),
+                                    )}
+                                </Label>
+                                <Input
+                                    id="ph"
+                                    type="tel"
+                                    value={phone}
+                                    onChange={(e) =>
+                                        setPhone(applyPhoneMaskInput(e.target.value))
+                                    }
+                                    placeholder="(00) 00000-0000"
+                                    inputMode="numeric"
+                                    autoComplete="tel"
+                                    maxLength={PHONE_FORMATTED_MAX_LENGTH}
+                                />
+                            </div>
+                        ) : null}
+                        {isFieldVisible(fields.email) ? (
+                            <div className="space-y-1.5">
+                                <Label htmlFor="em">
+                                    {optionalLabel(
+                                        "E-mail",
+                                        isFieldRequired(fields.email),
+                                    )}
+                                </Label>
+                                <Input
+                                    id="em"
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    autoComplete="email"
+                                />
+                            </div>
+                        ) : null}
+                        {isFieldVisible(fields.birthDate) ? (
+                            <div className="space-y-1.5">
+                                <Label htmlFor="bd">
+                                    {optionalLabel(
+                                        "Data de nascimento",
+                                        isFieldRequired(fields.birthDate),
+                                    )}
+                                </Label>
+                                <Input
+                                    id="bd"
+                                    type="date"
+                                    value={birthDate}
+                                    onChange={(e) => setBirthDate(e.target.value)}
+                                />
+                            </div>
+                        ) : null}
+                        <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/40 p-3">
+                            <Checkbox
+                                id="truth"
+                                checked={truthDeclared}
+                                onCheckedChange={(v) =>
+                                    setTruthDeclared(v === true)
                                 }
-                                placeholder="000.000.000-00"
-                                inputMode="numeric"
-                                autoComplete="off"
-                                maxLength={CPF_FORMATTED_MAX_LENGTH}
+                                className="mt-0.5"
                             />
-                        </div>
-                        <div className="space-y-1.5">
-                            <Label htmlFor="ph">Telefone</Label>
-                            <Input
-                                id="ph"
-                                type="tel"
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
-                                autoComplete="tel"
-                            />
-                        </div>
-                        <div className="space-y-1.5">
-                            <Label htmlFor="em">E-mail</Label>
-                            <Input
-                                id="em"
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                autoComplete="email"
-                            />
+                            <Label
+                                htmlFor="truth"
+                                className="text-xs font-normal leading-snug text-muted-foreground"
+                            >
+                                Declaro, sob pena da lei, que os dados e a foto
+                                enviados são meus e verdadeiros. Informações
+                                falsas podem cancelar o cadastro e sujeitar o
+                                responsável às sanções legais.
+                            </Label>
                         </div>
                         <Button
                             type="button"
                             className="w-full"
                             disabled={!canStep1}
-                            onClick={() => setStep(2)}
+                            onClick={() => goToLocalOrPhoto()}
                         >
                             Continuar
                         </Button>
@@ -311,37 +475,52 @@ export function CadastroWizard({ code }: { code: string }) {
                     <CardHeader>
                         <CardTitle className="text-base">Informações do local</CardTitle>
                         <CardDescription>
-                            {needsCondo
+                            {isFieldVisible(fields.block) || isFieldVisible(fields.unit)
                                 ? "Informe bloco e unidade."
-                                : needsRoom
+                                : isFieldVisible(fields.room)
                                   ? "Informe a sala."
                                   : "Nenhum dado extra necessário."}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                        {needsCondo ? (
-                            <>
-                                <div className="space-y-1.5">
-                                    <Label htmlFor="bl">Bloco</Label>
-                                    <Input
-                                        id="bl"
-                                        value={block}
-                                        onChange={(e) => setBlock(e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <Label htmlFor="un">Unidade</Label>
-                                    <Input
-                                        id="un"
-                                        value={unit}
-                                        onChange={(e) => setUnit(e.target.value)}
-                                    />
-                                </div>
-                            </>
-                        ) : null}
-                        {needsRoom ? (
+                        {isFieldVisible(fields.block) ? (
                             <div className="space-y-1.5">
-                                <Label htmlFor="rm">Sala</Label>
+                                <Label htmlFor="bl">
+                                    {optionalLabel(
+                                        "Bloco",
+                                        isFieldRequired(fields.block),
+                                    )}
+                                </Label>
+                                <Input
+                                    id="bl"
+                                    value={block}
+                                    onChange={(e) => setBlock(e.target.value)}
+                                />
+                            </div>
+                        ) : null}
+                        {isFieldVisible(fields.unit) ? (
+                            <div className="space-y-1.5">
+                                <Label htmlFor="un">
+                                    {optionalLabel(
+                                        "Unidade",
+                                        isFieldRequired(fields.unit),
+                                    )}
+                                </Label>
+                                <Input
+                                    id="un"
+                                    value={unit}
+                                    onChange={(e) => setUnit(e.target.value)}
+                                />
+                            </div>
+                        ) : null}
+                        {isFieldVisible(fields.room) ? (
+                            <div className="space-y-1.5">
+                                <Label htmlFor="rm">
+                                    {optionalLabel(
+                                        "Sala",
+                                        isFieldRequired(fields.room),
+                                    )}
+                                </Label>
                                 <Input
                                     id="rm"
                                     value={room}
@@ -362,7 +541,7 @@ export function CadastroWizard({ code }: { code: string }) {
                                 type="button"
                                 className="flex-1"
                                 disabled={!canStep2}
-                                onClick={() => setStep(3)}
+                                onClick={() => goToPhoto()}
                             >
                                 Continuar
                             </Button>
@@ -393,7 +572,7 @@ export function CadastroWizard({ code }: { code: string }) {
                                 className="flex-1"
                                 onClick={() => {
                                     setFaceImageKey(null);
-                                    setStep(2);
+                                    setStep(showLocalStep ? 2 : 1);
                                 }}
                             >
                                 Voltar

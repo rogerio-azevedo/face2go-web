@@ -11,6 +11,15 @@ export function isPartialSyncError(error: string | null | undefined): boolean {
     return error?.toLowerCase().includes("parcialmente") ?? false;
 }
 
+/** Fração `synced/total` de leitores, ou null se ainda não dá para mostrar. */
+export function readerSyncFraction(
+    synced: number | null | undefined,
+    total: number | null | undefined,
+): string | null {
+    if (synced == null || total == null || total <= 0) return null;
+    return `${synced}/${total}`;
+}
+
 /** POST de cadastro pode devolver job DTO (`queued`) ou `deviceSyncStatus`. */
 export function parseRegistrationFaceSyncEnqueue(data: {
     deviceSyncStatus?: string;

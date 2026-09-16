@@ -281,7 +281,20 @@ export function ReadersTable({
                                     <TableCell className="font-medium">
                                         {row.clientName}
                                     </TableCell>
-                                    <TableCell>{row.name}</TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center gap-2">
+                                            <span>{row.name}</span>
+                                            {row.restrictMinors ? (
+                                                <Badge
+                                                    variant="outline"
+                                                    className="border-orange-300 bg-orange-100 font-semibold text-orange-900 hover:bg-orange-100"
+                                                    title="Só sincroniza pessoas com data de nascimento e 18 anos ou mais"
+                                                >
+                                                    18+
+                                                </Badge>
+                                            ) : null}
+                                        </div>
+                                    </TableCell>
                                     <TableCell>
                                         <Badge variant="outline">
                                             {READER_BRAND_LABELS[

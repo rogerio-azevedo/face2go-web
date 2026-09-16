@@ -137,6 +137,25 @@ export async function blockClientRegistrationAction(
     }
 }
 
+export async function unblockClientRegistrationAction(
+    registrationId: string,
+): Promise<{ success: true } | { error: string }> {
+    const id = z.string().uuid().safeParse(registrationId);
+    if (!id.success) return { error: 'ID inválido.' };
+    try {
+        const res = await apiFetchAuthed(
+            `/api/client/registrations/${id.data}/unblock`,
+            { method: 'POST' },
+        );
+        const data = await parseResponseJson(res);
+        if (!res.ok) return { error: nestErrorMessage(data) };
+        revalidatePath('/client/usuarios');
+        return { success: true };
+    } catch {
+        return { error: 'Sem permissão.' };
+    }
+}
+
 export async function rejectClientRegistrationAction(
     registrationId: string,
     notes?: string | null,
@@ -230,9 +249,10 @@ export async function updateClientRegistrationAction(
     registrationId: string,
     body: {
         name: string;
-        document: string;
-        phone: string;
-        email: string;
+        document?: string;
+        phone?: string;
+        email?: string;
+        birthDate?: string | null;
         additionalData?: Record<string, unknown>;
     },
 ): Promise<{ success: true } | { error: string }> {

@@ -105,6 +105,7 @@ export type ReaderListRow = {
     username: string | null;
     hasCredentials: boolean;
     isActive: boolean;
+    restrictMinors: boolean;
     lastSeenAt: string | null;
     createdAt: string;
 };
@@ -241,10 +242,13 @@ export type ClientRegistrationListRow = {
     document: string | null;
     phone: string | null;
     email: string | null;
+    birthDate: string | null;
+    isMinor: boolean | null;
     additionalData: Record<string, unknown> | null;
     status: "draft" | "approved" | "rejected" | "blocked";
     isActive: boolean;
     submittedAt: string | null;
+    truthDeclaredAt: string | null;
     approvedAt: string | null;
     rejectionNotes: string | null;
     blockReason: string | null;
@@ -258,6 +262,8 @@ export type ClientRegistrationListRow = {
     deviceSyncedAt: string | null;
     deviceSyncError: string | null;
     hasFacialReaders: boolean;
+    readerSyncSynced?: number | null;
+    readerSyncTotal?: number | null;
 };
 
 export type RegistrationStatusCounts = {

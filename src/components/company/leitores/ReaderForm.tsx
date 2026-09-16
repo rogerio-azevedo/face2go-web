@@ -55,6 +55,7 @@ function toCreateApiBody(data: ReaderFormPayload) {
         model: data.model,
         location: data.location,
         isActive: data.isActive,
+        restrictMinors: data.restrictMinors,
     };
     if (data.direction !== "") {
         body.direction = data.direction;
@@ -79,6 +80,7 @@ function toUpdateApiBody(data: ReaderFormPayload) {
         isActive: data.isActive,
         direction: data.direction === "" ? null : data.direction,
         username: data.username.trim() ? data.username.trim() : null,
+        restrictMinors: data.restrictMinors,
     };
     if (data.password.length > 0) body.password = data.password;
     return body;
@@ -121,6 +123,7 @@ export function ReaderForm({
             username: "",
             password: "",
             isActive: true,
+            restrictMinors: false,
         }),
         [defaultClientId],
     );
@@ -141,6 +144,7 @@ export function ReaderForm({
                 username: reader.username ?? "",
                 password: "",
                 isActive: reader.isActive,
+                restrictMinors: reader.restrictMinors === true,
             };
         }
         return emptyDefaults;
@@ -638,6 +642,45 @@ export function ReaderForm({
                             {errors.isActive ? (
                                 <p className="text-destructive text-xs">
                                     {errors.isActive.message}
+                                </p>
+                            ) : null}
+                        </div>
+
+                        <div className="space-y-2">
+                            <Controller
+                                name="restrictMinors"
+                                control={control}
+                                render={({ field }) => (
+                                    <div className="bg-card rounded-xl border px-4 py-4 shadow-sm ring-1 ring-black/5">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div className="min-w-0 space-y-0.5">
+                                                <Label
+                                                    htmlFor="reader-restrict-minors"
+                                                    className="text-sm font-medium"
+                                                >
+                                                    Restrição de menor
+                                                </Label>
+                                                <p className="text-muted-foreground text-xs leading-relaxed">
+                                                    Só sincroniza pessoas com
+                                                    data de nascimento e 18 anos
+                                                    ou mais. Quem já estiver no
+                                                    leitor e não atender a regra
+                                                    será removido.
+                                                </p>
+                                            </div>
+                                            <Switch
+                                                id="reader-restrict-minors"
+                                                className="shrink-0"
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            />
+                            {errors.restrictMinors ? (
+                                <p className="text-destructive text-xs">
+                                    {errors.restrictMinors.message}
                                 </p>
                             ) : null}
                         </div>

@@ -5,6 +5,7 @@ import { ClientAddressesPanel } from "@/components/company/clientes/enderecos/Cl
 import { SchoolTab } from "@/components/company/clientes/escola/SchoolTab";
 import { RegistrationsReviewBoard } from "@/components/registrations/RegistrationsReviewBoard";
 import { RegistrationsFaceSyncAllModal } from "@/features/registrations/components/RegistrationsFaceSyncAllModal";
+import { RegistrationFieldsConfigPanel } from "@/features/registrations/components/RegistrationFieldsConfigPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export type ClientDetailTabsProps = {
@@ -39,6 +40,9 @@ export function ClientDetailTabs({
                     Solicitações recebidas
                 </TabsTrigger>
                 <TabsTrigger value="links">Links de cadastro</TabsTrigger>
+                <TabsTrigger value="registration-config">
+                    Campos do cadastro
+                </TabsTrigger>
                 <TabsTrigger value="addresses">Endereços</TabsTrigger>
             </TabsList>
 
@@ -62,6 +66,13 @@ export function ClientDetailTabs({
                     ficam na aba &quot;Solicitações recebidas&quot;.
                 </p>
                 <CompanyClientRegistrationLinksPanel clientId={clientId} />
+            </TabsContent>
+
+            <TabsContent value="registration-config" className="space-y-4">
+                <RegistrationFieldsConfigPanel
+                    clientId={clientId}
+                    clientType={clientType}
+                />
             </TabsContent>
 
             <TabsContent value="addresses" className="space-y-4">

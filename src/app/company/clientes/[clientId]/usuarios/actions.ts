@@ -62,6 +62,27 @@ export async function blockCompanyRegistrationAction(
     }
 }
 
+export async function unblockCompanyRegistrationAction(
+    clientId: string,
+    registrationId: string,
+): Promise<{ success: true } | { error: string }> {
+    const cid = z.string().uuid().safeParse(clientId);
+    const rid = z.string().uuid().safeParse(registrationId);
+    if (!cid.success || !rid.success) return { error: 'ID inválido.' };
+    try {
+        const res = await apiFetchAuthed(
+            `/api/clients/${cid.data}/registrations/${rid.data}/unblock`,
+            { method: 'POST' },
+        );
+        const data = await parseResponseJson(res);
+        if (!res.ok) return { error: nestErrorMessage(data) };
+        revalidatePath(`/company/clientes/${cid.data}/usuarios`);
+        return { success: true };
+    } catch {
+        return { error: 'Sem permissão.' };
+    }
+}
+
 export async function rejectCompanyRegistrationAction(
     clientId: string,
     registrationId: string,
@@ -265,9 +286,10 @@ export async function updateCompanyRegistrationAction(
     registrationId: string,
     body: {
         name: string;
-        document: string;
-        phone: string;
-        email: string;
+        document?: string;
+        phone?: string;
+        email?: string;
+        birthDate?: string | null;
         additionalData?: Record<string, unknown>;
     },
 ): Promise<{ success: true } | { error: string }> {

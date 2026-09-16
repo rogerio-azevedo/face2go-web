@@ -32,43 +32,8 @@ import {
     type ClientFormPayload,
 } from "@/lib/validations/clients";
 import { cn } from "@/lib/utils";
-
-function maskCnpjInput(raw: string) {
-    const digits = raw.replace(/\D/g, "").slice(0, 14);
-    const p1 = digits.slice(0, 2);
-    const p2 = digits.slice(2, 5);
-    const p3 = digits.slice(5, 8);
-    const p4 = digits.slice(8, 12);
-    const p5 = digits.slice(12, 14);
-
-    let out = p1;
-    if (p2) out += `.${p2}`;
-    if (p3) out += `.${p3}`;
-    if (p4) out += `/${p4}`;
-    if (p5) out += `-${p5}`;
-    return out;
-}
-
-/** Máscara BR: fixo (XX) XXXX-XXXX ou celular (XX) XXXXX-XXXX — apenas dígitos. */
-function maskPhoneInput(raw: string) {
-    const digits = raw.replace(/\D/g, "").slice(0, 11);
-    if (digits.length === 0) return "";
-
-    const ddd = digits.slice(0, 2);
-    const rest = digits.slice(2);
-
-    if (digits.length <= 2) return `(${ddd}`;
-
-    const isMobile = digits.length > 10;
-
-    if (isMobile) {
-        if (rest.length <= 5) return `(${ddd}) ${rest}`;
-        return `(${ddd}) ${rest.slice(0, 5)}-${rest.slice(5, 9)}`;
-    }
-
-    if (rest.length <= 4) return `(${ddd}) ${rest}`;
-    return `(${ddd}) ${rest.slice(0, 4)}-${rest.slice(4, 8)}`;
-}
+import { applyCnpjMaskInput } from "@/lib/utils/document";
+import { applyPhoneMaskInput } from "@/lib/utils/phone";
 
 type ClientFormInput = ClientFormPayload;
 
@@ -292,7 +257,7 @@ export function ClientForm({
                                                 value={field.value ?? ""}
                                                 onChange={(e) =>
                                                     field.onChange(
-                                                        maskCnpjInput(e.target.value),
+                                                        applyCnpjMaskInput(e.target.value),
                                                     )
                                                 }
                                                 placeholder="00.000.000/0000-00"
@@ -321,9 +286,9 @@ export function ClientForm({
                                                 inputMode="numeric"
                                                 className={cn("bg-card h-10 px-3", controlClass)}
                                                 aria-invalid={!!errors.phone}
-                                                value={field.value ? maskPhoneInput(field.value) : ""}
+                                                value={field.value ? applyPhoneMaskInput(field.value) : ""}
                                                 onChange={(e) =>
-                                                    field.onChange(maskPhoneInput(e.target.value))
+                                                    field.onChange(applyPhoneMaskInput(e.target.value))
                                                 }
                                                 placeholder="(11) 99999-9999"
                                             />
@@ -455,12 +420,12 @@ export function ClientForm({
                                                 aria-invalid={!!errors.supportPhone}
                                                 value={
                                                     field.value
-                                                        ? maskPhoneInput(field.value)
+                                                        ? applyPhoneMaskInput(field.value)
                                                         : ""
                                                 }
                                                 onChange={(e) =>
                                                     field.onChange(
-                                                        maskPhoneInput(e.target.value),
+                                                        applyPhoneMaskInput(e.target.value),
                                                     )
                                                 }
                                                 placeholder="(11) 3333-4444"
@@ -491,12 +456,12 @@ export function ClientForm({
                                                 aria-invalid={!!errors.supportWhatsapp}
                                                 value={
                                                     field.value
-                                                        ? maskPhoneInput(field.value)
+                                                        ? applyPhoneMaskInput(field.value)
                                                         : ""
                                                 }
                                                 onChange={(e) =>
                                                     field.onChange(
-                                                        maskPhoneInput(e.target.value),
+                                                        applyPhoneMaskInput(e.target.value),
                                                     )
                                                 }
                                                 placeholder="(11) 99999-9999"

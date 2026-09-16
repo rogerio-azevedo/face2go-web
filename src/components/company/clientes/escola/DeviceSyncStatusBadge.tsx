@@ -3,7 +3,10 @@
 import type { DeviceSyncStatus } from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { isPartialSyncError } from "@/lib/face-sync-result";
+import {
+    isPartialSyncError,
+    readerSyncFraction,
+} from "@/lib/face-sync-result";
 
 function syncStatusBadgeVariant(
     s: DeviceSyncStatus | null | undefined,
@@ -27,16 +30,39 @@ function syncStatusLabel(
     return "Sem face";
 }
 
+function syncStatusTitle(params: {
+    status: DeviceSyncStatus | null | undefined;
+    error?: string | null;
+    fraction: string | null;
+    isMinor?: boolean | null;
+}): string | undefined {
+    const { status, error, fraction, isMinor } = params;
+    if (error) return error;
+    if (status === "synced" && fraction) {
+        if (isMinor) {
+            return `Sincronizado em ${fraction} leitores. Menor não entra em leitor 18+.`;
+        }
+        return `Sincronizado em ${fraction} leitores.`;
+    }
+    return undefined;
+}
+
 export function DeviceSyncStatusBadge({
     status,
     hasFace,
     hasReaders,
     error,
+    syncedCount,
+    totalCount,
+    isMinor,
 }: {
     status: DeviceSyncStatus | null | undefined;
     hasFace: boolean;
     hasReaders: boolean;
     error?: string | null;
+    syncedCount?: number | null;
+    totalCount?: number | null;
+    isMinor?: boolean | null;
 }) {
     if (!hasFace) {
         return (
@@ -49,18 +75,25 @@ export function DeviceSyncStatusBadge({
     }
 
     const partial = status === "synced" && isPartialSyncError(error);
+    const fraction = readerSyncFraction(syncedCount, totalCount);
+    const label = syncStatusLabel(status, error);
 
     return (
         <Badge
             variant={syncStatusBadgeVariant(status, error)}
-            title={error ?? undefined}
+            title={syncStatusTitle({
+                status,
+                error,
+                fraction,
+                isMinor,
+            })}
             className={cn(
                 "whitespace-nowrap",
                 partial &&
                     "border-amber-500/40 bg-amber-100 text-amber-900 hover:bg-amber-100 dark:bg-amber-950/50 dark:text-amber-100",
             )}
         >
-            {syncStatusLabel(status, error)}
+            {fraction ? `${label} ${fraction}` : label}
         </Badge>
     );
 }

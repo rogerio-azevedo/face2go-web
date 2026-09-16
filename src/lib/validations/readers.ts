@@ -75,6 +75,7 @@ const readerFields = z.object({
     username: z.string().max(120, "Usuário muito longo"),
     password: z.string(),
     isActive: z.boolean(),
+    restrictMinors: z.boolean(),
 });
 
 function passwordLengthOk(password: string | undefined): boolean {
@@ -143,6 +144,7 @@ export type ReaderFormPayload = {
     username: string;
     password: string;
     isActive: boolean;
+    restrictMinors: boolean;
 };
 
 export type ReaderUpdatePayload = z.infer<typeof updateReaderSchema>;

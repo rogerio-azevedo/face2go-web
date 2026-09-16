@@ -113,6 +113,7 @@ export async function updateReaderAction(
             d.model === undefined &&
             d.location === undefined &&
             d.isActive === undefined &&
+            d.restrictMinors === undefined &&
             d.username === undefined &&
             d.password === undefined &&
             d.direction === undefined

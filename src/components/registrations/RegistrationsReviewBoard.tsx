@@ -11,6 +11,7 @@ import {
     getClientRegistrationFaceUrlAction,
     rejectClientRegistrationAction,
     restoreClientRegistrationAction,
+    unblockClientRegistrationAction,
 } from "@/app/client/usuarios/actions";
 import {
     approveCompanyRegistrationAction,
@@ -19,13 +20,16 @@ import {
     getCompanyRegistrationFaceUrlAction,
     rejectCompanyRegistrationAction,
     restoreCompanyRegistrationAction,
+    unblockCompanyRegistrationAction,
 } from "@/app/company/clientes/[clientId]/usuarios/actions";
 import { RegistrationEditSheet } from "@/features/registrations/components/RegistrationEditSheet";
 import { RegistrationRowActions } from "@/features/registrations/components/RegistrationRowActions";
 import { DeviceSyncStatusBadge } from "@/components/company/clientes/escola/DeviceSyncStatusBadge";
+import { UnblockPersonDialog } from "@/components/company/clientes/escola/UnblockPersonDialog";
 import { listRegistrationsAction } from "@/features/registrations/actions/list";
 import { emptyRegistrationsPage } from "@/lib/pagination";
 import { useRegistrationFaceSync } from "@/features/registrations/hooks/use-registration-face-sync";
+import { useRegistrationBatchSync } from "@/features/registrations/hooks/use-registration-batch-sync";
 import { deferInEffect } from "@/lib/defer-in-effect";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import type {
@@ -170,6 +174,7 @@ export function RegistrationsReviewBoard({
     const [faceUrl, setFaceUrl] = useState<string | null>(null);
     const [rejectNotes, setRejectNotes] = useState("");
     const [syncingId, setSyncingId] = useState<string | null>(null);
+    const [unblockOpen, setUnblockOpen] = useState(false);
     const [editRow, setEditRow] = useState<ClientRegistrationListRow | null>(
         null,
     );
@@ -177,8 +182,13 @@ export function RegistrationsReviewBoard({
     const [pending, startTransition] = useTransition();
 
     const fetchList = useCallback(
-        async (nextPage: number, nextSearch: string, nextTab: Tab) => {
-            setLoading(true);
+        async (
+            nextPage: number,
+            nextSearch: string,
+            nextTab: Tab,
+            opts?: { silent?: boolean },
+        ) => {
+            if (!opts?.silent) setLoading(true);
             try {
                 const r = await listRegistrationsAction(variant, {
                     companyClientId,
@@ -200,9 +210,15 @@ export function RegistrationsReviewBoard({
                     return r.result;
                 }
                 setPage(r.result);
+                setActiveRow((prev) => {
+                    if (!prev) return prev;
+                    return (
+                        r.result.data.find((row) => row.id === prev.id) ?? prev
+                    );
+                });
                 return r.result;
             } finally {
-                setLoading(false);
+                if (!opts?.silent) setLoading(false);
             }
         },
         [variant, companyClientId, page.pageSize],
@@ -212,7 +228,15 @@ export function RegistrationsReviewBoard({
         variant,
         companyClientId,
         onAfterSync: () => {
-            void fetchList(page.page, search, tab);
+            void fetchList(page.page, search, tab, { silent: true });
+        },
+    });
+
+    useRegistrationBatchSync({
+        variant,
+        companyClientId,
+        onFinished: () => {
+            void fetchList(page.page, search, tab, { silent: true });
         },
     });
 
@@ -336,6 +360,30 @@ export function RegistrationsReviewBoard({
             toast.success("Cadastro bloqueado. A face será enviada ao leitor sem abrir a porta.");
             setSheetOpen(false);
             void fetchList(page.page, search, tab);
+        });
+    }
+
+    function doUnblock() {
+        if (!activeRow) return;
+        startTransition(async () => {
+            const res =
+                variant === "client"
+                    ? await unblockClientRegistrationAction(activeRow.id)
+                    : await unblockCompanyRegistrationAction(
+                          companyClientId!,
+                          activeRow.id,
+                      );
+            if ("error" in res) {
+                toast.error(res.error);
+                return;
+            }
+            toast.success(
+                "Cadastro desbloqueado. A face volta ao leitor com acesso normal.",
+            );
+            setUnblockOpen(false);
+            setSheetOpen(false);
+            setPage((prev) => (prev.page === 1 ? prev : { ...prev, page: 1 }));
+            setTab("approved");
         });
     }
 
@@ -496,6 +544,15 @@ export function RegistrationsReviewBoard({
                                         <div className="flex flex-col gap-1">
                                             <span className="flex flex-wrap items-center gap-1.5">
                                                 {row.name ?? "—"}
+                                                {row.isMinor ? (
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="border-orange-300 bg-orange-100 font-semibold text-orange-900 hover:bg-orange-100"
+                                                        title="Não é sincronizado em leitores com restrição de menor"
+                                                    >
+                                                        Menor
+                                                    </Badge>
+                                                ) : null}
                                                 {tab === "deleted" ? (
                                                     <Badge variant="secondary">
                                                         Excluído
@@ -526,6 +583,13 @@ export function RegistrationsReviewBoard({
                                                         error={
                                                             row.deviceSyncError
                                                         }
+                                                        syncedCount={
+                                                            row.readerSyncSynced
+                                                        }
+                                                        totalCount={
+                                                            row.readerSyncTotal
+                                                        }
+                                                        isMinor={row.isMinor}
                                                     />
                                                 </div>
                                             ) : null}
@@ -604,6 +668,12 @@ export function RegistrationsReviewBoard({
                                 <p className="text-xs text-muted-foreground">
                                     Local: {extraSummary(activeRow)}
                                 </p>
+                                <p className="text-xs text-muted-foreground">
+                                    Declaração de veracidade:{" "}
+                                    {activeRow.truthDeclaredAt
+                                        ? `aceita em ${formatWhen(activeRow.truthDeclaredAt)}`
+                                        : "não registrada"}
+                                </p>
                                 <div className="flex items-center gap-2">
                                     <span className="text-xs text-muted-foreground">
                                         Status:
@@ -658,6 +728,13 @@ export function RegistrationsReviewBoard({
                                                     error={
                                                         activeRow.deviceSyncError
                                                     }
+                                                    syncedCount={
+                                                        activeRow.readerSyncSynced
+                                                    }
+                                                    totalCount={
+                                                        activeRow.readerSyncTotal
+                                                    }
+                                                    isMinor={activeRow.isMinor}
                                                 />
                                             </div>
                                         ) : null}
@@ -754,18 +831,26 @@ export function RegistrationsReviewBoard({
                                 </Button>
                             ) : null}
                         </SheetFooter>
-                    ) : activeRow?.status === "blocked" &&
-                      activeRow.faceId != null &&
-                      activeRow.hasFacialReaders ? (
-                        <SheetFooter className="sm:justify-end">
+                    ) : activeRow?.status === "blocked" ? (
+                        <SheetFooter className="flex-row flex-wrap gap-2 sm:justify-end">
                             <Button
                                 type="button"
-                                variant="secondary"
                                 disabled={pending}
-                                onClick={doSyncActiveFace}
+                                onClick={() => setUnblockOpen(true)}
                             >
-                                Sincronizar leitor
+                                Desbloquear
                             </Button>
+                            {activeRow.faceId != null &&
+                            activeRow.hasFacialReaders ? (
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    disabled={pending}
+                                    onClick={doSyncActiveFace}
+                                >
+                                    Sincronizar leitor
+                                </Button>
+                            ) : null}
                         </SheetFooter>
                     ) : null}
                 </SheetContent>
@@ -782,6 +867,16 @@ export function RegistrationsReviewBoard({
                 companyClientId={companyClientId}
                 onSuccess={() => {
                     void fetchList(page.page, search, tab);
+                }}
+            />
+
+            <UnblockPersonDialog
+                open={unblockOpen}
+                onOpenChange={setUnblockOpen}
+                personName={activeRow?.name ?? "cadastro"}
+                busy={pending}
+                onConfirm={async () => {
+                    doUnblock();
                 }}
             />
         </div>
