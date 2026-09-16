@@ -212,6 +212,7 @@ export async function deactivateCompanyRegistrationLinkAction(
 export async function syncCompanyRegistrationFaceAction(
     clientId: string,
     registrationId: string,
+    force = false,
 ): Promise<
     | {
           success: true;
@@ -226,7 +227,10 @@ export async function syncCompanyRegistrationFaceAction(
     try {
         const res = await apiFetchAuthed(
             `/api/clients/${cid.data}/faces/${rid.data}/sync`,
-            { method: 'POST' },
+            {
+                method: 'POST',
+                body: JSON.stringify({ force }),
+            },
         );
         const data = (await parseResponseJson(res)) as {
             deviceSyncStatus?: string;

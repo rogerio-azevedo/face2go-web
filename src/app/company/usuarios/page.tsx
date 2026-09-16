@@ -86,7 +86,10 @@ export default async function CompanyUsersPage() {
                     />
                 </TabsContent>
                 <TabsContent value="clientes" className="mt-6">
-                    <ClientUsersTab clients={clients} />
+                    <ClientUsersTab
+                        clients={clients}
+                        currentUserId={user.id}
+                    />
                 </TabsContent>
             </Tabs>
         </div>

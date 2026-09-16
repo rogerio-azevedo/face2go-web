@@ -40,6 +40,11 @@ export default async function ClientUsuariosPage() {
         links = [];
     }
 
+    const clientName =
+        session?.activeContext?.type === "client"
+            ? session.activeContext.clientName
+            : "Cliente";
+
     return (
         <div className="space-y-10">
             <PageHeader
@@ -58,12 +63,19 @@ export default async function ClientUsuariosPage() {
                         </p>
                     </div>
                     <ClientSelfInvitePanel />
-                    <ClientSystemUsersTable users={clientSystemUsers} />
+                    <ClientSystemUsersTable
+                        users={clientSystemUsers}
+                        currentUserId={session?.user?.id}
+                        variant="client"
+                    />
                 </section>
             ) : null}
             <section className="space-y-3">
                 <h2 className="text-sm font-medium">Links de cadastro</h2>
-                <ClientRegistrationLinksPanel initialLinks={links} />
+                <ClientRegistrationLinksPanel
+                    initialLinks={links}
+                    clientName={clientName}
+                />
             </section>
             <section className="space-y-3">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

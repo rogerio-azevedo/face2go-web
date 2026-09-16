@@ -92,3 +92,94 @@ export async function fetchClientSelfSystemUsersAction(): Promise<{
         return { users: [] };
     }
 }
+
+const manageSelfClientUserSchema = z.object({
+    clientUserId: z.string().uuid(),
+});
+
+async function patchSelfClientUser(
+    path: string,
+    body: unknown,
+): Promise<{ success: true } | { error: string }> {
+    try {
+        const res = await apiFetchAuthed(path, {
+            method: 'PATCH',
+            body: JSON.stringify(body),
+        });
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { error: nestErrorMessage(data) };
+        }
+        revalidatePath('/client/usuarios');
+        return { success: true };
+    } catch {
+        return { error: 'Sem permissão.' };
+    }
+}
+
+export async function updateClientSelfSystemUserProfileAction(input: unknown) {
+    const parsed = manageSelfClientUserSchema
+        .extend({
+            name: z.string().trim().min(2).max(255).optional(),
+            email: z
+                .string()
+                .email('E-mail inválido.')
+                .transform((value) => value.trim().toLowerCase())
+                .optional(),
+        })
+        .safeParse(input);
+    if (!parsed.success) {
+        return { error: 'Dados inválidos.' };
+    }
+    const { clientUserId, name, email } = parsed.data;
+    return patchSelfClientUser(
+        `/api/client/client-users/${clientUserId}/profile`,
+        { name, email },
+    );
+}
+
+export async function updateClientSelfSystemUserRoleAction(input: unknown) {
+    const parsed = manageSelfClientUserSchema
+        .extend({
+            role: z.enum(['client_admin', 'client_operator']),
+        })
+        .safeParse(input);
+    if (!parsed.success) {
+        return { error: 'Dados inválidos.' };
+    }
+    const { clientUserId, role } = parsed.data;
+    return patchSelfClientUser(
+        `/api/client/client-users/${clientUserId}/role`,
+        { role },
+    );
+}
+
+export async function toggleClientSelfSystemUserActiveAction(input: unknown) {
+    const parsed = manageSelfClientUserSchema
+        .extend({ isActive: z.boolean() })
+        .safeParse(input);
+    if (!parsed.success) {
+        return { error: 'Dados inválidos.' };
+    }
+    const { clientUserId, isActive } = parsed.data;
+    return patchSelfClientUser(
+        `/api/client/client-users/${clientUserId}/active`,
+        { isActive },
+    );
+}
+
+export async function setClientSelfSystemUserPasswordAction(input: unknown) {
+    const parsed = manageSelfClientUserSchema
+        .extend({
+            password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
+        })
+        .safeParse(input);
+    if (!parsed.success) {
+        return { error: parsed.error.issues[0]?.message ?? 'Dados inválidos.' };
+    }
+    const { clientUserId, password } = parsed.data;
+    return patchSelfClientUser(
+        `/api/client/client-users/${clientUserId}/password`,
+        { password },
+    );
+}

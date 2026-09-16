@@ -181,6 +181,7 @@ export async function rejectClientRegistrationAction(
 
 export async function syncClientRegistrationFaceAction(
     registrationId: string,
+    force = false,
 ): Promise<
     | {
           success: true;
@@ -194,6 +195,7 @@ export async function syncClientRegistrationFaceAction(
     try {
         const res = await apiFetchAuthed(`/api/client/faces/${id.data}/sync`, {
             method: 'POST',
+            body: JSON.stringify({ force }),
         });
         const data = (await parseResponseJson(res)) as {
             deviceSyncStatus?: string;

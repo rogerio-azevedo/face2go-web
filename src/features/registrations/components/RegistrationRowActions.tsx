@@ -32,6 +32,7 @@ export function RegistrationRowActions({
     busy,
     onView,
     onSync,
+    onForceSync,
     onEdit,
     onDelete,
     onRestore,
@@ -42,6 +43,7 @@ export function RegistrationRowActions({
     busy: boolean;
     onView: () => void;
     onSync: () => void;
+    onForceSync: () => void;
     onEdit: () => void;
     onDelete: () => Promise<void>;
     onRestore: () => Promise<void>;
@@ -89,10 +91,16 @@ export function RegistrationRowActions({
                         Visualizar
                     </DropdownMenuItem>
                     {canSync ? (
-                        <DropdownMenuItem onClick={onSync}>
-                            <RefreshCw />
-                            Sincronizar
-                        </DropdownMenuItem>
+                        <>
+                            <DropdownMenuItem onClick={onSync}>
+                                <RefreshCw />
+                                Sincronizar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={onForceSync}>
+                                <RotateCcw />
+                                Forçar sincronização
+                            </DropdownMenuItem>
+                        </>
                     ) : null}
                     {canEdit ? (
                         <DropdownMenuItem onClick={onEdit}>

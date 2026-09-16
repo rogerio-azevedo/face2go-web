@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Link2, MessageCircle, Copy } from "lucide-react";
+import { Copy, Link2, MessageCircle, QrCode } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -10,6 +10,10 @@ import {
     deactivateClientRegistrationLinkAction,
 } from "@/app/client/usuarios/actions";
 import { CreateRegistrationLinkSheet } from "@/components/registrations/CreateRegistrationLinkSheet";
+import {
+    RegistrationLinkQrDialog,
+    type RegistrationLinkQrTarget,
+} from "@/features/registrations/components/RegistrationLinkQrDialog";
 import type { RegistrationLinkListRow } from "@/types/domain";
 import { registrationLinkVigenciaLabel } from "@/lib/registration-link-schedule";
 import { Badge } from "@/components/ui/badge";
@@ -38,13 +42,18 @@ function formatDate(iso: string | null) {
 
 export function ClientRegistrationLinksPanel({
     initialLinks,
+    clientName,
 }: {
     initialLinks: RegistrationLinkListRow[];
+    clientName: string;
 }) {
     const router = useRouter();
     const [sheetOpen, setSheetOpen] = useState(false);
     const [pending, startTransition] = useTransition();
-    const [lastCreatedUrl, setLastCreatedUrl] = useState<string | null>(null);
+    const [lastCreated, setLastCreated] =
+        useState<RegistrationLinkQrTarget | null>(null);
+    const [qrTarget, setQrTarget] =
+        useState<RegistrationLinkQrTarget | null>(null);
 
     function copyText(text: string, message: string) {
         void navigator.clipboard.writeText(text).then(
@@ -104,7 +113,10 @@ export function ClientRegistrationLinksPanel({
                         if ("error" in result) {
                             return { ok: false as const, error: result.error };
                         }
-                        setLastCreatedUrl(result.registrationUrl);
+                        setLastCreated({
+                            url: result.registrationUrl,
+                            code: result.code,
+                        });
                         router.refresh();
                         return {
                             ok: true as const,
@@ -112,20 +124,24 @@ export function ClientRegistrationLinksPanel({
                         };
                     }}
                 />
-                {lastCreatedUrl ? (
+                {lastCreated ? (
                     <div className="space-y-2 rounded-md bg-muted/50 p-3">
                         <p className="text-xs font-medium text-muted-foreground">
                             Último link gerado
                         </p>
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                            <Input readOnly value={lastCreatedUrl} className="font-mono text-xs" />
+                            <Input
+                                readOnly
+                                value={lastCreated.url}
+                                className="font-mono text-xs"
+                            />
                             <div className="flex shrink-0 gap-2">
                                 <Button
                                     type="button"
                                     variant="secondary"
                                     size="sm"
                                     onClick={() =>
-                                        copyText(lastCreatedUrl, "Link copiado.")
+                                        copyText(lastCreated.url, "Link copiado.")
                                     }
                                 >
                                     <Copy className="mr-1 size-3.5" />
@@ -135,10 +151,20 @@ export function ClientRegistrationLinksPanel({
                                     type="button"
                                     variant="secondary"
                                     size="sm"
-                                    onClick={() => shareWhatsApp(lastCreatedUrl)}
+                                    onClick={() => shareWhatsApp(lastCreated.url)}
                                 >
                                     <MessageCircle className="mr-1 size-3.5" />
                                     WhatsApp
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    size="sm"
+                                    aria-label="Cartaz QR"
+                                    onClick={() => setQrTarget(lastCreated)}
+                                >
+                                    <QrCode className="mr-1 size-3.5" />
+                                    QR
                                 </Button>
                             </div>
                         </div>
@@ -230,6 +256,23 @@ export function ClientRegistrationLinksPanel({
                                             {row.isActive ? (
                                                 <Button
                                                     type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    aria-label="Cartaz QR"
+                                                    title="Cartaz QR"
+                                                    onClick={() =>
+                                                        setQrTarget({
+                                                            url: row.registrationUrl,
+                                                            code: row.code,
+                                                        })
+                                                    }
+                                                >
+                                                    <QrCode className="size-4" />
+                                                </Button>
+                                            ) : null}
+                                            {row.isActive ? (
+                                                <Button
+                                                    type="button"
                                                     variant="outline"
                                                     size="sm"
                                                     disabled={pending}
@@ -248,6 +291,14 @@ export function ClientRegistrationLinksPanel({
                     </TableBody>
                 </Table>
             </div>
+            <RegistrationLinkQrDialog
+                open={qrTarget !== null}
+                onOpenChange={(next) => {
+                    if (!next) setQrTarget(null);
+                }}
+                clientName={clientName}
+                target={qrTarget}
+            />
         </div>
     );
 }

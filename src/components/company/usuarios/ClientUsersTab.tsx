@@ -15,7 +15,13 @@ type ClientOption = {
     name: string;
 };
 
-export function ClientUsersTab({ clients }: { clients: ClientOption[] }) {
+export function ClientUsersTab({
+    clients,
+    currentUserId,
+}: {
+    clients: ClientOption[];
+    currentUserId: string;
+}) {
     const [selectedClientId, setSelectedClientId] = useState("");
     const [users, setUsers] = useState<ClientSystemUserRow[]>([]);
     const [loadingUsers, startLoadUsers] = useTransition();
@@ -101,7 +107,13 @@ export function ClientUsersTab({ clients }: { clients: ClientOption[] }) {
                                 Carregando usuários...
                             </p>
                         ) : (
-                            <ClientSystemUsersTable users={users} />
+                            <ClientSystemUsersTable
+                                users={users}
+                                currentUserId={currentUserId}
+                                variant="company"
+                                clientId={selectedClientId}
+                                onChanged={() => loadUsers(selectedClientId)}
+                            />
                         )}
                     </section>
                 </div>

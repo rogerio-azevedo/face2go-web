@@ -231,8 +231,12 @@ export function RegisterForm() {
                                 id="email"
                                 type="email"
                                 autoComplete="email"
+                                autoCapitalize="none"
+                                autoCorrect="off"
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                onChange={(e) =>
+                                    setEmail(e.target.value.toLowerCase())
+                                }
                             />
                         </div>
                         <div className="grid gap-2">

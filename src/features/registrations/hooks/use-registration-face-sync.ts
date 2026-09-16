@@ -17,14 +17,23 @@ export function useRegistrationFaceSync(params: {
     const queryClient = useQueryClient();
 
     const runSync = useCallback(
-        async (registrationId: string, name: string) => {
+        async (
+            registrationId: string,
+            name: string,
+            options?: { force?: boolean },
+        ) => {
+            const force = options?.force === true;
             try {
                 const res =
                     variant === "client"
-                        ? await syncClientRegistrationFaceAction(registrationId)
+                        ? await syncClientRegistrationFaceAction(
+                              registrationId,
+                              force,
+                          )
                         : await syncCompanyRegistrationFaceAction(
                               companyClientId ?? "",
                               registrationId,
+                              force,
                           );
                 if ("error" in res) {
                     toast.error(res.error);
@@ -43,7 +52,9 @@ export function useRegistrationFaceSync(params: {
                 }
 
                 toast.success(
-                    `Sync de ${name} enfileirado. Pode sair desta tela.`,
+                    force
+                        ? `Reenvio forçado de ${name} enfileirado. Pode sair desta tela.`
+                        : `Sync de ${name} enfileirado. Pode sair desta tela.`,
                 );
                 void queryClient.invalidateQueries({
                     queryKey: ["registration-face-sync-all"],

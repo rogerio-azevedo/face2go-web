@@ -151,3 +151,30 @@
     background-size: 22px 22px;
   }
 }
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  body > :not(#registration-qr-print-root) {
+    display: none !important;
+  }
+
+  #registration-qr-print-root {
+    display: flex !important;
+    width: 100%;
+    min-height: 100%;
+    align-items: center;
+    justify-content: center;
+    background: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

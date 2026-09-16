@@ -66,6 +66,7 @@ export default async function CompanyClientUsuariosPage({
             <ClientDetailTabs
                 clientId={clientId}
                 clientType={clientMeta?.type ?? "other"}
+                clientName={clientName ?? "Cliente"}
                 isAdmin={role === "company_admin"}
                 canEditAddresses={canEditAddresses}
             />

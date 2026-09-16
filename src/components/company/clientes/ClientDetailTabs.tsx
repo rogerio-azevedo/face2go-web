@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export type ClientDetailTabsProps = {
     clientId: string;
     clientType: string;
+    clientName?: string;
     isAdmin?: boolean;
     canEditAddresses?: boolean;
 };
@@ -18,6 +19,7 @@ export type ClientDetailTabsProps = {
 export function ClientDetailTabs({
     clientId,
     clientType,
+    clientName = "Cliente",
     isAdmin = false,
     canEditAddresses = false,
 }: ClientDetailTabsProps) {
@@ -65,7 +67,10 @@ export function ClientDetailTabs({
                     Gere links públicos e copie quando precisar. As solicitações
                     ficam na aba &quot;Solicitações recebidas&quot;.
                 </p>
-                <CompanyClientRegistrationLinksPanel clientId={clientId} />
+                <CompanyClientRegistrationLinksPanel
+                    clientId={clientId}
+                    clientName={clientName}
+                />
             </TabsContent>
 
             <TabsContent value="registration-config" className="space-y-4">

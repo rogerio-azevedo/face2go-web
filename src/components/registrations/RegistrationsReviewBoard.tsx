@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDown, ArrowUp, ArrowUpDown, Loader2 } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Loader2, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
@@ -37,6 +37,16 @@ import type {
     DeviceSyncStatus,
     PaginatedRegistrationsResponse,
 } from "@/types/domain";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FaceCirclePhoto } from "@/components/ui/face-circle-photo";
@@ -174,6 +184,9 @@ export function RegistrationsReviewBoard({
     const [faceUrl, setFaceUrl] = useState<string | null>(null);
     const [rejectNotes, setRejectNotes] = useState("");
     const [syncingId, setSyncingId] = useState<string | null>(null);
+    const [forceRow, setForceRow] = useState<ClientRegistrationListRow | null>(
+        null,
+    );
     const [unblockOpen, setUnblockOpen] = useState(false);
     const [editRow, setEditRow] = useState<ClientRegistrationListRow | null>(
         null,
@@ -387,14 +400,17 @@ export function RegistrationsReviewBoard({
         });
     }
 
-    async function runSyncFace(row: ClientRegistrationListRow) {
+    async function runSyncFace(
+        row: ClientRegistrationListRow,
+        options?: { force?: boolean },
+    ) {
         if (variant === "company" && !companyClientId) {
             toast.error("Cliente inválido.");
             return;
         }
         setSyncingId(row.id);
         try {
-            const result = await runSync(row.id, row.name ?? "Cadastro");
+            const result = await runSync(row.id, row.name ?? "Cadastro", options);
             if (!result) return;
 
             const patch = {
@@ -622,6 +638,7 @@ export function RegistrationsReviewBoard({
                                             }
                                             onView={() => void openDetail(row)}
                                             onSync={() => void runSyncFace(row)}
+                                            onForceSync={() => setForceRow(row)}
                                             onEdit={() => setEditRow(row)}
                                             onDelete={() => runDelete(row)}
                                             onRestore={() => runRestore(row)}
@@ -821,14 +838,26 @@ export function RegistrationsReviewBoard({
                             </Button>
                             {activeRow.faceId != null &&
                             activeRow.hasFacialReaders ? (
-                                <Button
-                                    type="button"
-                                    variant="secondary"
-                                    disabled={pending}
-                                    onClick={doSyncActiveFace}
-                                >
-                                    Sincronizar leitor
-                                </Button>
+                                <>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="gap-1.5"
+                                        disabled={pending}
+                                        onClick={() => setForceRow(activeRow)}
+                                    >
+                                        <RotateCcw className="size-4" />
+                                        Forçar sync
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        disabled={pending}
+                                        onClick={doSyncActiveFace}
+                                    >
+                                        Sincronizar leitor
+                                    </Button>
+                                </>
                             ) : null}
                         </SheetFooter>
                     ) : activeRow?.status === "blocked" ? (
@@ -842,14 +871,26 @@ export function RegistrationsReviewBoard({
                             </Button>
                             {activeRow.faceId != null &&
                             activeRow.hasFacialReaders ? (
-                                <Button
-                                    type="button"
-                                    variant="secondary"
-                                    disabled={pending}
-                                    onClick={doSyncActiveFace}
-                                >
-                                    Sincronizar leitor
-                                </Button>
+                                <>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="gap-1.5"
+                                        disabled={pending}
+                                        onClick={() => setForceRow(activeRow)}
+                                    >
+                                        <RotateCcw className="size-4" />
+                                        Forçar sync
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        disabled={pending}
+                                        onClick={doSyncActiveFace}
+                                    >
+                                        Sincronizar leitor
+                                    </Button>
+                                </>
                             ) : null}
                         </SheetFooter>
                     ) : null}
@@ -879,6 +920,40 @@ export function RegistrationsReviewBoard({
                     doUnblock();
                 }}
             />
+
+            <AlertDialog
+                open={forceRow != null}
+                onOpenChange={(open) => {
+                    if (!open) setForceRow(null);
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Forçar sincronização?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Reenvia {forceRow?.name ?? "este cadastro"} a todos
+                            os leitores, inclusive os já sincronizados. Use se a
+                            foto sumiu no equipamento ou o status ficou
+                            inconsistente.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                            disabled={pending}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                if (!forceRow) return;
+                                const row = forceRow;
+                                setForceRow(null);
+                                void runSyncFace(row, { force: true });
+                            }}
+                        >
+                            Forçar sync
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

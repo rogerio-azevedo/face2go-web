@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/api/device-sync-jobs/{jobId}": {
+    "/device-sync-jobs/{jobId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -21,7 +21,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/companies/{id}/features": {
+    "/companies/{id}/features": {
         parameters: {
             query?: never;
             header?: never;
@@ -38,7 +38,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/companies/{id}/features/{slug}": {
+    "/companies/{id}/features/{slug}": {
         parameters: {
             query?: never;
             header?: never;
@@ -55,7 +55,7 @@ export interface paths {
         patch: operations["CompanyFeaturesController_toggle"];
         trace?: never;
     };
-    "/api/clients/{clientId}/lpr-plates/{vehicleId}/sync": {
+    "/clients/{clientId}/lpr-plates/{vehicleId}/sync": {
         parameters: {
             query?: never;
             header?: never;
@@ -72,7 +72,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/lpr-plates/sync-all/progress": {
+    "/clients/{clientId}/lpr-plates/sync-all/progress": {
         parameters: {
             query?: never;
             header?: never;
@@ -89,7 +89,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/client/lpr-plates/{vehicleId}/sync": {
+    "/client/lpr-plates/{vehicleId}/sync": {
         parameters: {
             query?: never;
             header?: never;
@@ -106,7 +106,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/client/lpr-plates/sync-all/progress": {
+    "/client/lpr-plates/sync-all/progress": {
         parameters: {
             query?: never;
             header?: never;
@@ -123,7 +123,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/login": {
+    "/auth/login": {
         parameters: {
             query?: never;
             header?: never;
@@ -140,7 +140,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/select-context": {
+    "/auth/select-context": {
         parameters: {
             query?: never;
             header?: never;
@@ -157,7 +157,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/register": {
+    "/auth/register": {
         parameters: {
             query?: never;
             header?: never;
@@ -174,7 +174,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/join-context": {
+    "/auth/join-context": {
         parameters: {
             query?: never;
             header?: never;
@@ -191,7 +191,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/request-password": {
+    "/auth/request-password": {
         parameters: {
             query?: never;
             header?: never;
@@ -208,7 +208,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/reset-password": {
+    "/auth/reset-password": {
         parameters: {
             query?: never;
             header?: never;
@@ -225,7 +225,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/me": {
+    "/auth/me": {
         parameters: {
             query?: never;
             header?: never;
@@ -242,7 +242,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/companies": {
+    "/companies": {
         parameters: {
             query?: never;
             header?: never;
@@ -260,7 +260,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/companies/{id}/users": {
+    "/companies/{id}/users": {
         parameters: {
             query?: never;
             header?: never;
@@ -277,7 +277,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/companies/{id}": {
+    "/companies/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -296,7 +296,7 @@ export interface paths {
         patch: operations["CompaniesController_patch"];
         trace?: never;
     };
-    "/api/companies/{id}/invite-links": {
+    "/companies/{id}/invite-links": {
         parameters: {
             query?: never;
             header?: never;
@@ -313,7 +313,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/invite-links/{code}": {
+    "/invite-links/{code}": {
         parameters: {
             query?: never;
             header?: never;
@@ -330,7 +330,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients": {
+    "/clients": {
         parameters: {
             query?: never;
             header?: never;
@@ -348,7 +348,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/map-points": {
+    "/clients/map-points": {
         parameters: {
             query?: never;
             header?: never;
@@ -365,7 +365,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/display-short-code": {
+    "/clients/{clientId}/display-short-code": {
         parameters: {
             query?: never;
             header?: never;
@@ -382,7 +382,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/display-token": {
+    "/clients/{clientId}/display-token": {
         parameters: {
             query?: never;
             header?: never;
@@ -399,7 +399,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/display-token/regenerate": {
+    "/clients/{clientId}/display-token/regenerate": {
         parameters: {
             query?: never;
             header?: never;
@@ -416,7 +416,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/display-devices": {
+    "/clients/{clientId}/display-devices": {
         parameters: {
             query?: never;
             header?: never;
@@ -434,7 +434,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/client-users": {
+    "/clients/{clientId}/client-users": {
         parameters: {
             query?: never;
             header?: never;
@@ -451,7 +451,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/invite-links": {
+    "/clients/{clientId}/invite-links": {
         parameters: {
             query?: never;
             header?: never;
@@ -469,7 +469,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/active": {
+    "/clients/{clientId}/active": {
         parameters: {
             query?: never;
             header?: never;
@@ -486,7 +486,7 @@ export interface paths {
         patch: operations["ClientsController_setActive"];
         trace?: never;
     };
-    "/api/clients/{clientId}": {
+    "/clients/{clientId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -504,7 +504,7 @@ export interface paths {
         patch: operations["ClientsController_update"];
         trace?: never;
     };
-    "/api/clients/display/resolve/{shortCode}": {
+    "/clients/display/resolve/{shortCode}": {
         parameters: {
             query?: never;
             header?: never;
@@ -521,7 +521,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/addresses": {
+    "/clients/{clientId}/addresses": {
         parameters: {
             query?: never;
             header?: never;
@@ -539,7 +539,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/addresses/{addressId}": {
+    "/clients/{clientId}/addresses/{addressId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -558,7 +558,7 @@ export interface paths {
         patch: operations["ClientAddressesController_update"];
         trace?: never;
     };
-    "/api/clients/{clientId}/addresses/{addressId}/set-primary": {
+    "/clients/{clientId}/addresses/{addressId}/set-primary": {
         parameters: {
             query?: never;
             header?: never;
@@ -575,7 +575,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/client-invite-links/{code}": {
+    "/client-invite-links/{code}": {
         parameters: {
             query?: never;
             header?: never;
@@ -592,7 +592,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/client/invite-links": {
+    "/client/invite-links": {
         parameters: {
             query?: never;
             header?: never;
@@ -610,7 +610,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/client/client-users": {
+    "/client/client-users": {
         parameters: {
             query?: never;
             header?: never;
@@ -627,7 +627,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/readers/monitor/status": {
+    "/readers/monitor/status": {
         parameters: {
             query?: never;
             header?: never;
@@ -644,7 +644,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/readers": {
+    "/readers": {
         parameters: {
             query?: never;
             header?: never;
@@ -662,7 +662,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/readers/intelbras-push/provision-all": {
+    "/readers/intelbras-push/provision-all": {
         parameters: {
             query?: never;
             header?: never;
@@ -679,7 +679,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/readers/{readerId}": {
+    "/readers/{readerId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -696,7 +696,7 @@ export interface paths {
         patch: operations["ReadersController_update"];
         trace?: never;
     };
-    "/api/readers/{readerId}/push-config": {
+    "/readers/{readerId}/push-config": {
         parameters: {
             query?: never;
             header?: never;
@@ -713,7 +713,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/readers/{readerId}/provision-push": {
+    "/readers/{readerId}/provision-push": {
         parameters: {
             query?: never;
             header?: never;
@@ -730,7 +730,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/readers/{readerId}/active": {
+    "/readers/{readerId}/active": {
         parameters: {
             query?: never;
             header?: never;
@@ -747,7 +747,7 @@ export interface paths {
         patch: operations["ReadersController_setActive"];
         trace?: never;
     };
-    "/api/readers/{readerId}/device-users": {
+    "/readers/{readerId}/device-users": {
         parameters: {
             query?: never;
             header?: never;
@@ -764,7 +764,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/readers/{readerId}/device-users/batch-delete": {
+    "/readers/{readerId}/device-users/batch-delete": {
         parameters: {
             query?: never;
             header?: never;
@@ -781,7 +781,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/readers/{readerId}/device-users/remove-orphans": {
+    "/readers/{readerId}/device-users/remove-orphans": {
         parameters: {
             query?: never;
             header?: never;
@@ -798,7 +798,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/readers/{readerId}/device-users/wipe-all": {
+    "/readers/{readerId}/device-users/wipe-all": {
         parameters: {
             query?: never;
             header?: never;
@@ -815,7 +815,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/readers/{readerId}/device-users/sync-status": {
+    "/readers/{readerId}/device-users/sync-status": {
         parameters: {
             query?: never;
             header?: never;
@@ -832,7 +832,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/readers/{readerId}/device-users/sync-all": {
+    "/readers/{readerId}/device-users/sync-all": {
         parameters: {
             query?: never;
             header?: never;
@@ -849,7 +849,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/readers/{readerId}/device-users/sync-all/progress": {
+    "/readers/{readerId}/device-users/sync-all/progress": {
         parameters: {
             query?: never;
             header?: never;
@@ -866,7 +866,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/readers/{readerId}/device-users/{userId}": {
+    "/readers/{readerId}/device-users/{userId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -883,7 +883,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/readers/{readerId}/device-users/{userId}/face": {
+    "/readers/{readerId}/device-users/{userId}/face": {
         parameters: {
             query?: never;
             header?: never;
@@ -900,7 +900,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/accesses/{id}/photo": {
+    "/accesses/{id}/photo": {
         parameters: {
             query?: never;
             header?: never;
@@ -917,7 +917,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/accesses": {
+    "/accesses": {
         parameters: {
             query?: never;
             header?: never;
@@ -934,7 +934,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/faces/sync-all": {
+    "/clients/{clientId}/faces/sync-all": {
         parameters: {
             query?: never;
             header?: never;
@@ -951,7 +951,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/faces/sync-status": {
+    "/clients/{clientId}/faces/sync-status": {
         parameters: {
             query?: never;
             header?: never;
@@ -968,7 +968,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/faces/{registrationId}/sync": {
+    "/clients/{clientId}/faces/{registrationId}/sync": {
         parameters: {
             query?: never;
             header?: never;
@@ -978,7 +978,7 @@ export interface paths {
         /** Status do sync facial de um cadastro aprovado */
         get: operations["CompanyFaceSyncController_getSyncStatus"];
         put?: never;
-        /** Enfileirar sync da face de um cadastro aprovado (202 + jobId) */
+        /** Enfileirar sync da face de um cadastro aprovado (202 + jobId; body force reenvia a todos os leitores) */
         post: operations["CompanyFaceSyncController_syncOne"];
         delete?: never;
         options?: never;
@@ -986,7 +986,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/faces/sync-all/progress": {
+    "/clients/{clientId}/faces/sync-all/progress": {
         parameters: {
             query?: never;
             header?: never;
@@ -1003,7 +1003,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/client/faces/sync-all": {
+    "/client/faces/sync-all": {
         parameters: {
             query?: never;
             header?: never;
@@ -1020,7 +1020,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/client/faces/sync-status": {
+    "/client/faces/sync-status": {
         parameters: {
             query?: never;
             header?: never;
@@ -1037,7 +1037,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/client/faces/{registrationId}/sync": {
+    "/client/faces/{registrationId}/sync": {
         parameters: {
             query?: never;
             header?: never;
@@ -1047,7 +1047,7 @@ export interface paths {
         /** Status do sync facial de um cadastro */
         get: operations["ClientFaceSyncController_getSyncStatus"];
         put?: never;
-        /** Enfileirar sync da face (202 + jobId) */
+        /** Enfileirar sync da face (202 + jobId; body force reenvia a todos os leitores) */
         post: operations["ClientFaceSyncController_syncOne"];
         delete?: never;
         options?: never;
@@ -1055,7 +1055,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/client/faces/sync-all/progress": {
+    "/client/faces/sync-all/progress": {
         parameters: {
             query?: never;
             header?: never;
@@ -1072,7 +1072,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/cameras/monitor/status": {
+    "/cameras/monitor/status": {
         parameters: {
             query?: never;
             header?: never;
@@ -1089,7 +1089,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/cameras/{cameraId}/device-plates": {
+    "/cameras/{cameraId}/device-plates": {
         parameters: {
             query?: never;
             header?: never;
@@ -1106,7 +1106,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/cameras/{cameraId}/device-plates/{recNo}": {
+    "/cameras/{cameraId}/device-plates/{recNo}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1123,7 +1123,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/cameras": {
+    "/cameras": {
         parameters: {
             query?: never;
             header?: never;
@@ -1141,7 +1141,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/cameras/{cameraId}/active": {
+    "/cameras/{cameraId}/active": {
         parameters: {
             query?: never;
             header?: never;
@@ -1158,7 +1158,7 @@ export interface paths {
         patch: operations["CamerasController_setActive"];
         trace?: never;
     };
-    "/api/cameras/{cameraId}": {
+    "/cameras/{cameraId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1175,7 +1175,7 @@ export interface paths {
         patch: operations["CamerasController_update"];
         trace?: never;
     };
-    "/api/lpr-accesses/{id}/photo": {
+    "/lpr-accesses/{id}/photo": {
         parameters: {
             query?: never;
             header?: never;
@@ -1192,7 +1192,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/lpr-accesses": {
+    "/lpr-accesses": {
         parameters: {
             query?: never;
             header?: never;
@@ -1209,7 +1209,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/client/registration-links": {
+    "/client/registration-links": {
         parameters: {
             query?: never;
             header?: never;
@@ -1227,7 +1227,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/client/registration-links/{linkId}": {
+    "/client/registration-links/{linkId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1244,7 +1244,7 @@ export interface paths {
         patch: operations["ClientRegistrationLinksController_setActive"];
         trace?: never;
     };
-    "/api/clients/{clientId}/registration-links": {
+    "/clients/{clientId}/registration-links": {
         parameters: {
             query?: never;
             header?: never;
@@ -1262,7 +1262,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/registration-links/{linkId}": {
+    "/clients/{clientId}/registration-links/{linkId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1279,7 +1279,7 @@ export interface paths {
         patch: operations["CompanyRegistrationLinksController_setActive"];
         trace?: never;
     };
-    "/api/client/registration-config": {
+    "/client/registration-config": {
         parameters: {
             query?: never;
             header?: never;
@@ -1297,7 +1297,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/registration-config": {
+    "/clients/{clientId}/registration-config": {
         parameters: {
             query?: never;
             header?: never;
@@ -1315,7 +1315,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/register/{code}": {
+    "/register/{code}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1332,7 +1332,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/register/{code}/presign-photo": {
+    "/register/{code}/presign-photo": {
         parameters: {
             query?: never;
             header?: never;
@@ -1349,7 +1349,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/register/{code}/upload-photo": {
+    "/register/{code}/upload-photo": {
         parameters: {
             query?: never;
             header?: never;
@@ -1366,7 +1366,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/register/{code}/submit": {
+    "/register/{code}/submit": {
         parameters: {
             query?: never;
             header?: never;
@@ -1383,7 +1383,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/client/registrations": {
+    "/client/registrations": {
         parameters: {
             query?: never;
             header?: never;
@@ -1400,7 +1400,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/client/registrations/{registrationId}/face-url": {
+    "/client/registrations/{registrationId}/face-url": {
         parameters: {
             query?: never;
             header?: never;
@@ -1417,7 +1417,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/client/registrations/{registrationId}/approve": {
+    "/client/registrations/{registrationId}/approve": {
         parameters: {
             query?: never;
             header?: never;
@@ -1434,7 +1434,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/client/registrations/{registrationId}/block": {
+    "/client/registrations/{registrationId}/block": {
         parameters: {
             query?: never;
             header?: never;
@@ -1451,7 +1451,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/client/registrations/{registrationId}/unblock": {
+    "/client/registrations/{registrationId}/unblock": {
         parameters: {
             query?: never;
             header?: never;
@@ -1468,7 +1468,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/client/registrations/{registrationId}/reject": {
+    "/client/registrations/{registrationId}/reject": {
         parameters: {
             query?: never;
             header?: never;
@@ -1485,7 +1485,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/client/registrations/{registrationId}": {
+    "/client/registrations/{registrationId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1503,7 +1503,7 @@ export interface paths {
         patch: operations["ClientRegistrationsController_update"];
         trace?: never;
     };
-    "/api/client/registrations/{registrationId}/restore": {
+    "/client/registrations/{registrationId}/restore": {
         parameters: {
             query?: never;
             header?: never;
@@ -1520,7 +1520,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/registrations": {
+    "/clients/{clientId}/registrations": {
         parameters: {
             query?: never;
             header?: never;
@@ -1537,7 +1537,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/registrations/{registrationId}/face-url": {
+    "/clients/{clientId}/registrations/{registrationId}/face-url": {
         parameters: {
             query?: never;
             header?: never;
@@ -1554,7 +1554,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/registrations/{registrationId}/approve": {
+    "/clients/{clientId}/registrations/{registrationId}/approve": {
         parameters: {
             query?: never;
             header?: never;
@@ -1571,7 +1571,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/registrations/{registrationId}/block": {
+    "/clients/{clientId}/registrations/{registrationId}/block": {
         parameters: {
             query?: never;
             header?: never;
@@ -1588,7 +1588,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/registrations/{registrationId}/unblock": {
+    "/clients/{clientId}/registrations/{registrationId}/unblock": {
         parameters: {
             query?: never;
             header?: never;
@@ -1605,7 +1605,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/registrations/{registrationId}/reject": {
+    "/clients/{clientId}/registrations/{registrationId}/reject": {
         parameters: {
             query?: never;
             header?: never;
@@ -1622,7 +1622,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/registrations/{registrationId}": {
+    "/clients/{clientId}/registrations/{registrationId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1640,7 +1640,7 @@ export interface paths {
         patch: operations["CompanyRegistrationsController_update"];
         trace?: never;
     };
-    "/api/clients/{clientId}/registrations/{registrationId}/restore": {
+    "/clients/{clientId}/registrations/{registrationId}/restore": {
         parameters: {
             query?: never;
             header?: never;
@@ -1657,7 +1657,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/roles": {
+    "/clients/{clientId}/roles": {
         parameters: {
             query?: never;
             header?: never;
@@ -1675,7 +1675,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/roles/{roleId}": {
+    "/clients/{clientId}/roles/{roleId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1692,7 +1692,7 @@ export interface paths {
         patch: operations["MembersController_updateRole"];
         trace?: never;
     };
-    "/api/clients/{clientId}/members": {
+    "/clients/{clientId}/members": {
         parameters: {
             query?: never;
             header?: never;
@@ -1710,7 +1710,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/members/lookup": {
+    "/clients/{clientId}/members/lookup": {
         parameters: {
             query?: never;
             header?: never;
@@ -1727,7 +1727,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/members/{memberId}": {
+    "/clients/{clientId}/members/{memberId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1746,7 +1746,7 @@ export interface paths {
         patch: operations["MembersController_update"];
         trace?: never;
     };
-    "/api/clients/{clientId}/members/{memberId}/block": {
+    "/clients/{clientId}/members/{memberId}/block": {
         parameters: {
             query?: never;
             header?: never;
@@ -1763,7 +1763,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/members/{memberId}/unblock": {
+    "/clients/{clientId}/members/{memberId}/unblock": {
         parameters: {
             query?: never;
             header?: never;
@@ -1780,7 +1780,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/members/{memberId}/face/sync": {
+    "/clients/{clientId}/members/{memberId}/face/sync": {
         parameters: {
             query?: never;
             header?: never;
@@ -1797,7 +1797,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/reports/enrollment/summary": {
+    "/reports/enrollment/summary": {
         parameters: {
             query?: never;
             header?: never;
@@ -1814,7 +1814,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/reports/enrollment/list": {
+    "/reports/enrollment/list": {
         parameters: {
             query?: never;
             header?: never;
@@ -1831,7 +1831,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/reports/enrollment/export": {
+    "/reports/enrollment/export": {
         parameters: {
             query?: never;
             header?: never;
@@ -1848,7 +1848,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/client/reports/enrollment/summary": {
+    "/client/reports/enrollment/summary": {
         parameters: {
             query?: never;
             header?: never;
@@ -1865,7 +1865,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/client/reports/enrollment/list": {
+    "/client/reports/enrollment/list": {
         parameters: {
             query?: never;
             header?: never;
@@ -1882,7 +1882,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/client/reports/enrollment/export": {
+    "/client/reports/enrollment/export": {
         parameters: {
             query?: never;
             header?: never;
@@ -1899,7 +1899,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/company-users": {
+    "/company-users": {
         parameters: {
             query?: never;
             header?: never;
@@ -1916,7 +1916,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/company-users/invite-links": {
+    "/company-users/invite-links": {
         parameters: {
             query?: never;
             header?: never;
@@ -1934,7 +1934,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/company-users/{companyUserId}/role": {
+    "/company-users/{companyUserId}/role": {
         parameters: {
             query?: never;
             header?: never;
@@ -1951,7 +1951,7 @@ export interface paths {
         patch: operations["CompanyUsersController_updateRole"];
         trace?: never;
     };
-    "/api/company-users/{companyUserId}/active": {
+    "/company-users/{companyUserId}/active": {
         parameters: {
             query?: never;
             header?: never;
@@ -1968,7 +1968,7 @@ export interface paths {
         patch: operations["CompanyUsersController_setActive"];
         trace?: never;
     };
-    "/api/company-users/{companyUserId}/profile": {
+    "/company-users/{companyUserId}/profile": {
         parameters: {
             query?: never;
             header?: never;
@@ -1985,7 +1985,7 @@ export interface paths {
         patch: operations["CompanyUsersController_updateProfile"];
         trace?: never;
     };
-    "/api/company-users/{companyUserId}/permissions": {
+    "/company-users/{companyUserId}/permissions": {
         parameters: {
             query?: never;
             header?: never;
@@ -2002,7 +2002,7 @@ export interface paths {
         patch: operations["CompanyUsersController_updatePermissions"];
         trace?: never;
     };
-    "/api/clients/{clientId}/school-classes": {
+    "/clients/{clientId}/school-classes": {
         parameters: {
             query?: never;
             header?: never;
@@ -2020,7 +2020,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/school-classes/{classId}": {
+    "/clients/{clientId}/school-classes/{classId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2037,7 +2037,7 @@ export interface paths {
         patch: operations["SchoolClassesController_update"];
         trace?: never;
     };
-    "/api/clients/{clientId}/shifts": {
+    "/clients/{clientId}/shifts": {
         parameters: {
             query?: never;
             header?: never;
@@ -2055,7 +2055,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/shifts/{shiftId}": {
+    "/clients/{clientId}/shifts/{shiftId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2074,7 +2074,7 @@ export interface paths {
         patch: operations["ShiftsController_update"];
         trace?: never;
     };
-    "/api/clients/{clientId}/students": {
+    "/clients/{clientId}/students": {
         parameters: {
             query?: never;
             header?: never;
@@ -2092,7 +2092,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/students/face/global-sync/status": {
+    "/clients/{clientId}/students/face/global-sync/status": {
         parameters: {
             query?: never;
             header?: never;
@@ -2109,7 +2109,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/students/face/global-sync": {
+    "/clients/{clientId}/students/face/global-sync": {
         parameters: {
             query?: never;
             header?: never;
@@ -2126,7 +2126,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/students/{studentId}/classes": {
+    "/clients/{clientId}/students/{studentId}/classes": {
         parameters: {
             query?: never;
             header?: never;
@@ -2143,7 +2143,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/students/{studentId}/classes/{classId}": {
+    "/clients/{clientId}/students/{studentId}/classes/{classId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2160,7 +2160,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/students/{studentId}/responsibles": {
+    "/clients/{clientId}/students/{studentId}/responsibles": {
         parameters: {
             query?: never;
             header?: never;
@@ -2177,7 +2177,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/students/{studentId}/block": {
+    "/clients/{clientId}/students/{studentId}/block": {
         parameters: {
             query?: never;
             header?: never;
@@ -2194,7 +2194,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/students/{studentId}/unblock": {
+    "/clients/{clientId}/students/{studentId}/unblock": {
         parameters: {
             query?: never;
             header?: never;
@@ -2211,7 +2211,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/students/{studentId}/face/sync": {
+    "/clients/{clientId}/students/{studentId}/face/sync": {
         parameters: {
             query?: never;
             header?: never;
@@ -2228,7 +2228,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/students/{studentId}": {
+    "/clients/{clientId}/students/{studentId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2247,7 +2247,7 @@ export interface paths {
         patch: operations["StudentsController_update"];
         trace?: never;
     };
-    "/api/clients/{clientId}/responsibles": {
+    "/clients/{clientId}/responsibles": {
         parameters: {
             query?: never;
             header?: never;
@@ -2265,7 +2265,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/responsibles/face/global-sync/status": {
+    "/clients/{clientId}/responsibles/face/global-sync/status": {
         parameters: {
             query?: never;
             header?: never;
@@ -2282,7 +2282,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/responsibles/face/global-sync": {
+    "/clients/{clientId}/responsibles/face/global-sync": {
         parameters: {
             query?: never;
             header?: never;
@@ -2299,7 +2299,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/responsibles/lookup": {
+    "/clients/{clientId}/responsibles/lookup": {
         parameters: {
             query?: never;
             header?: never;
@@ -2316,7 +2316,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/responsibles/{responsibleId}/students": {
+    "/clients/{clientId}/responsibles/{responsibleId}/students": {
         parameters: {
             query?: never;
             header?: never;
@@ -2334,7 +2334,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/responsibles/{responsibleId}/students/{studentId}": {
+    "/clients/{clientId}/responsibles/{responsibleId}/students/{studentId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2352,7 +2352,7 @@ export interface paths {
         patch: operations["ResponsiblesController_updateLink"];
         trace?: never;
     };
-    "/api/clients/{clientId}/responsibles/{responsibleId}/block": {
+    "/clients/{clientId}/responsibles/{responsibleId}/block": {
         parameters: {
             query?: never;
             header?: never;
@@ -2369,7 +2369,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/responsibles/{responsibleId}/unblock": {
+    "/clients/{clientId}/responsibles/{responsibleId}/unblock": {
         parameters: {
             query?: never;
             header?: never;
@@ -2386,7 +2386,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/responsibles/{responsibleId}/face/sync": {
+    "/clients/{clientId}/responsibles/{responsibleId}/face/sync": {
         parameters: {
             query?: never;
             header?: never;
@@ -2403,7 +2403,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/responsibles/{responsibleId}": {
+    "/clients/{clientId}/responsibles/{responsibleId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2422,7 +2422,7 @@ export interface paths {
         patch: operations["ResponsiblesController_update"];
         trace?: never;
     };
-    "/api/member/me": {
+    "/member/me": {
         parameters: {
             query?: never;
             header?: never;
@@ -2439,7 +2439,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/member/accesses": {
+    "/member/accesses": {
         parameters: {
             query?: never;
             header?: never;
@@ -2456,7 +2456,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/member/accesses/snapshot": {
+    "/member/accesses/snapshot": {
         parameters: {
             query?: never;
             header?: never;
@@ -2473,7 +2473,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/children": {
+    "/responsible/children": {
         parameters: {
             query?: never;
             header?: never;
@@ -2490,7 +2490,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/accesses/snapshot": {
+    "/responsible/accesses/snapshot": {
         parameters: {
             query?: never;
             header?: never;
@@ -2507,7 +2507,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/accesses/all": {
+    "/responsible/accesses/all": {
         parameters: {
             query?: never;
             header?: never;
@@ -2524,7 +2524,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/accesses/peer/{responsibleId}": {
+    "/responsible/accesses/peer/{responsibleId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2541,7 +2541,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/me/accesses": {
+    "/responsible/me/accesses": {
         parameters: {
             query?: never;
             header?: never;
@@ -2558,7 +2558,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/other-responsibles": {
+    "/responsible/other-responsibles": {
         parameters: {
             query?: never;
             header?: never;
@@ -2575,7 +2575,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/children/{studentId}/accesses": {
+    "/responsible/children/{studentId}/accesses": {
         parameters: {
             query?: never;
             header?: never;
@@ -2592,7 +2592,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/pickup-authorizations": {
+    "/clients/{clientId}/pickup-authorizations": {
         parameters: {
             query?: never;
             header?: never;
@@ -2609,7 +2609,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/pickup-authorizations/{id}/mark-used": {
+    "/clients/{clientId}/pickup-authorizations/{id}/mark-used": {
         parameters: {
             query?: never;
             header?: never;
@@ -2626,7 +2626,7 @@ export interface paths {
         patch: operations["PickupAuthorizationsSchoolController_markUsed"];
         trace?: never;
     };
-    "/api/clients/{clientId}/pickup-authorizations/{id}/cancel": {
+    "/clients/{clientId}/pickup-authorizations/{id}/cancel": {
         parameters: {
             query?: never;
             header?: never;
@@ -2643,7 +2643,7 @@ export interface paths {
         patch: operations["PickupAuthorizationsSchoolController_cancel"];
         trace?: never;
     };
-    "/api/clients/{clientId}/pickup-authorizations/{id}": {
+    "/clients/{clientId}/pickup-authorizations/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2660,7 +2660,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/pickup-authorizations": {
+    "/responsible/pickup-authorizations": {
         parameters: {
             query?: never;
             header?: never;
@@ -2678,7 +2678,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/lookup-guest-responsible": {
+    "/responsible/lookup-guest-responsible": {
         parameters: {
             query?: never;
             header?: never;
@@ -2695,7 +2695,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/pickup-authorizations/{id}": {
+    "/responsible/pickup-authorizations/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2713,7 +2713,7 @@ export interface paths {
         patch: operations["PickupAuthorizationsResponsibleController_update"];
         trace?: never;
     };
-    "/api/responsible/pickup-authorizations/{id}/guest-link": {
+    "/responsible/pickup-authorizations/{id}/guest-link": {
         parameters: {
             query?: never;
             header?: never;
@@ -2730,7 +2730,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/pickup-authorizations/{id}/guest-face-url": {
+    "/responsible/pickup-authorizations/{id}/guest-face-url": {
         parameters: {
             query?: never;
             header?: never;
@@ -2747,7 +2747,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/pickup-authorizations/{id}/guest-face": {
+    "/responsible/pickup-authorizations/{id}/guest-face": {
         parameters: {
             query?: never;
             header?: never;
@@ -2764,7 +2764,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/pickup-authorizations/{id}/approve-guest-face": {
+    "/responsible/pickup-authorizations/{id}/approve-guest-face": {
         parameters: {
             query?: never;
             header?: never;
@@ -2781,7 +2781,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/pickup-authorizations/{id}/reject-guest-face": {
+    "/responsible/pickup-authorizations/{id}/reject-guest-face": {
         parameters: {
             query?: never;
             header?: never;
@@ -2798,7 +2798,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/pickup-authorizations/{id}/cancel": {
+    "/responsible/pickup-authorizations/{id}/cancel": {
         parameters: {
             query?: never;
             header?: never;
@@ -2815,7 +2815,7 @@ export interface paths {
         patch: operations["PickupAuthorizationsResponsibleController_cancel"];
         trace?: never;
     };
-    "/api/pickup-register/{code}": {
+    "/pickup-register/{code}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2832,7 +2832,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/pickup-register/{code}/upload-photo": {
+    "/pickup-register/{code}/upload-photo": {
         parameters: {
             query?: never;
             header?: never;
@@ -2849,7 +2849,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/pickup-register/{code}/submit": {
+    "/pickup-register/{code}/submit": {
         parameters: {
             query?: never;
             header?: never;
@@ -2866,7 +2866,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/invites": {
+    "/clients/{clientId}/invites": {
         parameters: {
             query?: never;
             header?: never;
@@ -2883,7 +2883,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/invites/{id}/mark-used": {
+    "/clients/{clientId}/invites/{id}/mark-used": {
         parameters: {
             query?: never;
             header?: never;
@@ -2900,7 +2900,7 @@ export interface paths {
         patch: operations["InvitesClientController_markUsed"];
         trace?: never;
     };
-    "/api/clients/{clientId}/invites/{id}/cancel": {
+    "/clients/{clientId}/invites/{id}/cancel": {
         parameters: {
             query?: never;
             header?: never;
@@ -2917,7 +2917,7 @@ export interface paths {
         patch: operations["InvitesClientController_cancel"];
         trace?: never;
     };
-    "/api/clients/{clientId}/invites/{id}": {
+    "/clients/{clientId}/invites/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2934,7 +2934,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/member/invites": {
+    "/member/invites": {
         parameters: {
             query?: never;
             header?: never;
@@ -2952,7 +2952,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/member/invites/{id}": {
+    "/member/invites/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2970,7 +2970,7 @@ export interface paths {
         patch: operations["InvitesMemberController_update"];
         trace?: never;
     };
-    "/api/member/invites/{id}/guest-link": {
+    "/member/invites/{id}/guest-link": {
         parameters: {
             query?: never;
             header?: never;
@@ -2987,7 +2987,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/member/invites/{id}/guest-face-url": {
+    "/member/invites/{id}/guest-face-url": {
         parameters: {
             query?: never;
             header?: never;
@@ -3004,7 +3004,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/member/invites/{id}/guest-face": {
+    "/member/invites/{id}/guest-face": {
         parameters: {
             query?: never;
             header?: never;
@@ -3021,7 +3021,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/member/invites/{id}/approve-guest-face": {
+    "/member/invites/{id}/approve-guest-face": {
         parameters: {
             query?: never;
             header?: never;
@@ -3038,7 +3038,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/member/invites/{id}/reject-guest-face": {
+    "/member/invites/{id}/reject-guest-face": {
         parameters: {
             query?: never;
             header?: never;
@@ -3055,7 +3055,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/member/invites/{id}/cancel": {
+    "/member/invites/{id}/cancel": {
         parameters: {
             query?: never;
             header?: never;
@@ -3072,7 +3072,7 @@ export interface paths {
         patch: operations["InvitesMemberController_cancel"];
         trace?: never;
     };
-    "/api/invite-register/{code}": {
+    "/invite-register/{code}": {
         parameters: {
             query?: never;
             header?: never;
@@ -3089,7 +3089,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/invite-register/{code}/upload-photo": {
+    "/invite-register/{code}/upload-photo": {
         parameters: {
             query?: never;
             header?: never;
@@ -3106,7 +3106,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/invite-register/{code}/submit": {
+    "/invite-register/{code}/submit": {
         parameters: {
             query?: never;
             header?: never;
@@ -3123,7 +3123,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/managed-responsibles": {
+    "/responsible/managed-responsibles": {
         parameters: {
             query?: never;
             header?: never;
@@ -3141,7 +3141,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/managed-responsibles/{id}": {
+    "/responsible/managed-responsibles/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -3158,7 +3158,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/responsible-invitations": {
+    "/responsible/responsible-invitations": {
         parameters: {
             query?: never;
             header?: never;
@@ -3176,7 +3176,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/responsible-invitations/{id}/face-url": {
+    "/responsible/responsible-invitations/{id}/face-url": {
         parameters: {
             query?: never;
             header?: never;
@@ -3193,7 +3193,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/responsible-invitations/{id}/approve-face": {
+    "/responsible/responsible-invitations/{id}/approve-face": {
         parameters: {
             query?: never;
             header?: never;
@@ -3210,7 +3210,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/responsible-invitations/{id}/reject-face": {
+    "/responsible/responsible-invitations/{id}/reject-face": {
         parameters: {
             query?: never;
             header?: never;
@@ -3227,7 +3227,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/responsible-invitations/{id}/cancel": {
+    "/responsible/responsible-invitations/{id}/cancel": {
         parameters: {
             query?: never;
             header?: never;
@@ -3244,7 +3244,7 @@ export interface paths {
         patch: operations["ManagedResponsiblesController_cancel"];
         trace?: never;
     };
-    "/api/responsible-register/{code}": {
+    "/responsible-register/{code}": {
         parameters: {
             query?: never;
             header?: never;
@@ -3261,7 +3261,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible-register/{code}/upload-photo": {
+    "/responsible-register/{code}/upload-photo": {
         parameters: {
             query?: never;
             header?: never;
@@ -3278,7 +3278,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible-register/{code}/submit": {
+    "/responsible-register/{code}/submit": {
         parameters: {
             query?: never;
             header?: never;
@@ -3295,7 +3295,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/vehicles/driver-options": {
+    "/clients/{clientId}/vehicles/driver-options": {
         parameters: {
             query?: never;
             header?: never;
@@ -3312,7 +3312,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/vehicles": {
+    "/clients/{clientId}/vehicles": {
         parameters: {
             query?: never;
             header?: never;
@@ -3330,7 +3330,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/vehicles/{id}": {
+    "/clients/{clientId}/vehicles/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -3348,7 +3348,7 @@ export interface paths {
         patch: operations["ClientVehiclesController_update"];
         trace?: never;
     };
-    "/api/responsible/vehicles/driver-options": {
+    "/responsible/vehicles/driver-options": {
         parameters: {
             query?: never;
             header?: never;
@@ -3365,7 +3365,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/vehicles": {
+    "/responsible/vehicles": {
         parameters: {
             query?: never;
             header?: never;
@@ -3383,7 +3383,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/vehicles/{id}": {
+    "/responsible/vehicles/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -3401,7 +3401,7 @@ export interface paths {
         patch: operations["VehiclesResponsibleController_update"];
         trace?: never;
     };
-    "/api/responsible/vehicles/{id}/sync": {
+    "/responsible/vehicles/{id}/sync": {
         parameters: {
             query?: never;
             header?: never;
@@ -3418,7 +3418,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/member/vehicles": {
+    "/member/vehicles": {
         parameters: {
             query?: never;
             header?: never;
@@ -3436,7 +3436,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/member/vehicles/{id}": {
+    "/member/vehicles/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -3454,7 +3454,7 @@ export interface paths {
         patch: operations["VehiclesMemberController_update"];
         trace?: never;
     };
-    "/api/member/vehicles/{id}/sync": {
+    "/member/vehicles/{id}/sync": {
         parameters: {
             query?: never;
             header?: never;
@@ -3471,7 +3471,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/me/face": {
+    "/responsible/me/face": {
         parameters: {
             query?: never;
             header?: never;
@@ -3489,7 +3489,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/me/face/sync": {
+    "/responsible/me/face/sync": {
         parameters: {
             query?: never;
             header?: never;
@@ -3506,7 +3506,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/children/{studentId}/face": {
+    "/responsible/children/{studentId}/face": {
         parameters: {
             query?: never;
             header?: never;
@@ -3524,7 +3524,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/children/{studentId}/face/sync": {
+    "/responsible/children/{studentId}/face/sync": {
         parameters: {
             query?: never;
             header?: never;
@@ -3541,7 +3541,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/household/{responsibleId}/face": {
+    "/responsible/household/{responsibleId}/face": {
         parameters: {
             query?: never;
             header?: never;
@@ -3559,7 +3559,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/responsible/household/{responsibleId}/face/sync": {
+    "/responsible/household/{responsibleId}/face/sync": {
         parameters: {
             query?: never;
             header?: never;
@@ -3576,7 +3576,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/member/me/face": {
+    "/member/me/face": {
         parameters: {
             query?: never;
             header?: never;
@@ -3594,7 +3594,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/member/me/face/sync": {
+    "/member/me/face/sync": {
         parameters: {
             query?: never;
             header?: never;
@@ -3611,7 +3611,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/member/students": {
+    "/member/students": {
         parameters: {
             query?: never;
             header?: never;
@@ -3628,7 +3628,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/member/students/{studentId}/face": {
+    "/member/students/{studentId}/face": {
         parameters: {
             query?: never;
             header?: never;
@@ -3645,7 +3645,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/member/members": {
+    "/member/members": {
         parameters: {
             query?: never;
             header?: never;
@@ -3662,7 +3662,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/member/members/{memberId}/face": {
+    "/member/members/{memberId}/face": {
         parameters: {
             query?: never;
             header?: never;
@@ -3679,7 +3679,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/me/navigation": {
+    "/me/navigation": {
         parameters: {
             query?: never;
             header?: never;
@@ -3696,7 +3696,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/me/sidebar-nav-access": {
+    "/me/sidebar-nav-access": {
         parameters: {
             query?: never;
             header?: never;
@@ -3713,7 +3713,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/me/company-features": {
+    "/me/company-features": {
         parameters: {
             query?: never;
             header?: never;
@@ -3730,7 +3730,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/me/can-check": {
+    "/me/can-check": {
         parameters: {
             query?: never;
             header?: never;
@@ -3747,7 +3747,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/me/permissions/{featureSlug}": {
+    "/me/permissions/{featureSlug}": {
         parameters: {
             query?: never;
             header?: never;
@@ -3764,7 +3764,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/dashboard/stats": {
+    "/dashboard/stats": {
         parameters: {
             query?: never;
             header?: never;
@@ -3781,7 +3781,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/notifications/push-token": {
+    "/notifications/push-token": {
         parameters: {
             query?: never;
             header?: never;
@@ -3798,7 +3798,7 @@ export interface paths {
         patch: operations["NotificationsController_registerPushToken"];
         trace?: never;
     };
-    "/api/health": {
+    "/health": {
         parameters: {
             query?: never;
             header?: never;
@@ -3815,7 +3815,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/legal-documents/{type}/active": {
+    "/legal-documents/{type}/active": {
         parameters: {
             query?: never;
             header?: never;
@@ -3832,7 +3832,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/legal-documents/{type}/versions": {
+    "/legal-documents/{type}/versions": {
         parameters: {
             query?: never;
             header?: never;
@@ -3849,7 +3849,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/legal-documents/{type}/{version}": {
+    "/legal-documents/{type}/{version}": {
         parameters: {
             query?: never;
             header?: never;
@@ -3866,7 +3866,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/arrivals/stream": {
+    "/clients/{clientId}/arrivals/stream": {
         parameters: {
             query?: never;
             header?: never;
@@ -3882,7 +3882,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/simulate/people": {
+    "/simulate/people": {
         parameters: {
             query?: never;
             header?: never;
@@ -3899,7 +3899,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/simulate/face-access": {
+    "/simulate/face-access": {
         parameters: {
             query?: never;
             header?: never;
@@ -3916,7 +3916,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ienh/filial-mappings": {
+    "/ienh/filial-mappings": {
         parameters: {
             query?: never;
             header?: never;
@@ -3934,7 +3934,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ienh/fetch": {
+    "/ienh/fetch": {
         parameters: {
             query?: never;
             header?: never;
@@ -3951,7 +3951,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ienh/sync": {
+    "/ienh/sync": {
         parameters: {
             query?: never;
             header?: never;
@@ -3968,7 +3968,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ienh/snapshots": {
+    "/ienh/snapshots": {
         parameters: {
             query?: never;
             header?: never;
@@ -3985,7 +3985,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ienh/sync/progress": {
+    "/ienh/sync/progress": {
         parameters: {
             query?: never;
             header?: never;
@@ -4002,7 +4002,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ienh/sync/progress/from-snapshot": {
+    "/ienh/sync/progress/from-snapshot": {
         parameters: {
             query?: never;
             header?: never;
@@ -4019,7 +4019,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/geocoding/autocomplete": {
+    "/geocoding/autocomplete": {
         parameters: {
             query?: never;
             header?: never;
@@ -4036,7 +4036,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/geocoding/geocode": {
+    "/geocoding/geocode": {
         parameters: {
             query?: never;
             header?: never;
@@ -4053,7 +4053,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/geocoding/reverse": {
+    "/geocoding/reverse": {
         parameters: {
             query?: never;
             header?: never;
@@ -4070,7 +4070,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/geocoding/lookup": {
+    "/geocoding/lookup": {
         parameters: {
             query?: never;
             header?: never;
@@ -4087,7 +4087,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/panic-config": {
+    "/clients/{clientId}/panic-config": {
         parameters: {
             query?: never;
             header?: never;
@@ -4105,7 +4105,7 @@ export interface paths {
         patch: operations["PanicEventsController_updatePanicConfig"];
         trace?: never;
     };
-    "/api/panic-events": {
+    "/panic-events": {
         parameters: {
             query?: never;
             header?: never;
@@ -4123,7 +4123,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/panic-events/{eventId}": {
+    "/panic-events/{eventId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -4140,7 +4140,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/panic-events/{eventId}/claim": {
+    "/panic-events/{eventId}/claim": {
         parameters: {
             query?: never;
             header?: never;
@@ -4157,7 +4157,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/panic-events/{eventId}/release": {
+    "/panic-events/{eventId}/release": {
         parameters: {
             query?: never;
             header?: never;
@@ -4174,7 +4174,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/panic-events/{eventId}/close": {
+    "/panic-events/{eventId}/close": {
         parameters: {
             query?: never;
             header?: never;
@@ -4191,7 +4191,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/presence": {
+    "/clients/{clientId}/presence": {
         parameters: {
             query?: never;
             header?: never;
@@ -4208,7 +4208,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/companies/{companyId}/presence": {
+    "/companies/{companyId}/presence": {
         parameters: {
             query?: never;
             header?: never;
@@ -4225,7 +4225,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/clients/{clientId}/emergency-events": {
+    "/clients/{clientId}/emergency-events": {
         parameters: {
             query?: never;
             header?: never;
@@ -4242,7 +4242,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/emergency-events/{eventId}": {
+    "/emergency-events/{eventId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -4259,7 +4259,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/emergency-events/{eventId}/checkins/{checkinId}": {
+    "/emergency-events/{eventId}/checkins/{checkinId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -4276,7 +4276,7 @@ export interface paths {
         patch: operations["EmergencyEventsController_updateCheckin"];
         trace?: never;
     };
-    "/api/emergency-events/{eventId}/checkins": {
+    "/emergency-events/{eventId}/checkins": {
         parameters: {
             query?: never;
             header?: never;
@@ -4293,7 +4293,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/emergency-events/{eventId}/resolve": {
+    "/emergency-events/{eventId}/resolve": {
         parameters: {
             query?: never;
             header?: never;
@@ -4426,6 +4426,11 @@ export interface components {
             /** @default false */
             dryRun: boolean;
         };
+        /**
+         * @default {
+         *       "force": false
+         *     }
+         */
         EnqueueDeviceSyncBodyDto: {
             /** @default false */
             force: boolean;
@@ -5980,7 +5985,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnqueueDeviceSyncBodyDto"];
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -6077,7 +6086,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnqueueDeviceSyncBodyDto"];
+            };
+        };
         responses: {
             201: {
                 headers: {

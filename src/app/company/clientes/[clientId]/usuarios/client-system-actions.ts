@@ -111,3 +111,101 @@ export type ClientSystemUserRow = {
     role: 'client_admin' | 'client_operator';
     isActive: boolean;
 };
+
+const clientUserRoleSchema = z.enum(['client_admin', 'client_operator']);
+
+const manageClientUserSchema = z.object({
+    clientId: z.string().uuid(),
+    clientUserId: z.string().uuid(),
+});
+
+async function patchClientUser(
+    path: string,
+    body: unknown,
+    clientId: string,
+): Promise<{ success: true } | { error: string }> {
+    try {
+        const res = await apiFetchAuthed(path, {
+            method: 'PATCH',
+            body: JSON.stringify(body),
+        });
+        if (!res.ok) {
+            const data = await parseResponseJson(res);
+            return { error: nestErrorMessage(data) };
+        }
+        revalidatePath('/company/usuarios');
+        revalidatePath(`/company/clientes/${clientId}/usuarios`);
+        return { success: true };
+    } catch {
+        return { error: 'Sem permissão.' };
+    }
+}
+
+export async function updateClientSystemUserProfileAction(input: unknown) {
+    const parsed = manageClientUserSchema
+        .extend({
+            name: z.string().trim().min(2).max(255).optional(),
+            email: z
+                .string()
+                .email('E-mail inválido.')
+                .transform((value) => value.trim().toLowerCase())
+                .optional(),
+        })
+        .safeParse(input);
+    if (!parsed.success) {
+        return { error: 'Dados inválidos.' };
+    }
+    const { clientId, clientUserId, name, email } = parsed.data;
+    return patchClientUser(
+        `/api/clients/${clientId}/client-users/${clientUserId}/profile`,
+        { name, email },
+        clientId,
+    );
+}
+
+export async function updateClientSystemUserRoleAction(input: unknown) {
+    const parsed = manageClientUserSchema
+        .extend({ role: clientUserRoleSchema })
+        .safeParse(input);
+    if (!parsed.success) {
+        return { error: 'Dados inválidos.' };
+    }
+    const { clientId, clientUserId, role } = parsed.data;
+    return patchClientUser(
+        `/api/clients/${clientId}/client-users/${clientUserId}/role`,
+        { role },
+        clientId,
+    );
+}
+
+export async function toggleClientSystemUserActiveAction(input: unknown) {
+    const parsed = manageClientUserSchema
+        .extend({ isActive: z.boolean() })
+        .safeParse(input);
+    if (!parsed.success) {
+        return { error: 'Dados inválidos.' };
+    }
+    const { clientId, clientUserId, isActive } = parsed.data;
+    return patchClientUser(
+        `/api/clients/${clientId}/client-users/${clientUserId}/active`,
+        { isActive },
+        clientId,
+    );
+}
+
+export async function setClientSystemUserPasswordAction(input: unknown) {
+    const parsed = manageClientUserSchema
+        .extend({
+            password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
+        })
+        .safeParse(input);
+    if (!parsed.success) {
+        return { error: parsed.error.issues[0]?.message ?? 'Dados inválidos.' };
+    }
+    const { clientId, clientUserId, password } = parsed.data;
+    return patchClientUser(
+        `/api/clients/${clientId}/client-users/${clientUserId}/password`,
+        { password },
+        clientId,
+    );
+}
