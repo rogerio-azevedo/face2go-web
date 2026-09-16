@@ -24,6 +24,11 @@ import {
     onlyDigits,
 } from "@/lib/utils/document";
 import {
+    applyBirthDateMaskInput,
+    BIRTH_DATE_FORMATTED_MAX_LENGTH,
+    birthDateMaskToIso,
+} from "@/lib/utils/date";
+import {
     applyPhoneMaskInput,
     PHONE_FORMATTED_MAX_LENGTH,
 } from "@/lib/utils/phone";
@@ -159,7 +164,9 @@ export function CadastroWizard({ code }: { code: string }) {
             if (email.trim() && !email.includes("@")) return false;
         }
         if (isFieldVisible(fields.birthDate)) {
-            if (isFieldRequired(fields.birthDate) && !birthDate) return false;
+            const iso = birthDateMaskToIso(birthDate);
+            if (isFieldRequired(fields.birthDate) && !iso) return false;
+            if (birthDate.trim() && !iso) return false;
         }
         if (!truthDeclared) return false;
         return true;
@@ -217,7 +224,7 @@ export function CadastroWizard({ code }: { code: string }) {
                             ? email.trim() || undefined
                             : undefined,
                         birthDate: isFieldVisible(fields.birthDate)
-                            ? birthDate || null
+                            ? birthDateMaskToIso(birthDate)
                             : undefined,
                         faceImageKey,
                         additionalData:
@@ -433,9 +440,19 @@ export function CadastroWizard({ code }: { code: string }) {
                                 </Label>
                                 <Input
                                     id="bd"
-                                    type="date"
+                                    type="text"
                                     value={birthDate}
-                                    onChange={(e) => setBirthDate(e.target.value)}
+                                    onChange={(e) =>
+                                        setBirthDate(
+                                            applyBirthDateMaskInput(
+                                                e.target.value,
+                                            ),
+                                        )
+                                    }
+                                    placeholder="DD/MM/AAAA"
+                                    inputMode="numeric"
+                                    autoComplete="bday"
+                                    maxLength={BIRTH_DATE_FORMATTED_MAX_LENGTH}
                                 />
                             </div>
                         ) : null}
@@ -460,7 +477,8 @@ export function CadastroWizard({ code }: { code: string }) {
                         </div>
                         <Button
                             type="button"
-                            className="w-full"
+                            size="lg"
+                            className="h-11 w-full"
                             disabled={!canStep1}
                             onClick={() => goToLocalOrPhoto()}
                         >
@@ -531,15 +549,17 @@ export function CadastroWizard({ code }: { code: string }) {
                         <div className="flex gap-2">
                             <Button
                                 type="button"
+                                size="lg"
                                 variant="outline"
-                                className="flex-1"
+                                className="h-11 flex-1"
                                 onClick={() => setStep(1)}
                             >
                                 Voltar
                             </Button>
                             <Button
                                 type="button"
-                                className="flex-1"
+                                size="lg"
+                                className="h-11 flex-1"
                                 disabled={!canStep2}
                                 onClick={() => goToPhoto()}
                             >
@@ -568,8 +588,9 @@ export function CadastroWizard({ code }: { code: string }) {
                         <div className="flex gap-2 pt-2">
                             <Button
                                 type="button"
+                                size="lg"
                                 variant="outline"
-                                className="flex-1"
+                                className="h-11 flex-1"
                                 onClick={() => {
                                     setFaceImageKey(null);
                                     setStep(showLocalStep ? 2 : 1);
@@ -579,7 +600,8 @@ export function CadastroWizard({ code }: { code: string }) {
                             </Button>
                             <Button
                                 type="button"
-                                className="flex-1"
+                                size="lg"
+                                className="h-11 flex-1"
                                 disabled={!faceImageKey || submitting}
                                 onClick={() => void handleSubmit()}
                             >

@@ -254,7 +254,8 @@ export function CadastroFaceStep({
                     <div className="flex flex-col gap-2 sm:flex-row">
                         <Button
                             type="button"
-                            className="flex-1"
+                            size="lg"
+                            className="h-11 flex-1"
                             onClick={captureFromVideo}
                         >
                             <Camera className="mr-2 size-4" />
@@ -262,8 +263,9 @@ export function CadastroFaceStep({
                         </Button>
                         <Button
                             type="button"
+                            size="lg"
                             variant="outline"
-                            className="flex-1"
+                            className="h-11 flex-1"
                             onClick={() => {
                                 stopCamera();
                                 setStatus("idle");
@@ -286,12 +288,19 @@ export function CadastroFaceStep({
                     <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
                         {status === "preview_local" ? (
                             <>
-                                <Button type="button" onClick={() => void uploadPreview()}>
+                                <Button
+                                    type="button"
+                                    size="lg"
+                                    className="h-11"
+                                    onClick={() => void uploadPreview()}
+                                >
                                     Enviar esta foto
                                 </Button>
                                 <Button
                                     type="button"
+                                    size="lg"
                                     variant="outline"
+                                    className="h-11"
                                     onClick={resetCapture}
                                 >
                                     Tirar de novo
@@ -311,8 +320,9 @@ export function CadastroFaceStep({
                                 </p>
                                 <Button
                                     type="button"
+                                    size="lg"
                                     variant="outline"
-                                    className="w-full"
+                                    className="h-11 w-full"
                                     onClick={resetCapture}
                                 >
                                     Tirar outra foto
@@ -325,7 +335,12 @@ export function CadastroFaceStep({
 
             {status === "idle" ? (
                 <div className="flex flex-col gap-2">
-                    <Button type="button" className="w-full" onClick={onOpenCameraClick}>
+                    <Button
+                        type="button"
+                        size="lg"
+                        className="h-11 w-full"
+                        onClick={onOpenCameraClick}
+                    >
                         <Camera className="mr-2 size-4" />
                         {useNativeCapture ? "Abrir câmera" : "Usar câmera"}
                     </Button>
