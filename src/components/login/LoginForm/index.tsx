@@ -42,6 +42,8 @@ export function LoginForm() {
     const searchParams = useSearchParams();
     const errorParam = searchParams.get("error");
     const registeredParam = searchParams.get("registered");
+    const inviteParam = searchParams.get("invite")?.trim() ?? "";
+    const identifierParam = searchParams.get("identifier")?.trim() ?? "";
     const [step, setStep] = useState<LoginStep>("credentials");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -50,10 +52,16 @@ export function LoginForm() {
     );
 
     useEffect(() => {
+        if (inviteParam) {
+            const params = new URLSearchParams({ invite: inviteParam });
+            if (identifierParam) params.set("identifier", identifierParam);
+            router.replace(`/join?${params.toString()}`);
+            return;
+        }
         if (registeredParam === "1") {
             toast.success("Cadastro realizado. Entre com sua conta.");
         }
-    }, [registeredParam]);
+    }, [identifierParam, inviteParam, registeredParam, router]);
 
     const {
         register,
@@ -150,6 +158,14 @@ export function LoginForm() {
             setIsSubmitting(false);
         }
     };
+
+    if (inviteParam) {
+        return (
+            <p className="text-muted-foreground text-sm">
+                Redirecionando para vincular o convite...
+            </p>
+        );
+    }
 
     if (step === "context" && loginPayload) {
         return (

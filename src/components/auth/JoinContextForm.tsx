@@ -80,6 +80,7 @@ export function JoinContextForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const inviteCode = searchParams.get("invite")?.trim() ?? "";
+    const identifierFromQuery = searchParams.get("identifier")?.trim() ?? "";
 
     const [inviteLoading, setInviteLoading] = useState(!!inviteCode);
     const [preview, setPreview] = useState<InvitePreview>(null);
@@ -94,7 +95,7 @@ export function JoinContextForm() {
         formState: { errors },
     } = useForm<JoinCredentialsInput>({
         resolver: zodResolver(joinCredentialsSchema),
-        defaultValues: { identifier: "", password: "" },
+        defaultValues: { identifier: identifierFromQuery, password: "" },
     });
 
     const loadInvite = useCallback(async () => {

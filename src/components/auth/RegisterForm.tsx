@@ -80,6 +80,13 @@ export function RegisterForm() {
     const isCompanyInvite = preview?.inviteType === "company";
     const requiresCompanyProfile = isCompanyInvite;
 
+    const joinHref = (() => {
+        const params = new URLSearchParams({ invite: inviteCode });
+        const identifier = email.trim();
+        if (identifier) params.set("identifier", identifier);
+        return `/join?${params.toString()}`;
+    })();
+
     const loadInvite = useCallback(async () => {
         if (!inviteCode) {
             setInviteLoading(false);
@@ -265,7 +272,7 @@ export function RegisterForm() {
                             Continuar
                         </Button>
                         <Link
-                            href="/login"
+                            href={joinHref}
                             className={cn(
                                 buttonVariants({ variant: "ghost" }),
                                 "w-full",
