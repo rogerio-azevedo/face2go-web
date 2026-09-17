@@ -39,6 +39,7 @@ export function RegistrationFieldsConfigPanel({
     const [fields, setFields] = useState<ResolvedRegistrationFieldsConfig | null>(
         null,
     );
+    const [birthDateLocked, setBirthDateLocked] = useState(false);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
@@ -57,6 +58,10 @@ export function RegistrationFieldsConfigPanel({
                     setFields(null);
                 } else {
                     setFields(result.result.fields);
+                    setBirthDateLocked(
+                        result.result.birthDateRequiredByRestrictMinors ===
+                            true,
+                    );
                 }
                 setLoading(false);
             })();
@@ -76,6 +81,9 @@ export function RegistrationFieldsConfigPanel({
                 return;
             }
             setFields(result.result.fields);
+            setBirthDateLocked(
+                result.result.birthDateRequiredByRestrictMinors === true,
+            );
             toast.success("Configuração do cadastro salva.");
         } finally {
             setSaving(false);
@@ -122,33 +130,49 @@ export function RegistrationFieldsConfigPanel({
                             ))}
                         </div>
                         <div className="space-y-3">
-                            {listed.map((field) => (
-                                <div
-                                    key={field}
-                                    className="grid gap-2 sm:grid-cols-[1fr_12rem] sm:items-center"
-                                >
-                                    <Label htmlFor={`cfg-${field}`}>
-                                        {FIELD_LABELS[field]}
-                                    </Label>
-                                    <select
-                                        id={`cfg-${field}`}
-                                        className={selectClassName}
-                                        value={fields[field]}
-                                        onChange={(e) =>
-                                            setRule(
-                                                field,
-                                                e.target.value as FieldRule,
-                                            )
-                                        }
+                            {listed.map((field) => {
+                                const locked18 =
+                                    field === "birthDate" && birthDateLocked;
+                                return (
+                                    <div
+                                        key={field}
+                                        className="grid gap-2 sm:grid-cols-[1fr_12rem] sm:items-center"
                                     >
-                                        {FIELD_RULES.map((rule) => (
-                                            <option key={rule} value={rule}>
-                                                {FIELD_RULE_LABELS[rule]}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            ))}
+                                        <div className="space-y-1">
+                                            <Label htmlFor={`cfg-${field}`}>
+                                                {FIELD_LABELS[field]}
+                                            </Label>
+                                            {locked18 ? (
+                                                <p className="text-muted-foreground text-xs">
+                                                    Obrigatória enquanto houver
+                                                    leitor 18+.
+                                                </p>
+                                            ) : null}
+                                        </div>
+                                        <select
+                                            id={`cfg-${field}`}
+                                            className={selectClassName}
+                                            value={fields[field]}
+                                            disabled={locked18}
+                                            onChange={(e) =>
+                                                setRule(
+                                                    field,
+                                                    e.target.value as FieldRule,
+                                                )
+                                            }
+                                        >
+                                            {FIELD_RULES.map((rule) => (
+                                                <option
+                                                    key={rule}
+                                                    value={rule}
+                                                >
+                                                    {FIELD_RULE_LABELS[rule]}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                );
+                            })}
                         </div>
                         <Button
                             type="button"

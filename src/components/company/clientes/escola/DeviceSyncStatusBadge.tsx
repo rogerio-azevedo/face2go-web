@@ -34,13 +34,17 @@ function syncStatusTitle(params: {
     status: DeviceSyncStatus | null | undefined;
     error?: string | null;
     fraction: string | null;
+    incomplete: boolean;
     isMinor?: boolean | null;
 }): string | undefined {
-    const { status, error, fraction, isMinor } = params;
+    const { status, error, fraction, incomplete, isMinor } = params;
     if (error) return error;
     if (status === "synced" && fraction) {
-        if (isMinor) {
+        if (isMinor === true && incomplete) {
             return `Sincronizado em ${fraction} leitores. Menor não entra em leitor 18+.`;
+        }
+        if (isMinor == null && incomplete) {
+            return `Sincronizado em ${fraction} leitores. Sem data de nascimento o leitor 18+ não recebe a face.`;
         }
         return `Sincronizado em ${fraction} leitores.`;
     }
@@ -76,6 +80,8 @@ export function DeviceSyncStatusBadge({
 
     const partial = status === "synced" && isPartialSyncError(error);
     const fraction = readerSyncFraction(syncedCount, totalCount);
+    const incomplete =
+        syncedCount != null && totalCount != null && syncedCount < totalCount;
     const label = syncStatusLabel(status, error);
 
     return (
@@ -85,6 +91,7 @@ export function DeviceSyncStatusBadge({
                 status,
                 error,
                 fraction,
+                incomplete,
                 isMinor,
             })}
             className={cn(

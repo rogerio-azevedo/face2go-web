@@ -104,4 +104,5 @@ export type RegistrationConfigResponse = {
     clientType: string;
     fields: ResolvedRegistrationFieldsConfig;
     listedFields: ConfigurableField[];
+    birthDateRequiredByRestrictMinors?: boolean;
 };

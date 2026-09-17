@@ -124,6 +124,14 @@ export function RegistrationRowActions({
                             Restaurar
                         </DropdownMenuItem>
                     ) : null}
+                    {row.deviceSyncError ? (
+                        <>
+                            <DropdownMenuSeparator />
+                            <p className="text-destructive max-w-72 px-2 py-1.5 text-xs whitespace-normal">
+                                {row.deviceSyncError}
+                            </p>
+                        </>
+                    ) : null}
                 </DropdownMenuContent>
             </DropdownMenu>
 
