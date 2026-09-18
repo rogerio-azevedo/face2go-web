@@ -21,6 +21,7 @@ export type PersonLookupResult = {
     profile: PersonLookupProfile | null;
     contexts: PersonLookupContext[];
     conflict?: string;
+    matchedBy?: "cpf" | "email" | "document-bond";
 };
 
 export const PERSON_CONTEXT_LABELS: Record<PersonContextType, string> = {

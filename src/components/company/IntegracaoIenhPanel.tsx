@@ -563,6 +563,13 @@ export function IntegracaoIenhPanel({
                                     {syncResult.accountsSkippedEmailConflict}
                                 </Badge>
                             ) : null}
+                            {(syncResult.accountsCreatedWithoutEmail ?? 0) >
+                            0 ? (
+                                <Badge variant="secondary">
+                                    Contas criadas sem e-mail próprio:{" "}
+                                    {syncResult.accountsCreatedWithoutEmail}
+                                </Badge>
+                            ) : null}
                             <Badge variant="secondary">
                                 Vínculos responsável: {syncResult.linksCreated}
                             </Badge>

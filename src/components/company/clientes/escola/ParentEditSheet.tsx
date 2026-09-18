@@ -236,6 +236,14 @@ export function ParentEditSheet({
                                 Informe e-mail e senha para criar uma conta de
                                 acesso ao app.
                             </p>
+                        ) : parent.loginShared ? (
+                            <p className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm">
+                                Esta conta de login está compartilhada com
+                                outra pessoa. Ao salvar e-mail ou senha, será
+                                criada uma conta exclusiva para{" "}
+                                <span className="font-medium">{parent.name}</span>
+                                . A outra pessoa mantém o acesso atual.
+                            </p>
                         ) : (
                             <p className="text-muted-foreground text-sm">
                                 Altere o e-mail de acesso ou a senha conforme

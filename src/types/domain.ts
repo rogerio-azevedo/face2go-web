@@ -80,6 +80,7 @@ export type IenhSyncResult = {
     classLinksDeduped?: number;
     accountsCreated: number;
     accountsSkippedEmailConflict?: number;
+    accountsCreatedWithoutEmail?: number;
     linksCreated: number;
     errors: { enrollment: string; message: string }[];
     durationMs: number;
@@ -476,6 +477,8 @@ export type ResponsibleRow = {
     createdAt: string;
     updatedAt: string;
     hasFacialReaders: boolean;
+    /** Conta de login compartilhada com outra pessoa (CPF diferente). */
+    loginShared?: boolean;
 };
 
 /** Item de `GET /api/clients/:clientId/roles`. */
