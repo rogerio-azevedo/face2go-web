@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { ClientRegistrationLinksPanel } from "@/components/client/ClientRegistrationLinksPanel";
 import { ClientSelfInvitePanel } from "@/components/client/ClientSelfInvitePanel";
 import { RegistrationsReviewBoard } from "@/components/registrations/RegistrationsReviewBoard";
-import { RegistrationsFaceSyncAllModal } from "@/features/registrations/components/RegistrationsFaceSyncAllModal";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ClientSystemUsersTable } from "@/components/shared/ClientSystemUsersTable";
 import { auth } from "@/auth";
@@ -78,12 +77,9 @@ export default async function ClientUsuariosPage() {
                 />
             </section>
             <section className="space-y-3">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <h2 className="text-sm font-medium">
-                        Solicitações recebidas
-                    </h2>
-                    <RegistrationsFaceSyncAllModal variant="client" />
-                </div>
+                <h2 className="text-sm font-medium">
+                    Solicitações recebidas
+                </h2>
                 <RegistrationsReviewBoard
                     variant="client"
                     isAdmin={role === "client_admin"}

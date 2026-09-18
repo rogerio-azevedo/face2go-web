@@ -83,7 +83,7 @@ function formatDateTime(iso: string | null, offsetMinutes: number): string {
 
 type Props = {
     data: LprAccessesListResponse;
-    clients: ClientListRow[];
+    clients?: ClientListRow[];
     clientTimezoneOffsetMinutes: number;
     filters: {
         clientId: string;
@@ -92,14 +92,20 @@ type Props = {
     };
     /** Bearer JWT para `GET /api/lpr-accesses/:id/photo` no navegador. */
     accessToken: string;
+    basePath?: string;
+    photoApiPath?: string;
+    hideClientFilter?: boolean;
 };
 
 export function LprAccessesTable({
     data,
-    clients,
+    clients = [],
     clientTimezoneOffsetMinutes,
     filters,
     accessToken,
+    basePath = "/company/acessos",
+    photoApiPath = "/api/lpr-accesses/:id/photo",
+    hideClientFilter = false,
 }: Props) {
     const router = useRouter();
     const params = useSearchParams();
@@ -129,7 +135,10 @@ export function LprAccessesTable({
             setPhotoError(null);
             setPhotoUrls(null);
             try {
-                const url = `${getApiBaseUrl()}/api/lpr-accesses/${encodeURIComponent(accessId)}/photo`;
+                const url = `${getApiBaseUrl()}${photoApiPath.replace(
+                    ":id",
+                    encodeURIComponent(accessId),
+                )}`;
                 const res = await fetch(url, {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
@@ -161,7 +170,7 @@ export function LprAccessesTable({
                 setPhotoLoading(false);
             }
         },
-        [accessToken],
+        [accessToken, photoApiPath],
     );
 
     const totalPages = useMemo(
@@ -179,16 +188,18 @@ export function LprAccessesTable({
                 else next.set(k, v);
             }
             const q = next.toString();
-            return q ? `/company/acessos?${q}` : "/company/acessos";
+            return q ? `${basePath}?${q}` : basePath;
         },
-        [params],
+        [basePath, params],
     );
 
     const applyFilters = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const form = e.currentTarget;
         const fd = new FormData(form);
-        const clientId = String(fd.get("clientId") ?? "").trim();
+        const clientId = hideClientFilter
+            ? undefined
+            : String(fd.get("clientId") ?? "").trim();
         const startDate = String(fd.get("startDate") ?? "").trim();
         const endDate = String(fd.get("endDate") ?? "").trim();
         startTransition(() => {
@@ -236,22 +247,24 @@ export function LprAccessesTable({
                 onSubmit={applyFilters}
                 className="flex flex-col gap-4 rounded-xl border bg-card p-4 shadow-sm md:flex-row md:flex-wrap md:items-end"
             >
-                <div className="grid flex-1 gap-2 min-w-[200px]">
-                    <Label htmlFor="lpr-filter-client">Cliente</Label>
-                    <select
-                        id="lpr-filter-client"
-                        name="clientId"
-                        defaultValue={filters.clientId}
-                        className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    >
-                        <option value="">Todos os clientes</option>
-                        {clients.map((c) => (
-                            <option key={c.id} value={c.id}>
-                                {c.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                {hideClientFilter ? null : (
+                    <div className="grid flex-1 gap-2 min-w-[200px]">
+                        <Label htmlFor="lpr-filter-client">Cliente</Label>
+                        <select
+                            id="lpr-filter-client"
+                            name="clientId"
+                            defaultValue={filters.clientId}
+                            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        >
+                            <option value="">Todos os clientes</option>
+                            {clients.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                    {c.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                )}
                 <div className="grid gap-2 min-w-[160px]">
                     <Label htmlFor="lpr-filter-start">De</Label>
                     <Input
@@ -281,7 +294,9 @@ export function LprAccessesTable({
                         <TableRow className="bg-muted/40 hover:bg-muted/40">
                             <TableHead>Placa</TableHead>
                             <TableHead>Câmera</TableHead>
-                            <TableHead>Cliente</TableHead>
+                            {hideClientFilter ? null : (
+                                <TableHead>Cliente</TableHead>
+                            )}
                             <TableHead>Horário</TableHead>
                             <TableHead className="text-right">
                                 Confiança
@@ -300,7 +315,7 @@ export function LprAccessesTable({
                         {data.items.length === 0 ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={7}
+                                    colSpan={hideClientFilter ? 6 : 7}
                                     className="h-24 text-center text-muted-foreground"
                                 >
                                     Nenhuma detecção de placa encontrada para
@@ -352,13 +367,16 @@ export function LprAccessesTable({
                                     <TableCell className="text-muted-foreground">
                                         {row.cameraName}
                                     </TableCell>
-                                    <TableCell className="text-muted-foreground">
-                                        {row.clientName}
-                                    </TableCell>
+                                    {hideClientFilter ? null : (
+                                        <TableCell className="text-muted-foreground">
+                                            {row.clientName}
+                                        </TableCell>
+                                    )}
                                     <TableCell className="tabular-nums text-sm text-muted-foreground">
                                         {formatDateTime(
                                             row.snapTime ?? row.createdAt,
-                                            filters.clientId
+                                            hideClientFilter ||
+                                                filters.clientId
                                                 ? clientTimezoneOffsetMinutes
                                                 : (clients.find(
                                                       (c) =>

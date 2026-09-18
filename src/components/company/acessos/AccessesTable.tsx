@@ -56,7 +56,7 @@ function directionLabel(direction: "in" | "out" | null): string {
 
 type Props = {
     data: AccessesListResponse;
-    clients: ClientListRow[];
+    clients?: ClientListRow[];
     /** Offset quando há filtro por cliente; listagem mista usa o offset de cada cliente. */
     clientTimezoneOffsetMinutes: number;
     filters: {
@@ -66,14 +66,20 @@ type Props = {
     };
     /** Bearer JWT para `GET /api/accesses/:id/photo` no navegador. */
     accessToken: string;
+    basePath?: string;
+    photoApiPath?: string;
+    hideClientFilter?: boolean;
 };
 
 export function AccessesTable({
     data,
-    clients,
+    clients = [],
     clientTimezoneOffsetMinutes,
     filters,
     accessToken,
+    basePath = "/company/acessos",
+    photoApiPath = "/api/accesses/:id/photo",
+    hideClientFilter = false,
 }: Props) {
     const router = useRouter();
     const params = useSearchParams();
@@ -103,7 +109,10 @@ export function AccessesTable({
             setPhotoError(null);
             setPhotoUrl(null);
             try {
-                const url = `${getApiBaseUrl()}/api/accesses/${encodeURIComponent(accessId)}/photo`;
+                const url = `${getApiBaseUrl()}${photoApiPath.replace(
+                    ":id",
+                    encodeURIComponent(accessId),
+                )}`;
                 const res = await fetch(url, {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
@@ -125,7 +134,7 @@ export function AccessesTable({
                 setPhotoLoading(false);
             }
         },
-        [accessToken],
+        [accessToken, photoApiPath],
     );
 
     const totalPages = useMemo(
@@ -142,16 +151,18 @@ export function AccessesTable({
                 else next.set(k, v);
             }
             const q = next.toString();
-            return q ? `/company/acessos?${q}` : "/company/acessos";
+            return q ? `${basePath}?${q}` : basePath;
         },
-        [params],
+        [basePath, params],
     );
 
     const applyFilters = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const form = e.currentTarget;
         const fd = new FormData(form);
-        const clientId = String(fd.get("clientId") ?? "").trim();
+        const clientId = hideClientFilter
+            ? undefined
+            : String(fd.get("clientId") ?? "").trim();
         const startDate = String(fd.get("startDate") ?? "").trim();
         const endDate = String(fd.get("endDate") ?? "").trim();
         startTransition(() => {
@@ -201,22 +212,24 @@ export function AccessesTable({
                 onSubmit={applyFilters}
                 className="flex flex-col gap-4 rounded-xl border bg-card p-4 shadow-sm md:flex-row md:flex-wrap md:items-end"
             >
-                <div className="grid flex-1 gap-2 min-w-[200px]">
-                    <Label htmlFor="filter-client">Cliente</Label>
-                    <select
-                        id="filter-client"
-                        name="clientId"
-                        defaultValue={filters.clientId}
-                        className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    >
-                        <option value="">Todos os clientes</option>
-                        {clients.map((c) => (
-                            <option key={c.id} value={c.id}>
-                                {c.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                {hideClientFilter ? null : (
+                    <div className="grid flex-1 gap-2 min-w-[200px]">
+                        <Label htmlFor="filter-client">Cliente</Label>
+                        <select
+                            id="filter-client"
+                            name="clientId"
+                            defaultValue={filters.clientId}
+                            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        >
+                            <option value="">Todos os clientes</option>
+                            {clients.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                    {c.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                )}
                 <div className="grid gap-2 min-w-[160px]">
                     <Label htmlFor="filter-start">De</Label>
                     <Input
@@ -246,7 +259,9 @@ export function AccessesTable({
                         <TableRow className="bg-muted/40 hover:bg-muted/40">
                             <TableHead>Pessoa</TableHead>
                             <TableHead>Leitor</TableHead>
-                            <TableHead>Cliente</TableHead>
+                            {hideClientFilter ? null : (
+                                <TableHead>Cliente</TableHead>
+                            )}
                             <TableHead>Horário</TableHead>
                             <TableHead>Sentido</TableHead>
                             <TableHead>Resultado</TableHead>
@@ -264,7 +279,7 @@ export function AccessesTable({
                         {data.items.length === 0 ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={8}
+                                    colSpan={hideClientFilter ? 7 : 8}
                                     className="h-24 text-center text-muted-foreground"
                                 >
                                     Nenhum acesso encontrado para os filtros
@@ -292,13 +307,16 @@ export function AccessesTable({
                                         <TableCell className="text-muted-foreground">
                                             {row.readerName}
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground">
-                                            {row.clientName}
-                                        </TableCell>
+                                        {hideClientFilter ? null : (
+                                            <TableCell className="text-muted-foreground">
+                                                {row.clientName}
+                                            </TableCell>
+                                        )}
                                         <TableCell className="tabular-nums text-sm text-muted-foreground">
                                             {formatDateTime(
                                                 row.eventDate ?? row.createdAt,
-                                                filters.clientId
+                                                hideClientFilter ||
+                                                    filters.clientId
                                                     ? clientTimezoneOffsetMinutes
                                                     : (clients.find(
                                                           (c) =>

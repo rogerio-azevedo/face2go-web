@@ -627,6 +627,142 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/client/client-users/{clientUserId}/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Atualizar nome e e-mail do usuário do cliente */
+        patch: operations["ClientInviteLinksController_updateClientUserProfile"];
+        trace?: never;
+    };
+    "/client/client-users/{clientUserId}/role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Alterar papel do usuário do cliente */
+        patch: operations["ClientInviteLinksController_updateClientUserRole"];
+        trace?: never;
+    };
+    "/client/client-users/{clientUserId}/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Ativar/desativar usuário do cliente */
+        patch: operations["ClientInviteLinksController_setClientUserActive"];
+        trace?: never;
+    };
+    "/client/client-users/{clientUserId}/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Definir nova senha do usuário do cliente */
+        patch: operations["ClientInviteLinksController_setClientUserPassword"];
+        trace?: never;
+    };
+    "/clients/{clientId}/client-users/{clientUserId}/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Atualizar nome e e-mail do usuário do cliente */
+        patch: operations["CompanyClientUsersController_updateProfile"];
+        trace?: never;
+    };
+    "/clients/{clientId}/client-users/{clientUserId}/role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Alterar papel do usuário do cliente */
+        patch: operations["CompanyClientUsersController_updateRole"];
+        trace?: never;
+    };
+    "/clients/{clientId}/client-users/{clientUserId}/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Ativar/desativar usuário do cliente */
+        patch: operations["CompanyClientUsersController_setActive"];
+        trace?: never;
+    };
+    "/clients/{clientId}/client-users/{clientUserId}/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Definir nova senha do usuário do cliente */
+        patch: operations["CompanyClientUsersController_setPassword"];
+        trace?: never;
+    };
     "/readers/monitor/status": {
         parameters: {
             query?: never;
@@ -934,6 +1070,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/client/accesses/{id}/photo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obter URL assinada (GET) da foto facial de um acesso da unidade atual */
+        get: operations["ClientAccessesController_photo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/client/accesses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar acessos faciais da unidade atual */
+        get: operations["ClientAccessesController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/clients/{clientId}/faces/sync-all": {
         parameters: {
             query?: never;
@@ -1209,6 +1379,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/client/lpr-accesses/{id}/photo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obter URLs assinadas (GET) das fotos ANPR de um acesso da unidade atual */
+        get: operations["ClientLprAccessesController_photos"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/client/lpr-accesses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar acessos LPR ANPR da unidade atual */
+        get: operations["ClientLprAccessesController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/client/registration-links": {
         parameters: {
             query?: never;
@@ -1390,7 +1594,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Listar cadastros enviados do meu cliente paginados (?page, ?pageSize, ?status, ?search) */
+        /** Listar cadastros enviados do meu cliente paginados (?page, ?pageSize, ?status, ?search, ?block, ?unit, ?room) */
         get: operations["ClientRegistrationsController_list"];
         put?: never;
         post?: never;
@@ -1527,7 +1731,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Listar cadastros enviados de um cliente paginados (?page, ?pageSize, ?status, ?search) */
+        /** Listar cadastros enviados de um cliente paginados (?page, ?pageSize, ?status, ?search, ?block, ?unit, ?room) */
         get: operations["CompanyRegistrationsController_list"];
         put?: never;
         post?: never;
@@ -4366,8 +4570,6 @@ export interface components {
             isActive?: boolean;
         };
         GenerateCompanyInviteDto: {
-            /** Format: uuid */
-            companyId: string;
             /** @enum {string} */
             role: "company_admin" | "company_operator";
         };
@@ -4418,6 +4620,21 @@ export interface components {
             /** @enum {string} */
             geocodingPrecision?: "rooftop" | "street" | "approximate";
             hereLocationId?: string;
+        };
+        PatchClientUserProfileDto: {
+            name?: string;
+            /** Format: email */
+            email?: string;
+        };
+        PatchClientUserRoleDto: {
+            /** @enum {string} */
+            role: "client_admin" | "client_operator";
+        };
+        PatchClientUserActiveDto: {
+            isActive: boolean;
+        };
+        PatchClientUserPasswordDto: {
+            password: string;
         };
         BatchDeleteDeviceUsersDto: {
             userIds: string[];
@@ -5528,6 +5745,194 @@ export interface operations {
             };
         };
     };
+    ClientInviteLinksController_updateClientUserProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientUserId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchClientUserProfileDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientInviteLinksController_updateClientUserRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientUserId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchClientUserRoleDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientInviteLinksController_setClientUserActive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientUserId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchClientUserActiveDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientInviteLinksController_setClientUserPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientUserId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchClientUserPasswordDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CompanyClientUsersController_updateProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                clientUserId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchClientUserProfileDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CompanyClientUsersController_updateRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                clientUserId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchClientUserRoleDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CompanyClientUsersController_setActive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                clientUserId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchClientUserActiveDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CompanyClientUsersController_setPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                clientUserId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchClientUserPasswordDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ReadersController_monitorStatus: {
         parameters: {
             query: {
@@ -5898,6 +6303,47 @@ export interface operations {
                 startDate: string;
                 endDate: string;
                 page: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientAccessesController_photo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description ID do documento (Mongo ObjectId). */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientAccessesController_list: {
+        parameters: {
+            query?: {
+                startDate?: string;
+                endDate?: string;
+                page?: number;
             };
             header?: never;
             path?: never;
@@ -6299,6 +6745,47 @@ export interface operations {
             };
         };
     };
+    ClientLprAccessesController_photos: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description ID do documento (Mongo ObjectId). */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientLprAccessesController_list: {
+        parameters: {
+            query?: {
+                startDate?: string;
+                endDate?: string;
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ClientRegistrationLinksController_list: {
         parameters: {
             query?: never;
@@ -6582,6 +7069,9 @@ export interface operations {
                 page?: string;
                 pageSize?: string;
                 search?: string;
+                block?: string;
+                unit?: string;
+                room?: string;
             };
             header?: never;
             path?: never;
@@ -6764,6 +7254,9 @@ export interface operations {
                 page?: string;
                 pageSize?: string;
                 search?: string;
+                block?: string;
+                unit?: string;
+                room?: string;
             };
             header?: never;
             path: {

@@ -26,6 +26,9 @@ export type RegistrationListParams = {
     page?: number;
     pageSize?: number;
     search?: string;
+    block?: string;
+    unit?: string;
+    room?: string;
     status?: "draft" | "approved" | "rejected" | "blocked" | "deleted";
 };
 
@@ -37,6 +40,12 @@ export function buildRegistrationListQuery(
     sp.set("pageSize", String(params.pageSize ?? DEFAULT_SCHOOL_PAGE_SIZE));
     const search = params.search?.trim();
     if (search) sp.set("search", search);
+    const block = params.block?.trim();
+    if (block) sp.set("block", block);
+    const unit = params.unit?.trim();
+    if (unit) sp.set("unit", unit);
+    const room = params.room?.trim();
+    if (room) sp.set("room", room);
     if (params.status) sp.set("status", params.status);
     return sp.toString();
 }

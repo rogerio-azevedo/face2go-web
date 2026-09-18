@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 
-import { getApiBaseUrl } from "@/lib/api-fetch";
+import { getApiBaseUrl, nestErrorMessage } from "@/lib/api-fetch";
 import {
     CLIENT_TYPE_LABELS,
     type ClientType,
@@ -83,6 +83,10 @@ export function CadastroWizard({ code }: { code: string }) {
     const [truthDeclared, setTruthDeclared] = useState(false);
     const [faceImageKey, setFaceImageKey] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
+    const [checkingDocument, setCheckingDocument] = useState(false);
+    const [documentConflict, setDocumentConflict] = useState<string | null>(
+        null,
+    );
 
     const fields = useMemo(
         () =>
@@ -172,11 +176,12 @@ export function CadastroWizard({ code }: { code: string }) {
         return true;
     }, [name, document, phone, email, birthDate, fields, truthDeclared]);
 
-    const documentError = useMemo(
+    const documentFormatError = useMemo(
         () =>
             isFieldVisible(fields.document) ? cpfCnpjFieldError(document) : null,
         [document, fields.document],
     );
+    const documentError = documentFormatError ?? documentConflict;
 
     const canStep2 = useMemo(() => {
         if (isFieldRequired(fields.block) && !block.trim()) return false;
@@ -189,7 +194,36 @@ export function CadastroWizard({ code }: { code: string }) {
         setStep(3);
     }
 
-    function goToLocalOrPhoto() {
+    async function continueFromStep1() {
+        if (isFieldVisible(fields.document)) {
+            const digits = onlyDigits(document);
+            if (digits) {
+                setCheckingDocument(true);
+                setDocumentConflict(null);
+                try {
+                    const res = await fetch(
+                        `${getApiBaseUrl()}/api/register/${encodeURIComponent(code.trim())}/check-document`,
+                        {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ document: digits }),
+                        },
+                    );
+                    if (!res.ok) {
+                        const data = await res.json();
+                        const message = nestErrorMessage(data);
+                        setDocumentConflict(message);
+                        toast.error(message);
+                        return;
+                    }
+                } catch {
+                    toast.error("Não foi possível verificar o CPF/CNPJ.");
+                    return;
+                } finally {
+                    setCheckingDocument(false);
+                }
+            }
+        }
         if (showLocalStep) setStep(2);
         else goToPhoto();
     }
@@ -366,11 +400,12 @@ export function CadastroWizard({ code }: { code: string }) {
                                 <Input
                                     id="doc"
                                     value={document}
-                                    onChange={(e) =>
+                                    onChange={(e) => {
+                                        setDocumentConflict(null);
                                         setDocument(
                                             applyCpfCnpjMaskInput(e.target.value),
-                                        )
-                                    }
+                                        );
+                                    }}
                                     placeholder="000.000.000-00"
                                     inputMode="numeric"
                                     autoComplete="off"
@@ -479,10 +514,10 @@ export function CadastroWizard({ code }: { code: string }) {
                             type="button"
                             size="lg"
                             className="h-11 w-full"
-                            disabled={!canStep1}
-                            onClick={() => goToLocalOrPhoto()}
+                            disabled={!canStep1 || checkingDocument}
+                            onClick={() => void continueFromStep1()}
                         >
-                            Continuar
+                            {checkingDocument ? "Verificando…" : "Continuar"}
                         </Button>
                     </CardContent>
                 </Card>

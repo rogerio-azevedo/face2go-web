@@ -299,6 +299,7 @@ export type AccessesListResponse = {
     page: number;
     pageSize: number;
     total: number;
+    timezoneOffsetMinutes?: number;
 };
 
 /** Resposta de `GET /api/accesses/:id/photo` — URL temporária (R2). */
@@ -331,6 +332,7 @@ export type LprAccessesListResponse = {
     page: number;
     pageSize: number;
     total: number;
+    timezoneOffsetMinutes?: number;
 };
 
 /** Resposta de `GET /api/lpr-accesses/:id/photo` — URLs temporárias (R2). */

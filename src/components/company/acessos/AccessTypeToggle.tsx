@@ -7,7 +7,11 @@ import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export function AccessTypeToggle() {
+export function AccessTypeToggle({
+    basePath = "/company/acessos",
+}: {
+    basePath?: string;
+}) {
     const router = useRouter();
     const params = useSearchParams();
     const [pending, startTransition] = useTransition();
@@ -24,7 +28,7 @@ export function AccessTypeToggle() {
         nextQs.delete("page");
         const q = nextQs.toString();
         startTransition(() => {
-            router.push(q ? `/company/acessos?${q}` : "/company/acessos");
+            router.push(q ? `${basePath}?${q}` : basePath);
         });
     };
 

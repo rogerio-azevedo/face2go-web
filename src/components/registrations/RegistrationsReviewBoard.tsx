@@ -23,6 +23,7 @@ import {
     unblockCompanyRegistrationAction,
 } from "@/app/company/clientes/[clientId]/usuarios/actions";
 import { RegistrationEditSheet } from "@/features/registrations/components/RegistrationEditSheet";
+import { RegistrationsFaceSyncAllModal } from "@/features/registrations/components/RegistrationsFaceSyncAllModal";
 import { RegistrationRowActions } from "@/features/registrations/components/RegistrationRowActions";
 import { DeviceSyncStatusBadge } from "@/components/company/clientes/escola/DeviceSyncStatusBadge";
 import { UnblockPersonDialog } from "@/components/company/clientes/escola/UnblockPersonDialog";
@@ -165,16 +166,21 @@ export function RegistrationsReviewBoard({
     variant,
     companyClientId,
     isAdmin = false,
+    clientType: clientTypeProp,
 }: {
     variant: "client" | "company";
     companyClientId?: string;
     isAdmin?: boolean;
+    clientType?: string | null;
 }) {
     const [page, setPage] = useState<PaginatedRegistrationsResponse>(
         emptyRegistrationsPage(),
     );
     const [tab, setTab] = useState<Tab>("draft");
     const [search, setSearch] = useState("");
+    const [block, setBlock] = useState("");
+    const [unit, setUnit] = useState("");
+    const [room, setRoom] = useState("");
     const [sortField, setSortField] = useState<SortField>("submittedAt");
     const [sortDir, setSortDir] = useState<SortDir>("desc");
     const [sheetOpen, setSheetOpen] = useState(false);
@@ -208,6 +214,9 @@ export function RegistrationsReviewBoard({
                     page: nextPage,
                     pageSize: page.pageSize,
                     search: nextSearch || undefined,
+                    block: block || undefined,
+                    unit: unit || undefined,
+                    room: room || undefined,
                     status: nextTab,
                 });
                 if (!r.ok) {
@@ -234,7 +243,7 @@ export function RegistrationsReviewBoard({
                 if (!opts?.silent) setLoading(false);
             }
         },
-        [variant, companyClientId, page.pageSize],
+        [variant, companyClientId, page.pageSize, block, unit, room],
     );
 
     const { runSync } = useRegistrationFaceSync({
@@ -276,10 +285,46 @@ export function RegistrationsReviewBoard({
         });
     }, []);
 
-    const handleSearchChange = useCallback((value: string) => {
-        setSearch(value);
+    const resetToFirstPage = useCallback(() => {
         setPage((prev) => (prev.page === 1 ? prev : { ...prev, page: 1 }));
     }, []);
+
+    const handleSearchChange = useCallback(
+        (value: string) => {
+            setSearch(value);
+            resetToFirstPage();
+        },
+        [resetToFirstPage],
+    );
+
+    const handleBlockChange = useCallback(
+        (value: string) => {
+            setBlock(value);
+            resetToFirstPage();
+        },
+        [resetToFirstPage],
+    );
+
+    const handleUnitChange = useCallback(
+        (value: string) => {
+            setUnit(value);
+            resetToFirstPage();
+        },
+        [resetToFirstPage],
+    );
+
+    const handleRoomChange = useCallback(
+        (value: string) => {
+            setRoom(value);
+            resetToFirstPage();
+        },
+        [resetToFirstPage],
+    );
+
+    const locationType = clientTypeProp ?? page.clientType;
+    const showBlockUnit = locationType === "condominium";
+    const showRoom =
+        locationType === "office" || locationType === "clinic";
 
     function handleTabChange(next: Tab) {
         setTab(next);
@@ -487,13 +532,48 @@ export function RegistrationsReviewBoard({
                 ))}
             </div>
 
-            <SearchInput
-                id="search-registrations"
-                value={search}
-                onValueChange={handleSearchChange}
-                placeholder="Buscar por nome, CPF ou local…"
-                className="sm:max-w-sm"
-            />
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                <SearchInput
+                    id="search-registrations"
+                    value={search}
+                    onValueChange={handleSearchChange}
+                    placeholder="Buscar por nome ou CPF…"
+                    className="sm:max-w-sm"
+                />
+                {showBlockUnit ? (
+                    <>
+                        <SearchInput
+                            id="search-registrations-block"
+                            value={block}
+                            onValueChange={handleBlockChange}
+                            placeholder="Bloco"
+                            className="min-w-32 sm:max-w-40"
+                        />
+                        <SearchInput
+                            id="search-registrations-unit"
+                            value={unit}
+                            onValueChange={handleUnitChange}
+                            placeholder="Unidade"
+                            className="min-w-32 sm:max-w-40"
+                        />
+                    </>
+                ) : null}
+                {showRoom ? (
+                    <SearchInput
+                        id="search-registrations-room"
+                        value={room}
+                        onValueChange={handleRoomChange}
+                        placeholder="Sala"
+                        className="min-w-32 sm:max-w-40"
+                    />
+                ) : null}
+                <div className="sm:ml-auto">
+                    <RegistrationsFaceSyncAllModal
+                        variant={variant}
+                        companyClientId={companyClientId}
+                    />
+                </div>
+            </div>
 
             <div className="relative rounded-md border">
                 {loading ? (

@@ -233,6 +233,11 @@ function navItemsForRole(
                     icon: Users,
                 },
                 {
+                    title: "Acessos",
+                    url: "/client/acessos",
+                    icon: History,
+                },
+                {
                     title: "Relatórios",
                     url: "/client/relatorios",
                     icon: FileBarChart,
