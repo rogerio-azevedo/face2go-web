@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -82,6 +82,7 @@ export function CadastroWizard({ code }: { code: string }) {
 
     const [truthDeclared, setTruthDeclared] = useState(false);
     const [faceImageKey, setFaceImageKey] = useState<string | null>(null);
+    const submitActionsRef = useRef<HTMLDivElement>(null);
     const [submitting, setSubmitting] = useState(false);
     const [checkingDocument, setCheckingDocument] = useState(false);
     const [documentConflict, setDocumentConflict] = useState<string | null>(
@@ -346,7 +347,7 @@ export function CadastroWizard({ code }: { code: string }) {
     const photoStepNumber = showLocalStep ? 3 : 2;
 
     return (
-        <div className="mx-auto max-w-lg space-y-6 py-8 px-4">
+        <div className="mx-auto max-w-lg space-y-6 px-4 pt-8 pb-[max(2.5rem,calc(env(safe-area-inset-bottom)+1.5rem))]">
             <div className="text-center">
                 <h1 className="text-xl font-semibold">{preview.clientName}</h1>
                 <p className="text-sm text-muted-foreground">
@@ -617,10 +618,18 @@ export function CadastroWizard({ code }: { code: string }) {
                         <CadastroFaceStep
                             code={code.trim()}
                             registrationId={registrationId}
-                            onUploaded={(key) => setFaceImageKey(key)}
+                            onUploaded={(key) => {
+                                setFaceImageKey(key);
+                                window.requestAnimationFrame(() => {
+                                    submitActionsRef.current?.scrollIntoView({
+                                        behavior: "smooth",
+                                        block: "center",
+                                    });
+                                });
+                            }}
                             onUploadCleared={() => setFaceImageKey(null)}
                         />
-                        <div className="flex gap-2 pt-2">
+                        <div ref={submitActionsRef} className="flex gap-2 pt-2">
                             <Button
                                 type="button"
                                 size="lg"

@@ -4,6 +4,8 @@ import { Camera } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { FaceCameraStage } from "@/components/face-capture/FaceCameraStage";
+import { Button } from "@/components/ui/button";
 import { getApiBaseUrl } from "@/lib/api-fetch";
 import {
     composeFaceUploadDataUrl,
@@ -11,8 +13,6 @@ import {
     MAX_FACE_UPLOAD_BYTES,
     preferNativeCameraInput,
 } from "@/lib/cadastro-face";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 type FaceStepStatus =
     | "idle"
@@ -28,6 +28,8 @@ type CadastroFaceStepProps = {
     /** Chamado ao tirar outra foto, para limpar a chave já enviada no wizard. */
     onUploadCleared?: () => void;
 };
+
+const STAGE_BUTTON_CLASS = "h-14 w-full text-base";
 
 export function CadastroFaceStep({
     code,
@@ -218,11 +220,6 @@ export function CadastroFaceStep({
 
     return (
         <div className="space-y-4">
-            <p className="text-center text-sm text-muted-foreground">
-                Centralize o rosto na moldura oval, com boa luz e sem óculos
-                escuros.
-            </p>
-
             <input
                 ref={captureInputRef}
                 type="file"
@@ -233,104 +230,80 @@ export function CadastroFaceStep({
             />
 
             {status === "live" ? (
-                <div className="space-y-3">
-                    <div className="relative z-0 mx-auto max-w-[min(100%,320px)] overflow-hidden rounded-2xl bg-black">
-                        <video
-                            ref={videoRef}
-                            className="relative z-0 aspect-[3/4] w-full object-cover [transform:scaleX(-1)]"
-                            autoPlay
-                            playsInline
-                            muted
-                        />
-                        <div
-                            className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
-                            aria-hidden
-                        >
-                            <div
-                                className="aspect-[3/4] w-[72%] max-w-[240px] rounded-[100%] border-[3px] border-white/90 shadow-[0_0_0_200vmax_rgba(0,0,0,0.5)]"
-                            />
-                        </div>
-                    </div>
-                    <div className="flex flex-col gap-2 sm:flex-row">
-                        <Button
-                            type="button"
-                            size="lg"
-                            className="h-11 flex-1"
-                            onClick={captureFromVideo}
-                        >
-                            <Camera className="mr-2 size-4" />
-                            Capturar
-                        </Button>
-                        <Button
-                            type="button"
-                            size="lg"
-                            variant="outline"
-                            className="h-11 flex-1"
-                            onClick={() => {
-                                stopCamera();
-                                setStatus("idle");
-                            }}
-                        >
-                            Cancelar
-                        </Button>
-                    </div>
-                </div>
+                <FaceCameraStage
+                    showOval
+                    message={message}
+                    actions={
+                        <>
+                            <Button
+                                type="button"
+                                size="lg"
+                                variant="outline"
+                                className={STAGE_BUTTON_CLASS}
+                                onClick={() => {
+                                    stopCamera();
+                                    setStatus("idle");
+                                }}
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                type="button"
+                                size="lg"
+                                className={STAGE_BUTTON_CLASS}
+                                onClick={() => void captureFromVideo()}
+                            >
+                                <Camera className="mr-2 size-5" />
+                                Capturar
+                            </Button>
+                        </>
+                    }
+                >
+                    <video
+                        ref={videoRef}
+                        className="relative z-0 aspect-[3/4] w-full object-cover [transform:scaleX(-1)]"
+                        autoPlay
+                        playsInline
+                        muted
+                    />
+                </FaceCameraStage>
             ) : null}
 
-            {previewDataUrl && status !== "live" ? (
-                <div className="space-y-3">
+            {previewDataUrl &&
+            (status === "preview_local" || status === "uploading") ? (
+                <FaceCameraStage
+                    message={message}
+                    actions={
+                        <>
+                            <Button
+                                type="button"
+                                size="lg"
+                                variant="outline"
+                                className={STAGE_BUTTON_CLASS}
+                                disabled={status === "uploading"}
+                                onClick={resetCapture}
+                            >
+                                Refazer
+                            </Button>
+                            <Button
+                                type="button"
+                                size="lg"
+                                className={STAGE_BUTTON_CLASS}
+                                disabled={status === "uploading"}
+                                onClick={() => void uploadPreview()}
+                            >
+                                {status === "uploading" ? "Enviando…" : "Enviar"}
+                            </Button>
+                        </>
+                    }
+                >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                         src={previewDataUrl}
                         alt="Prévia do rosto"
-                        className="mx-auto max-h-72 w-full max-w-sm rounded-2xl border object-contain bg-muted"
+                        className="aspect-[3/4] w-full object-cover"
                     />
-                    <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
-                        {status === "preview_local" ? (
-                            <>
-                                <Button
-                                    type="button"
-                                    size="lg"
-                                    className="h-11"
-                                    onClick={() => void uploadPreview()}
-                                >
-                                    Enviar esta foto
-                                </Button>
-                                <Button
-                                    type="button"
-                                    size="lg"
-                                    variant="outline"
-                                    className="h-11"
-                                    onClick={resetCapture}
-                                >
-                                    Tirar de novo
-                                </Button>
-                            </>
-                        ) : null}
-                        {status === "uploading" ? (
-                            <p className="py-2 text-center text-sm text-muted-foreground">
-                                Enviando a foto…
-                            </p>
-                        ) : null}
-                        {status === "uploaded" ? (
-                            <div className="space-y-2">
-                                <p className="text-center text-sm font-medium text-emerald-700 dark:text-emerald-500">
-                                    Foto recebida com sucesso. Toque em &quot;Enviar cadastro&quot;
-                                    para finalizar.
-                                </p>
-                                <Button
-                                    type="button"
-                                    size="lg"
-                                    variant="outline"
-                                    className="h-11 w-full"
-                                    onClick={resetCapture}
-                                >
-                                    Tirar outra foto
-                                </Button>
-                            </div>
-                        ) : null}
-                    </div>
-                </div>
+                </FaceCameraStage>
             ) : null}
 
             {status === "idle" ? (
@@ -350,11 +323,37 @@ export function CadastroFaceStep({
                 </div>
             ) : null}
 
-            {status !== "idle" &&
-            message &&
-            status !== "uploading" &&
-            status !== "uploaded" ? (
-                <p className={cn("text-center text-sm text-destructive")}>{message}</p>
+            {status === "uploaded" && previewDataUrl ? (
+                <div className="space-y-3">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                        src={previewDataUrl}
+                        alt="Prévia do rosto"
+                        className="mx-auto max-h-72 w-full max-w-sm rounded-2xl border object-contain bg-muted"
+                    />
+                    <div className="space-y-2">
+                        <p className="text-center text-sm font-medium text-emerald-700 dark:text-emerald-500">
+                            Foto recebida com sucesso. Toque em &quot;Enviar cadastro&quot;
+                            para finalizar.
+                        </p>
+                        <Button
+                            type="button"
+                            size="lg"
+                            variant="outline"
+                            className="h-11 w-full"
+                            onClick={resetCapture}
+                        >
+                            Tirar outra foto
+                        </Button>
+                    </div>
+                </div>
+            ) : null}
+
+            {status === "idle" || status === "uploaded" ? (
+                <p className="text-center text-sm text-muted-foreground">
+                    Centralize o rosto na moldura oval, com boa luz e sem óculos
+                    escuros.
+                </p>
             ) : null}
         </div>
     );
