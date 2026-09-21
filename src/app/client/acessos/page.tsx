@@ -46,10 +46,11 @@ export default async function ClientAccessesPage({
     const session = await auth();
     const user = session?.user;
     const role = user?.role;
+    const clientId = user?.clientId;
     const sp = await searchParams;
 
     if (
-        !user?.clientId ||
+        !clientId ||
         (role !== "client_admin" && role !== "client_operator")
     ) {
         redirect("/login?error=Sem permissão");
@@ -107,7 +108,7 @@ export default async function ClientAccessesPage({
         : (facialData.timezoneOffsetMinutes ?? 0);
 
     const filterDefaults = {
-        clientId: user.clientId,
+        clientId,
         startDate: sp.startDate?.trim() ?? "",
         endDate: sp.endDate?.trim() ?? "",
         name: sp.name?.trim() ?? "",
@@ -139,7 +140,7 @@ export default async function ClientAccessesPage({
                     readers={readers.map((reader) => ({
                         id: reader.id,
                         name: reader.name,
-                        clientId: user.clientId,
+                        clientId,
                     }))}
                     clientTimezoneOffsetMinutes={clientTimezoneOffsetMinutes}
                     filters={filterDefaults}
