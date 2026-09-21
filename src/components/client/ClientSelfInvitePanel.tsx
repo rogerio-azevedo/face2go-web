@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
     generateClientSelfInviteAction,
     listClientSelfInviteLinksAction,
-} from "@/app/client/usuarios/client-system-actions";
+} from "@/app/client/equipe/actions";
 import { InviteLinkGenerator } from "@/components/shared/InviteLinkGenerator";
 
 type InvitesByRole = {

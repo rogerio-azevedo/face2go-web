@@ -28,6 +28,7 @@ import {
 } from "@/lib/api-fetch";
 
 import { LprPhotoSheet } from "./LprPhotoSheet";
+import { toDatetimeLocalInputValue } from "./datetime-filter";
 
 function confidenceBadge(confidence: number | null) {
     if (confidence == null || Number.isNaN(confidence)) {
@@ -265,22 +266,30 @@ export function LprAccessesTable({
                         </select>
                     </div>
                 )}
-                <div className="grid gap-2 min-w-[160px]">
+                <div className="grid gap-2 min-w-[220px]">
                     <Label htmlFor="lpr-filter-start">De</Label>
                     <Input
                         id="lpr-filter-start"
                         name="startDate"
-                        type="date"
-                        defaultValue={filters.startDate}
+                        type="datetime-local"
+                        step={60}
+                        defaultValue={toDatetimeLocalInputValue(
+                            filters.startDate,
+                            "start",
+                        )}
                     />
                 </div>
-                <div className="grid gap-2 min-w-[160px]">
+                <div className="grid gap-2 min-w-[220px]">
                     <Label htmlFor="lpr-filter-end">Até</Label>
                     <Input
                         id="lpr-filter-end"
                         name="endDate"
-                        type="date"
-                        defaultValue={filters.endDate}
+                        type="datetime-local"
+                        step={60}
+                        defaultValue={toDatetimeLocalInputValue(
+                            filters.endDate,
+                            "end",
+                        )}
                     />
                 </div>
                 <Button type="submit" disabled={pending}>

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import { enqueueClientFaceSyncAllAction } from "@/app/client/usuarios/actions";
+import { enqueueClientFaceSyncAllAction } from "@/app/client/cadastros/actions";
 import { enqueueCompanyFaceSyncAllAction } from "@/app/company/clientes/[clientId]/usuarios/actions";
 import {
     AlertDialog,

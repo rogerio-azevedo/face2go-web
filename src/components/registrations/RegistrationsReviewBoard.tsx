@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowDown, ArrowUp, ArrowUpDown, Loader2, RotateCcw } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import {
@@ -12,7 +12,7 @@ import {
     rejectClientRegistrationAction,
     restoreClientRegistrationAction,
     unblockClientRegistrationAction,
-} from "@/app/client/usuarios/actions";
+} from "@/app/client/cadastros/actions";
 import {
     approveCompanyRegistrationAction,
     blockCompanyRegistrationAction,
@@ -94,6 +94,14 @@ function formatWhen(iso: string | null) {
     }
 }
 
+/** YYYY-MM-DD → DD/MM/AAAA, sem Date() para evitar deslocamento de fuso. */
+function formatBirthDate(iso: string | null) {
+    if (!iso) return "—";
+    const [year, month, day] = iso.slice(0, 10).split("-");
+    if (!year || !month || !day) return iso;
+    return `${day}/${month}/${year}`;
+}
+
 function extraSummary(row: ClientRegistrationListRow): string {
     const d = row.additionalData;
     if (!d || typeof d !== "object") return "—";
@@ -167,11 +175,15 @@ export function RegistrationsReviewBoard({
     companyClientId,
     isAdmin = false,
     clientType: clientTypeProp,
+    linksPanel,
+    linksCount,
 }: {
     variant: "client" | "company";
     companyClientId?: string;
     isAdmin?: boolean;
     clientType?: string | null;
+    linksPanel?: ReactNode;
+    linksCount?: number;
 }) {
     const [page, setPage] = useState<PaginatedRegistrationsResponse>(
         emptyRegistrationsPage(),
@@ -199,6 +211,7 @@ export function RegistrationsReviewBoard({
     );
     const [loading, setLoading] = useState(true);
     const [pending, startTransition] = useTransition();
+    const [showLinks, setShowLinks] = useState(false);
 
     const fetchList = useCallback(
         async (
@@ -274,16 +287,14 @@ export function RegistrationsReviewBoard({
         );
     }, [page.data, sortField, sortDir]);
 
-    const toggleSort = useCallback((field: "name" | "local") => {
-        setSortField((current) => {
-            if (current === field) {
-                setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-                return field;
-            }
-            setSortDir("asc");
-            return field;
-        });
-    }, []);
+    const toggleSort = useCallback((field: SortField) => {
+        if (sortField === field) {
+            setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+            return;
+        }
+        setSortField(field);
+        setSortDir(field === "submittedAt" ? "desc" : "asc");
+    }, [sortField]);
 
     const resetToFirstPage = useCallback(() => {
         setPage((prev) => (prev.page === 1 ? prev : { ...prev, page: 1 }));
@@ -327,6 +338,7 @@ export function RegistrationsReviewBoard({
         locationType === "office" || locationType === "clinic";
 
     function handleTabChange(next: Tab) {
+        setShowLinks(false);
         setTab(next);
         setPage((prev) => (prev.page === 1 ? prev : { ...prev, page: 1 }));
     }
@@ -521,7 +533,7 @@ export function RegistrationsReviewBoard({
                         key={k}
                         type="button"
                         size="sm"
-                        variant={tab === k ? "default" : "outline"}
+                        variant={!showLinks && tab === k ? "default" : "outline"}
                         onClick={() => handleTabChange(k)}
                     >
                         {TAB_LABELS[k]}
@@ -530,8 +542,27 @@ export function RegistrationsReviewBoard({
                         </span>
                     </Button>
                 ))}
+                {linksPanel ? (
+                    <Button
+                        type="button"
+                        size="sm"
+                        variant={showLinks ? "default" : "outline"}
+                        onClick={() => setShowLinks(true)}
+                    >
+                        Links de cadastro
+                        {linksCount != null ? (
+                            <span className="ml-1.5 rounded-md bg-background/20 px-1.5 text-xs">
+                                {linksCount}
+                            </span>
+                        ) : null}
+                    </Button>
+                ) : null}
             </div>
 
+            {showLinks && linksPanel ? (
+                linksPanel
+            ) : (
+            <>
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                 <SearchInput
                     id="search-registrations"
@@ -592,7 +623,7 @@ export function RegistrationsReviewBoard({
                                 onClick={() => toggleSort("name")}
                             />
                             <TableHead className="hidden sm:table-cell">
-                                E-mail
+                                Nascimento
                             </TableHead>
                             <SortableHead
                                 label="Local"
@@ -601,7 +632,15 @@ export function RegistrationsReviewBoard({
                                 onClick={() => toggleSort("local")}
                                 className="hidden md:table-cell"
                             />
-                            <TableHead>Enviado</TableHead>
+                            <TableHead className="hidden md:table-cell">
+                                Link
+                            </TableHead>
+                            <SortableHead
+                                label="Enviado"
+                                active={sortField === "submittedAt"}
+                                dir={sortDir}
+                                onClick={() => toggleSort("submittedAt")}
+                            />
                             <TableHead className="w-[100px] text-right">
                                 Ações
                             </TableHead>
@@ -611,7 +650,7 @@ export function RegistrationsReviewBoard({
                         {filtered.length === 0 ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={6}
+                                    colSpan={7}
                                     className="py-10 text-center text-muted-foreground"
                                 >
                                     Nenhum registro nesta lista.
@@ -699,11 +738,14 @@ export function RegistrationsReviewBoard({
                                             ) : null}
                                         </div>
                                     </TableCell>
-                                    <TableCell className="hidden max-w-[200px] truncate text-xs sm:table-cell">
-                                        {row.email ?? "—"}
+                                    <TableCell className="hidden text-xs sm:table-cell">
+                                        {formatBirthDate(row.birthDate)}
                                     </TableCell>
                                     <TableCell className="hidden text-xs md:table-cell">
                                         {extraSummary(row)}
+                                    </TableCell>
+                                    <TableCell className="hidden font-mono text-xs md:table-cell">
+                                        {row.registrationLinkCode ?? "—"}
                                     </TableCell>
                                     <TableCell className="text-xs text-muted-foreground">
                                         {formatWhen(row.submittedAt)}
@@ -740,9 +782,14 @@ export function RegistrationsReviewBoard({
                 }
                 disabled={loading || pending}
             />
+            </>
+            )}
 
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-                <SheetContent side="right" className="w-full sm:max-w-lg">
+                <SheetContent
+                    side="right"
+                    className="w-full data-[side=right]:sm:max-w-xl"
+                >
                     <SheetHeader>
                         <SheetTitle>
                             {activeRow?.name ?? "Cadastro"}
@@ -759,6 +806,10 @@ export function RegistrationsReviewBoard({
                     <div className="flex flex-col gap-3 px-4">
                         {activeRow ? (
                             <>
+                                <p className="text-xs text-muted-foreground">
+                                    Nascimento:{" "}
+                                    {formatBirthDate(activeRow.birthDate)}
+                                </p>
                                 <p className="text-xs text-muted-foreground">
                                     E-mail: {activeRow.email ?? "—"}
                                 </p>
@@ -786,12 +837,12 @@ export function RegistrationsReviewBoard({
                                     </Badge>
                                 </div>
                                 {activeRow.status === "blocked" ? (
-                                    <div className="space-y-1 text-xs">
-                                        <p>
+                                    <div className="space-y-1">
+                                        <p className="text-sm font-medium text-destructive">
                                             Motivo:{" "}
                                             {activeRow.blockReason ?? "—"}
                                         </p>
-                                        <p className="text-muted-foreground">
+                                        <p className="text-xs text-muted-foreground">
                                             Bloqueado em{" "}
                                             {formatWhen(activeRow.blockedAt)}
                                         </p>

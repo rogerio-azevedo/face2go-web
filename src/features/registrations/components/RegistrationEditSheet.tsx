@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import { updateClientRegistrationAction } from "@/app/client/usuarios/actions";
+import { updateClientRegistrationAction } from "@/app/client/cadastros/actions";
 import { updateCompanyRegistrationAction } from "@/app/company/clientes/[clientId]/usuarios/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

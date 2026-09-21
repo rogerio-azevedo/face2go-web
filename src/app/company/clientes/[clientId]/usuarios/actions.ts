@@ -209,6 +209,27 @@ export async function deactivateCompanyRegistrationLinkAction(
     }
 }
 
+export async function deleteCompanyRegistrationLinkAction(
+    clientId: string,
+    linkId: string,
+): Promise<{ success: true } | { error: string }> {
+    const cid = z.string().uuid().safeParse(clientId);
+    const lid = z.string().uuid().safeParse(linkId);
+    if (!cid.success || !lid.success) return { error: 'IDs inválidos.' };
+    try {
+        const res = await apiFetchAuthed(
+            `/api/clients/${cid.data}/registration-links/${lid.data}`,
+            { method: 'DELETE' },
+        );
+        const data = await parseResponseJson(res);
+        if (!res.ok) return { error: nestErrorMessage(data) };
+        revalidatePath(`/company/clientes/${cid.data}/usuarios`);
+        return { success: true };
+    } catch {
+        return { error: 'Sem permissão.' };
+    }
+}
+
 export async function syncCompanyRegistrationFaceAction(
     clientId: string,
     registrationId: string,

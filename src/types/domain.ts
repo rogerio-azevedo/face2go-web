@@ -239,6 +239,7 @@ export type ClientRegistrationListRow = {
     id: string;
     clientId: string;
     registrationLinkId: string;
+    registrationLinkCode: string | null;
     name: string | null;
     document: string | null;
     phone: string | null;

@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 
-import { getClientFaceSyncStatusAction } from "@/app/client/usuarios/actions";
+import { getClientFaceSyncStatusAction } from "@/app/client/cadastros/actions";
 import { getCompanyFaceSyncStatusAction } from "@/app/company/clientes/[clientId]/usuarios/actions";
 
 export type RegistrationBatchSyncStatus = {

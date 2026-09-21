@@ -11,6 +11,7 @@ import type {
     AccessesListResponse,
     ClientListRow,
     LprAccessesListResponse,
+    ReaderListRow,
 } from "@/types/domain";
 
 type SearchParams = {
@@ -19,6 +20,10 @@ type SearchParams = {
     endDate?: string;
     page?: string;
     type?: string;
+    name?: string;
+    block?: string;
+    unit?: string;
+    readerId?: string;
 };
 
 export default async function CompanyAccessesPage({
@@ -53,6 +58,12 @@ export default async function CompanyAccessesPage({
     if (sp.startDate?.trim()) qs.set("startDate", sp.startDate.trim());
     if (sp.endDate?.trim()) qs.set("endDate", sp.endDate.trim());
     if (sp.page?.trim()) qs.set("page", sp.page.trim());
+    if (!isLprTab) {
+        if (sp.name?.trim()) qs.set("name", sp.name.trim());
+        if (sp.block?.trim()) qs.set("block", sp.block.trim());
+        if (sp.unit?.trim()) qs.set("unit", sp.unit.trim());
+        if (sp.readerId?.trim()) qs.set("readerId", sp.readerId.trim());
+    }
 
     const query = qs.toString();
     const apiBase = isLprTab ? "/api/lpr-accesses" : "/api/accesses";
@@ -71,11 +82,15 @@ export default async function CompanyAccessesPage({
         total: 0,
     };
     let clients: ClientListRow[] = [];
+    let readers: ReaderListRow[] = [];
 
     try {
-        const [accessRes, clientsRes] = await Promise.all([
+        const [accessRes, clientsRes, readersRes] = await Promise.all([
             apiFetchAuthed(apiPath),
             apiFetchAuthed("/api/clients"),
+            isLprTab
+                ? Promise.resolve(null)
+                : apiFetchAuthed("/api/readers"),
         ]);
 
         if (accessRes.ok) {
@@ -94,6 +109,9 @@ export default async function CompanyAccessesPage({
                 clientTimezoneOffsetMinutes = match?.timezoneOffsetMinutes ?? 0;
             }
         }
+        if (readersRes?.ok) {
+            readers = (await readersRes.json()) as ReaderListRow[];
+        }
     } catch {
         if (isLprTab) {
             lprData = { items: [], page: 1, pageSize: 20, total: 0 };
@@ -101,12 +119,17 @@ export default async function CompanyAccessesPage({
             facialData = { items: [], page: 1, pageSize: 20, total: 0 };
         }
         clients = [];
+        readers = [];
     }
 
     const filterDefaults = {
         clientId: sp.clientId?.trim() ?? "",
         startDate: sp.startDate?.trim() ?? "",
         endDate: sp.endDate?.trim() ?? "",
+        name: sp.name?.trim() ?? "",
+        block: sp.block?.trim() ?? "",
+        unit: sp.unit?.trim() ?? "",
+        readerId: sp.readerId?.trim() ?? "",
     };
 
     return (
@@ -130,6 +153,12 @@ export default async function CompanyAccessesPage({
                 <AccessesTable
                     data={facialData}
                     clients={clients}
+                    readers={readers.map((reader) => ({
+                        id: reader.id,
+                        name: reader.name,
+                        clientId: reader.clientId,
+                        clientName: reader.clientName,
+                    }))}
                     clientTimezoneOffsetMinutes={
                         clientTimezoneOffsetMinutes
                     }

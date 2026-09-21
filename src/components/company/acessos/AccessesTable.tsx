@@ -29,6 +29,7 @@ import {
 import { READER_DIRECTION_LABELS } from "@/lib/validations/readers";
 
 import { FacePhotoSheet } from "./FacePhotoSheet";
+import { toDatetimeLocalInputValue } from "./datetime-filter";
 
 /** Exibe instante UTC no relógio civil com offset fixo (minutos desde UTC). */
 function formatDateTime(iso: string | null, offsetMinutes: number): string {
@@ -54,15 +55,27 @@ function directionLabel(direction: "in" | "out" | null): string {
     return "—";
 }
 
+type AccessReaderOption = {
+    id: string;
+    name: string;
+    clientId: string;
+    clientName?: string;
+};
+
 type Props = {
     data: AccessesListResponse;
     clients?: ClientListRow[];
+    readers?: AccessReaderOption[];
     /** Offset quando há filtro por cliente; listagem mista usa o offset de cada cliente. */
     clientTimezoneOffsetMinutes: number;
     filters: {
         clientId: string;
         startDate: string;
         endDate: string;
+        name: string;
+        block: string;
+        unit: string;
+        readerId: string;
     };
     /** Bearer JWT para `GET /api/accesses/:id/photo` no navegador. */
     accessToken: string;
@@ -74,6 +87,7 @@ type Props = {
 export function AccessesTable({
     data,
     clients = [],
+    readers = [],
     clientTimezoneOffsetMinutes,
     filters,
     accessToken,
@@ -84,6 +98,7 @@ export function AccessesTable({
     const router = useRouter();
     const params = useSearchParams();
     const [pending, startTransition] = useTransition();
+    const [selectedClientId, setSelectedClientId] = useState(filters.clientId);
 
     const [photoOpen, setPhotoOpen] = useState(false);
     const [photoLoading, setPhotoLoading] = useState(false);
@@ -137,6 +152,11 @@ export function AccessesTable({
         [accessToken, photoApiPath],
     );
 
+    const visibleReaders = useMemo(() => {
+        if (hideClientFilter || !selectedClientId) return readers;
+        return readers.filter((reader) => reader.clientId === selectedClientId);
+    }, [hideClientFilter, readers, selectedClientId]);
+
     const totalPages = useMemo(
         () =>
             Math.max(1, Math.ceil(data.total / Math.max(1, data.pageSize))),
@@ -165,12 +185,20 @@ export function AccessesTable({
             : String(fd.get("clientId") ?? "").trim();
         const startDate = String(fd.get("startDate") ?? "").trim();
         const endDate = String(fd.get("endDate") ?? "").trim();
+        const name = String(fd.get("name") ?? "").trim();
+        const block = String(fd.get("block") ?? "").trim();
+        const unit = String(fd.get("unit") ?? "").trim();
+        const readerId = String(fd.get("readerId") ?? "").trim();
         startTransition(() => {
             router.push(
                 buildHref({
                     clientId: clientId || undefined,
                     startDate: startDate || undefined,
                     endDate: endDate || undefined,
+                    name: name || undefined,
+                    block: block || undefined,
+                    unit: unit || undefined,
+                    readerId: readerId || undefined,
                     page: undefined,
                     type: undefined,
                 }),
@@ -219,6 +247,9 @@ export function AccessesTable({
                             id="filter-client"
                             name="clientId"
                             defaultValue={filters.clientId}
+                            onChange={(e) =>
+                                setSelectedClientId(e.currentTarget.value)
+                            }
                             className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         >
                             <option value="">Todos os clientes</option>
@@ -230,22 +261,83 @@ export function AccessesTable({
                         </select>
                     </div>
                 )}
-                <div className="grid gap-2 min-w-[160px]">
+                <div className="grid gap-2 min-w-[220px]">
                     <Label htmlFor="filter-start">De</Label>
                     <Input
                         id="filter-start"
                         name="startDate"
-                        type="date"
-                        defaultValue={filters.startDate}
+                        type="datetime-local"
+                        step={60}
+                        defaultValue={toDatetimeLocalInputValue(
+                            filters.startDate,
+                            "start",
+                        )}
                     />
                 </div>
-                <div className="grid gap-2 min-w-[160px]">
+                <div className="grid gap-2 min-w-[220px]">
                     <Label htmlFor="filter-end">Até</Label>
                     <Input
                         id="filter-end"
                         name="endDate"
-                        type="date"
-                        defaultValue={filters.endDate}
+                        type="datetime-local"
+                        step={60}
+                        defaultValue={toDatetimeLocalInputValue(
+                            filters.endDate,
+                            "end",
+                        )}
+                    />
+                </div>
+                <div className="grid gap-2 min-w-[180px] flex-1">
+                    <Label htmlFor="filter-reader">Leitor</Label>
+                    <select
+                        id="filter-reader"
+                        name="readerId"
+                        key={selectedClientId || "all"}
+                        defaultValue={
+                            visibleReaders.some(
+                                (reader) => reader.id === filters.readerId,
+                            )
+                                ? filters.readerId
+                                : ""
+                        }
+                        className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    >
+                        <option value="">Todos os leitores</option>
+                        {visibleReaders.map((reader) => (
+                            <option key={reader.id} value={reader.id}>
+                                {hideClientFilter || selectedClientId
+                                    ? reader.name
+                                    : `${reader.name} · ${reader.clientName ?? ""}`}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div className="grid gap-2 min-w-[180px] flex-1">
+                    <Label htmlFor="filter-name">Nome</Label>
+                    <Input
+                        id="filter-name"
+                        name="name"
+                        type="search"
+                        placeholder="Nome"
+                        defaultValue={filters.name}
+                    />
+                </div>
+                <div className="grid gap-2 min-w-[120px]">
+                    <Label htmlFor="filter-block">Bloco</Label>
+                    <Input
+                        id="filter-block"
+                        name="block"
+                        placeholder="Bloco"
+                        defaultValue={filters.block}
+                    />
+                </div>
+                <div className="grid gap-2 min-w-[120px]">
+                    <Label htmlFor="filter-unit">Unidade</Label>
+                    <Input
+                        id="filter-unit"
+                        name="unit"
+                        placeholder="Unidade"
+                        defaultValue={filters.unit}
                     />
                 </div>
                 <Button type="submit" disabled={pending}>

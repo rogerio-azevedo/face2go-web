@@ -16,7 +16,7 @@ import {
     toggleClientSelfSystemUserActiveAction,
     updateClientSelfSystemUserProfileAction,
     updateClientSelfSystemUserRoleAction,
-} from "@/app/client/usuarios/client-system-actions";
+} from "@/app/client/equipe/actions";
 import { ClientSystemUserEditSheet } from "@/components/shared/ClientSystemUserEditSheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

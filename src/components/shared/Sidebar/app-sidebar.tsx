@@ -15,6 +15,8 @@ import {
     RefreshCcw,
     ScanLine,
     ShieldAlert,
+    UserCheck,
+    UserCog,
     Users,
 } from "lucide-react";
 import Image from "next/image";
@@ -220,6 +222,33 @@ function navItemsForRole(
             return items;
         }
         case "client_admin":
+            return [
+                {
+                    title: "Painel",
+                    url: "/client/dashboard",
+                    icon: LayoutDashboard,
+                },
+                {
+                    title: "Cadastros",
+                    url: "/client/cadastros",
+                    icon: UserCheck,
+                },
+                {
+                    title: "Acessos",
+                    url: "/client/acessos",
+                    icon: History,
+                },
+                {
+                    title: "Relatórios",
+                    url: "/client/relatorios",
+                    icon: FileBarChart,
+                },
+                {
+                    title: "Equipe",
+                    url: "/client/equipe",
+                    icon: UserCog,
+                },
+            ];
         case "client_operator":
             return [
                 {
@@ -228,9 +257,9 @@ function navItemsForRole(
                     icon: LayoutDashboard,
                 },
                 {
-                    title: "Usuários",
-                    url: "/client/usuarios",
-                    icon: Users,
+                    title: "Cadastros",
+                    url: "/client/cadastros",
+                    icon: UserCheck,
                 },
                 {
                     title: "Acessos",

@@ -71,7 +71,7 @@ export async function generateClientSelfInviteAction(input: {
             return { success: false, error: nestErrorMessage(data) };
         }
 
-        revalidatePath('/client/usuarios');
+        revalidatePath('/client/equipe');
         return { success: true, code: (data as { code: string }).code };
     } catch {
         return { success: false, error: 'Sem permissão.' };
@@ -110,7 +110,7 @@ async function patchSelfClientUser(
             const data = await parseResponseJson(res);
             return { error: nestErrorMessage(data) };
         }
-        revalidatePath('/client/usuarios');
+        revalidatePath('/client/equipe');
         return { success: true };
     } catch {
         return { error: 'Sem permissão.' };

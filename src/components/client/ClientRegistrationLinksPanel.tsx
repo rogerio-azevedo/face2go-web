@@ -2,13 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Copy, Link2, MessageCircle, QrCode } from "lucide-react";
+import { Copy, Link2, MessageCircle, QrCode, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
     createClientRegistrationLinkAction,
     deactivateClientRegistrationLinkAction,
-} from "@/app/client/usuarios/actions";
+    deleteClientRegistrationLinkAction,
+} from "@/app/client/cadastros/actions";
 import { CreateRegistrationLinkSheet } from "@/components/registrations/CreateRegistrationLinkSheet";
 import {
     RegistrationLinkQrDialog,
@@ -16,6 +17,16 @@ import {
 } from "@/features/registrations/components/RegistrationLinkQrDialog";
 import type { RegistrationLinkListRow } from "@/types/domain";
 import { registrationLinkVigenciaLabel } from "@/lib/registration-link-schedule";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +65,8 @@ export function ClientRegistrationLinksPanel({
         useState<RegistrationLinkQrTarget | null>(null);
     const [qrTarget, setQrTarget] =
         useState<RegistrationLinkQrTarget | null>(null);
+    const [linkToDelete, setLinkToDelete] =
+        useState<RegistrationLinkListRow | null>(null);
 
     function copyText(text: string, message: string) {
         void navigator.clipboard.writeText(text).then(
@@ -81,105 +94,104 @@ export function ClientRegistrationLinksPanel({
         });
     }
 
+    function confirmDelete() {
+        if (!linkToDelete) return;
+        const target = linkToDelete;
+        startTransition(async () => {
+            const result = await deleteClientRegistrationLinkAction(target.id);
+            if ("error" in result) {
+                toast.error(result.error);
+                return;
+            }
+            toast.success("Link excluído.");
+            setLinkToDelete(null);
+            setLastCreated((prev) =>
+                prev?.code === target.code ? null : prev,
+            );
+            router.refresh();
+        });
+    }
+
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col gap-3 rounded-lg border bg-card p-4 shadow-sm">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <h2 className="text-sm font-medium">
-                            Novo link de cadastro
-                        </h2>
-                        <p className="text-xs text-muted-foreground">
-                            Gere um link para enviar a moradores, colaboradores ou
-                            visitantes. O formulário público será aberto ao clicar
-                            no link.
-                        </p>
-                    </div>
-                    <Button
-                        type="button"
-                        onClick={() => setSheetOpen(true)}
-                    >
-                        <Link2 className="mr-2 size-4" />
-                        Gerar link
-                    </Button>
-                </div>
-                <CreateRegistrationLinkSheet
-                    open={sheetOpen}
-                    onOpenChange={setSheetOpen}
-                    title="Novo link de cadastro"
-                    onSubmit={async (body) => {
-                        const result =
-                            await createClientRegistrationLinkAction(body);
-                        if ("error" in result) {
-                            return { ok: false as const, error: result.error };
-                        }
-                        setLastCreated({
-                            url: result.registrationUrl,
-                            code: result.code,
-                        });
-                        router.refresh();
-                        return {
-                            ok: true as const,
-                            registrationUrl: result.registrationUrl,
-                        };
-                    }}
-                />
-                {lastCreated ? (
-                    <div className="space-y-2 rounded-md bg-muted/50 p-3">
-                        <p className="text-xs font-medium text-muted-foreground">
-                            Último link gerado
-                        </p>
-                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                            <Input
-                                readOnly
-                                value={lastCreated.url}
-                                className="font-mono text-xs"
-                            />
-                            <div className="flex shrink-0 gap-2">
-                                <Button
-                                    type="button"
-                                    variant="secondary"
-                                    size="sm"
-                                    onClick={() =>
-                                        copyText(lastCreated.url, "Link copiado.")
-                                    }
-                                >
-                                    <Copy className="mr-1 size-3.5" />
-                                    Copiar
-                                </Button>
-                                <Button
-                                    type="button"
-                                    variant="secondary"
-                                    size="sm"
-                                    onClick={() => shareWhatsApp(lastCreated.url)}
-                                >
-                                    <MessageCircle className="mr-1 size-3.5" />
-                                    WhatsApp
-                                </Button>
-                                <Button
-                                    type="button"
-                                    variant="secondary"
-                                    size="sm"
-                                    aria-label="Cartaz QR"
-                                    onClick={() => setQrTarget(lastCreated)}
-                                >
-                                    <QrCode className="mr-1 size-3.5" />
-                                    QR
-                                </Button>
-                            </div>
+        <div className="space-y-3">
+            <div className="flex justify-end">
+                <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => setSheetOpen(true)}
+                >
+                    <Link2 className="mr-2 size-4" />
+                    Gerar link
+                </Button>
+            </div>
+            <CreateRegistrationLinkSheet
+                open={sheetOpen}
+                onOpenChange={setSheetOpen}
+                title="Novo link de cadastro"
+                onSubmit={async (body) => {
+                    const result =
+                        await createClientRegistrationLinkAction(body);
+                    if ("error" in result) {
+                        return { ok: false as const, error: result.error };
+                    }
+                    setLastCreated({
+                        url: result.registrationUrl,
+                        code: result.code,
+                    });
+                    router.refresh();
+                    return {
+                        ok: true as const,
+                        registrationUrl: result.registrationUrl,
+                    };
+                }}
+            />
+            {lastCreated ? (
+                <div className="space-y-2 rounded-md border bg-muted/50 p-3">
+                    <p className="text-xs font-medium text-muted-foreground">
+                        Último link gerado
+                    </p>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <Input
+                            readOnly
+                            value={lastCreated.url}
+                            className="font-mono text-xs"
+                        />
+                        <div className="flex shrink-0 gap-2">
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                onClick={() =>
+                                    copyText(lastCreated.url, "Link copiado.")
+                                }
+                            >
+                                <Copy className="mr-1 size-3.5" />
+                                Copiar
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => shareWhatsApp(lastCreated.url)}
+                            >
+                                <MessageCircle className="mr-1 size-3.5" />
+                                WhatsApp
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                aria-label="Cartaz QR"
+                                onClick={() => setQrTarget(lastCreated)}
+                            >
+                                <QrCode className="mr-1 size-3.5" />
+                                QR
+                            </Button>
                         </div>
                     </div>
-                ) : null}
-            </div>
-
-            <div className="rounded-lg border bg-card shadow-sm">
-                <div className="border-b px-4 py-3">
-                    <h2 className="text-sm font-medium">Links gerados</h2>
-                    <p className="text-xs text-muted-foreground">
-                        Desative links antigos para impedir novos cadastros por
-                        aquele endereço.
-                    </p>
                 </div>
+            ) : null}
+            <div className="rounded-md border">
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -283,13 +295,26 @@ export function ClientRegistrationLinksPanel({
                                                     Desativar
                                                 </Button>
                                             ) : null}
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                aria-label="Excluir link"
+                                                title="Excluir"
+                                                disabled={pending}
+                                                onClick={() =>
+                                                    setLinkToDelete(row)
+                                                }
+                                            >
+                                                <Trash2 className="size-4" />
+                                            </Button>
                                         </div>
                                     </TableCell>
                                 </TableRow>
                             ))
                         )}
                     </TableBody>
-                </Table>
+                    </Table>
             </div>
             <RegistrationLinkQrDialog
                 open={qrTarget !== null}
@@ -299,6 +324,38 @@ export function ClientRegistrationLinksPanel({
                 clientName={clientName}
                 target={qrTarget}
             />
+            <AlertDialog
+                open={linkToDelete != null}
+                onOpenChange={(open) => {
+                    if (!open && !pending) setLinkToDelete(null);
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Excluir link?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            O link some da lista e o endereço deixa de
+                            funcionar. Solicitações já recebidas continuam em
+                            &quot;Solicitações recebidas&quot;.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={pending}>
+                            Cancelar
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            disabled={pending}
+                            variant="destructive"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                confirmDelete();
+                            }}
+                        >
+                            {pending ? "Excluindo…" : "Excluir"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

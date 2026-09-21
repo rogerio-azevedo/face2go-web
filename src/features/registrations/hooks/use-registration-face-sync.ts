@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { toast } from "sonner";
 
-import { syncClientRegistrationFaceAction } from "@/app/client/usuarios/actions";
+import { syncClientRegistrationFaceAction } from "@/app/client/cadastros/actions";
 import { syncCompanyRegistrationFaceAction } from "@/app/company/clientes/[clientId]/usuarios/actions";
 import { isFaceSyncPending } from "@/lib/face-sync-result";
 

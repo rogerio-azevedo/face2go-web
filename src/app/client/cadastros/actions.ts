@@ -36,7 +36,7 @@ export async function createClientRegistrationLinkAction(
             code: string;
             registrationUrl: string;
         };
-        revalidatePath('/client/usuarios');
+        revalidatePath('/client/cadastros');
         return {
             success: true,
             id: row.id,
@@ -67,7 +67,30 @@ export async function deactivateClientRegistrationLinkAction(
         if (!res.ok) {
             return { error: nestErrorMessage(data) };
         }
-        revalidatePath('/client/usuarios');
+        revalidatePath('/client/cadastros');
+        return { success: true };
+    } catch {
+        return { error: 'Sem permissão.' };
+    }
+}
+
+export async function deleteClientRegistrationLinkAction(
+    linkId: string,
+): Promise<{ success: true } | { error: string }> {
+    const pid = z.string().uuid().safeParse(linkId);
+    if (!pid.success) {
+        return { error: 'Link inválido.' };
+    }
+    try {
+        const res = await apiFetchAuthed(
+            `/api/client/registration-links/${pid.data}`,
+            { method: 'DELETE' },
+        );
+        const data = await parseResponseJson(res);
+        if (!res.ok) {
+            return { error: nestErrorMessage(data) };
+        }
+        revalidatePath('/client/cadastros');
         return { success: true };
     } catch {
         return { error: 'Sem permissão.' };
@@ -86,7 +109,7 @@ export async function approveClientRegistrationAction(
         );
         const data = await parseResponseJson(res);
         if (!res.ok) return { error: nestErrorMessage(data) };
-        revalidatePath('/client/usuarios');
+        revalidatePath('/client/cadastros');
         return { success: true };
     } catch {
         return { error: 'Sem permissão.' };
@@ -130,7 +153,7 @@ export async function blockClientRegistrationAction(
         );
         const data = await parseResponseJson(res);
         if (!res.ok) return { error: nestErrorMessage(data) };
-        revalidatePath('/client/usuarios');
+        revalidatePath('/client/cadastros');
         return { success: true };
     } catch {
         return { error: 'Sem permissão.' };
@@ -149,7 +172,7 @@ export async function unblockClientRegistrationAction(
         );
         const data = await parseResponseJson(res);
         if (!res.ok) return { error: nestErrorMessage(data) };
-        revalidatePath('/client/usuarios');
+        revalidatePath('/client/cadastros');
         return { success: true };
     } catch {
         return { error: 'Sem permissão.' };
@@ -172,7 +195,7 @@ export async function rejectClientRegistrationAction(
         );
         const data = await parseResponseJson(res);
         if (!res.ok) return { error: nestErrorMessage(data) };
-        revalidatePath('/client/usuarios');
+        revalidatePath('/client/cadastros');
         return { success: true };
     } catch {
         return { error: 'Sem permissão.' };
@@ -204,7 +227,7 @@ export async function syncClientRegistrationFaceAction(
             status?: string;
         };
         if (!res.ok) return { error: nestErrorMessage(data) };
-        revalidatePath('/client/usuarios');
+        revalidatePath('/client/cadastros');
         const parsed = parseRegistrationFaceSyncEnqueue(data);
         return {
             success: true,
@@ -267,7 +290,7 @@ export async function updateClientRegistrationAction(
         );
         const data = await parseResponseJson(res);
         if (!res.ok) return { error: nestErrorMessage(data) };
-        revalidatePath('/client/usuarios');
+        revalidatePath('/client/cadastros');
         return { success: true };
     } catch {
         return { error: 'Sem permissão.' };
@@ -286,7 +309,7 @@ export async function deleteClientRegistrationAction(
         );
         const data = await parseResponseJson(res);
         if (!res.ok) return { error: nestErrorMessage(data) };
-        revalidatePath('/client/usuarios');
+        revalidatePath('/client/cadastros');
         return { success: true };
     } catch {
         return { error: 'Sem permissão.' };
@@ -305,7 +328,7 @@ export async function restoreClientRegistrationAction(
         );
         const data = await parseResponseJson(res);
         if (!res.ok) return { error: nestErrorMessage(data) };
-        revalidatePath('/client/usuarios');
+        revalidatePath('/client/cadastros');
         return { success: true };
     } catch {
         return { error: 'Sem permissão.' };

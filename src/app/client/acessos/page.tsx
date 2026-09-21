@@ -16,6 +16,10 @@ type SearchParams = {
     endDate?: string;
     page?: string;
     type?: string;
+    name?: string;
+    block?: string;
+    unit?: string;
+    readerId?: string;
 };
 
 const EMPTY_FACIAL: AccessesListResponse = {
@@ -57,6 +61,12 @@ export default async function ClientAccessesPage({
     if (sp.startDate?.trim()) qs.set("startDate", sp.startDate.trim());
     if (sp.endDate?.trim()) qs.set("endDate", sp.endDate.trim());
     if (sp.page?.trim()) qs.set("page", sp.page.trim());
+    if (!isLprTab) {
+        if (sp.name?.trim()) qs.set("name", sp.name.trim());
+        if (sp.block?.trim()) qs.set("block", sp.block.trim());
+        if (sp.unit?.trim()) qs.set("unit", sp.unit.trim());
+        if (sp.readerId?.trim()) qs.set("readerId", sp.readerId.trim());
+    }
 
     const query = qs.toString();
     const apiBase = isLprTab
@@ -66,9 +76,15 @@ export default async function ClientAccessesPage({
 
     let facialData: AccessesListResponse = EMPTY_FACIAL;
     let lprData: LprAccessesListResponse = EMPTY_LPR;
+    let readers: { id: string; name: string }[] = [];
 
     try {
-        const accessRes = await apiFetchAuthed(apiPath);
+        const [accessRes, readersRes] = await Promise.all([
+            apiFetchAuthed(apiPath),
+            isLprTab
+                ? Promise.resolve(null)
+                : apiFetchAuthed("/api/client/readers"),
+        ]);
         if (accessRes.ok) {
             const json = (await accessRes.json()) as unknown;
             if (isLprTab) {
@@ -77,9 +93,13 @@ export default async function ClientAccessesPage({
                 facialData = json as AccessesListResponse;
             }
         }
+        if (readersRes?.ok) {
+            readers = (await readersRes.json()) as { id: string; name: string }[];
+        }
     } catch {
         facialData = EMPTY_FACIAL;
         lprData = EMPTY_LPR;
+        readers = [];
     }
 
     const clientTimezoneOffsetMinutes = isLprTab
@@ -90,6 +110,10 @@ export default async function ClientAccessesPage({
         clientId: user.clientId,
         startDate: sp.startDate?.trim() ?? "",
         endDate: sp.endDate?.trim() ?? "",
+        name: sp.name?.trim() ?? "",
+        block: sp.block?.trim() ?? "",
+        unit: sp.unit?.trim() ?? "",
+        readerId: sp.readerId?.trim() ?? "",
     };
 
     return (
@@ -112,6 +136,11 @@ export default async function ClientAccessesPage({
             ) : (
                 <AccessesTable
                     data={facialData}
+                    readers={readers.map((reader) => ({
+                        id: reader.id,
+                        name: reader.name,
+                        clientId: user.clientId,
+                    }))}
                     clientTimezoneOffsetMinutes={clientTimezoneOffsetMinutes}
                     filters={filterDefaults}
                     accessToken={session?.accessToken ?? ""}

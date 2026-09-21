@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { Copy, Link2, Loader2, MessageCircle, QrCode } from "lucide-react";
+import { Copy, Link2, Loader2, MessageCircle, QrCode, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
     createCompanyRegistrationLinkAction,
     deactivateCompanyRegistrationLinkAction,
+    deleteCompanyRegistrationLinkAction,
     listCompanyRegistrationLinksAction,
 } from "@/app/company/clientes/[clientId]/usuarios/actions";
 import { deferInEffect } from "@/lib/defer-in-effect";
@@ -17,6 +18,16 @@ import {
 } from "@/features/registrations/components/RegistrationLinkQrDialog";
 import type { RegistrationLinkListRow } from "@/types/domain";
 import { registrationLinkVigenciaLabel } from "@/lib/registration-link-schedule";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,6 +67,8 @@ export function CompanyClientRegistrationLinksPanel({
         useState<RegistrationLinkQrTarget | null>(null);
     const [qrTarget, setQrTarget] =
         useState<RegistrationLinkQrTarget | null>(null);
+    const [linkToDelete, setLinkToDelete] =
+        useState<RegistrationLinkListRow | null>(null);
 
     function reloadLinks() {
         startTransition(async () => {
@@ -110,6 +123,27 @@ export function CompanyClientRegistrationLinksPanel({
                 return;
             }
             toast.success("Link desativado.");
+            reloadLinks();
+        });
+    }
+
+    function confirmDelete() {
+        if (!linkToDelete) return;
+        const target = linkToDelete;
+        startTransition(async () => {
+            const result = await deleteCompanyRegistrationLinkAction(
+                clientId,
+                target.id,
+            );
+            if ("error" in result) {
+                toast.error(result.error);
+                return;
+            }
+            toast.success("Link excluído.");
+            setLinkToDelete(null);
+            setLastCreated((prev) =>
+                prev?.code === target.code ? null : prev,
+            );
             reloadLinks();
         });
     }
@@ -211,8 +245,9 @@ export function CompanyClientRegistrationLinksPanel({
                 <div className="border-b px-4 py-3">
                     <h2 className="text-sm font-medium">Links gerados</h2>
                     <p className="text-xs text-muted-foreground">
-                        Desative links antigos para impedir novos cadastros por aquele
-                        endereço.
+                        Desative links antigos para impedir novos cadastros, ou
+                        exclua para tirá-los da lista. Solicitações já recebidas
+                        continuam na aba correspondente.
                     </p>
                 </div>
                 <Table>
@@ -327,6 +362,19 @@ export function CompanyClientRegistrationLinksPanel({
                                                     Desativar
                                                 </Button>
                                             ) : null}
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                aria-label="Excluir link"
+                                                title="Excluir"
+                                                disabled={pending}
+                                                onClick={() =>
+                                                    setLinkToDelete(row)
+                                                }
+                                            >
+                                                <Trash2 className="size-4" />
+                                            </Button>
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -343,6 +391,38 @@ export function CompanyClientRegistrationLinksPanel({
                 clientName={clientName}
                 target={qrTarget}
             />
+            <AlertDialog
+                open={linkToDelete != null}
+                onOpenChange={(open) => {
+                    if (!open && !pending) setLinkToDelete(null);
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Excluir link?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            O link some da lista e o endereço deixa de
+                            funcionar. Solicitações já recebidas continuam em
+                            &quot;Solicitações recebidas&quot;.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={pending}>
+                            Cancelar
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            disabled={pending}
+                            variant="destructive"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                confirmDelete();
+                            }}
+                        >
+                            {pending ? "Excluindo…" : "Excluir"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
