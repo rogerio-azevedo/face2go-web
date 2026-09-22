@@ -90,6 +90,15 @@ export type ReaderBrand = 'intelbras' | 'hikvision';
 
 export type ReaderDirection = 'in' | 'out';
 
+/** Resposta de `GET /api/client/readers` (unidade atual). */
+export type ClientReaderListRow = {
+    id: string;
+    name: string;
+    brand: ReaderBrand;
+    direction: ReaderDirection | null;
+    isActive: boolean;
+};
+
 export type ReaderListRow = {
     id: string;
     clientId: string;

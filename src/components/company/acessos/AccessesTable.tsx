@@ -450,7 +450,9 @@ export function AccessesTable({
                                         </TableCell>
                                         <TableCell>
                                             <span className="text-xs text-muted-foreground">
-                                                {row.eventCode}
+                                                {row.eventCode === "RemoteOpen"
+                                                    ? "Abertura remota"
+                                                    : row.eventCode}
                                             </span>
                                         </TableCell>
                                         <TableCell className="text-center">

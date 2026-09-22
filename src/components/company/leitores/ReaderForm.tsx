@@ -12,6 +12,7 @@ import {
     provisionIntelbrasPushAction,
     updateReaderAction,
 } from "@/app/company/leitores/actions";
+import { revealReaderPasswordAction } from "@/features/readers/actions/credentials";
 import { deferInEffect } from "@/lib/defer-in-effect";
 import type { ClientListRow, ReaderListRow } from "@/types/domain";
 import { Button } from "@/components/ui/button";
@@ -66,7 +67,10 @@ function toCreateApiBody(data: ReaderFormPayload) {
     return body;
 }
 
-function toUpdateApiBody(data: ReaderFormPayload) {
+function toUpdateApiBody(
+    data: ReaderFormPayload,
+    revealedPassword: string | null,
+) {
     const body: Record<string, unknown> = {
         clientId: data.clientId,
         brand: data.brand,
@@ -82,7 +86,9 @@ function toUpdateApiBody(data: ReaderFormPayload) {
         username: data.username.trim() ? data.username.trim() : null,
         restrictMinors: data.restrictMinors,
     };
-    if (data.password.length > 0) body.password = data.password;
+    if (data.password.length > 0 && data.password !== revealedPassword) {
+        body.password = data.password;
+    }
     return body;
 }
 
@@ -104,7 +110,11 @@ export function ReaderForm({
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isProvisioning, setIsProvisioning] = useState(false);
+    const [isRevealing, setIsRevealing] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [revealedPassword, setRevealedPassword] = useState<string | null>(
+        null,
+    );
 
     const defaultClientId = clients[0]?.id ?? "";
 
@@ -171,6 +181,7 @@ export function ReaderForm({
             if (open) {
                 reset(defaultValues);
                 setShowPassword(false);
+                setRevealedPassword(null);
             }
         });
     }, [open, defaultValues, reset]);
@@ -206,7 +217,7 @@ export function ReaderForm({
                 }
                 const result = await updateReaderAction(
                     reader.id,
-                    toUpdateApiBody(data),
+                    toUpdateApiBody(data, revealedPassword),
                 );
                 if ("error" in result) {
                     toast.error(result.error);
@@ -222,6 +233,31 @@ export function ReaderForm({
         }
     }
 
+    async function togglePasswordVisibility() {
+        const canRevealSaved =
+            mode === "edit" &&
+            reader?.hasCredentials === true &&
+            form.getValues("password").length === 0 &&
+            revealedPassword == null;
+        if (!canRevealSaved || !reader) {
+            setShowPassword((v) => !v);
+            return;
+        }
+        setIsRevealing(true);
+        try {
+            const result = await revealReaderPasswordAction(reader.id);
+            if (!result.ok) {
+                toast.error(result.error);
+                return;
+            }
+            setRevealedPassword(result.password);
+            form.setValue("password", result.password, { shouldDirty: false });
+            setShowPassword(true);
+        } finally {
+            setIsRevealing(false);
+        }
+    }
+
     async function sendConfigOnly() {
         if (!reader) {
             toast.error("Leitor não informado.");
@@ -233,7 +269,7 @@ export function ReaderForm({
                 const data = form.getValues();
                 const result = await updateReaderAction(
                     reader.id,
-                    toUpdateApiBody(data),
+                    toUpdateApiBody(data, revealedPassword),
                 );
                 if ("error" in result) {
                     toast.error(result.error);
@@ -516,6 +552,9 @@ export function ReaderForm({
                                         ? "Usuário e senha do painel HTTP (Digest). Em Intelbras, o Face2Go envia a config POST (1.0/2.0) para o aparelho; o leitor é que chama o servidor."
                                         : "Usuário e senha do painel HTTP (Digest). Em Hikvision, o Face2Go conecta no leitor (alertStream/poll) — não há POST de eventos."}
                                     A senha é armazenada criptografada.
+                                    {mode === "edit"
+                                        ? " O ícone de olho mostra a senha já salva."
+                                        : ""}
                                 </p>
                             </div>
                             <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
@@ -584,8 +623,9 @@ export function ReaderForm({
                                             variant="ghost"
                                             size="icon"
                                             className="absolute top-1/2 right-1 h-8 w-8 -translate-y-1/2 text-muted-foreground"
+                                            disabled={isRevealing}
                                             onClick={() =>
-                                                setShowPassword((v) => !v)
+                                                void togglePasswordVisibility()
                                             }
                                             aria-label={
                                                 showPassword
@@ -593,7 +633,9 @@ export function ReaderForm({
                                                     : "Mostrar senha"
                                             }
                                         >
-                                            {showPassword ? (
+                                            {isRevealing ? (
+                                                <Loader2 className="size-4 animate-spin" />
+                                            ) : showPassword ? (
                                                 <EyeOff className="size-4" />
                                             ) : (
                                                 <Eye className="size-4" />
@@ -692,7 +734,7 @@ export function ReaderForm({
                             variant="ghost"
                             className="hover:bg-muted w-full sm:w-auto"
                             onClick={() => onOpenChange(false)}
-                            disabled={isSubmitting || isProvisioning}
+                            disabled={isSubmitting || isProvisioning || isRevealing}
                         >
                             Cancelar
                         </Button>
@@ -701,7 +743,7 @@ export function ReaderForm({
                                 type="button"
                                 variant="outline"
                                 className="w-full sm:w-auto"
-                                disabled={isSubmitting || isProvisioning}
+                                disabled={isSubmitting || isProvisioning || isRevealing}
                                 onClick={() => void sendConfigOnly()}
                             >
                                 {isProvisioning ? (
@@ -717,7 +759,7 @@ export function ReaderForm({
                         <Button
                             type="submit"
                             className="w-full shadow-md sm:w-auto"
-                            disabled={isSubmitting || isProvisioning}
+                            disabled={isSubmitting || isProvisioning || isRevealing}
                         >
                             {isSubmitting ? (
                                 <>

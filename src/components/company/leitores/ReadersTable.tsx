@@ -28,75 +28,15 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { ConnectionBadge } from "@/features/readers/components/ConnectionBadge";
+import { ReaderEndpointDialog } from "@/features/readers/components/ReaderEndpointDialog";
+import { ReaderOpenDoorButton } from "@/features/readers/components/ReaderOpenDoorButton";
 import {
     READER_BRAND_LABELS,
     READER_DIRECTION_LABELS,
     type ReaderBrandSlug,
     type ReaderDirectionSlug,
 } from "@/lib/validations/readers";
-
-function ConnectionBadge({
-    device,
-    loading,
-}: {
-    device: ReaderMonitorDeviceApiRow | undefined;
-    loading: boolean;
-}) {
-    const monitorOnlineHint =
-        "Monitor de eventos ativo — recebendo passagens em tempo real.";
-    const monitorOfflineHint =
-        device?.lastConnectionError ??
-        "Monitor de eventos inativo — cadastro, sync e listagem ISAPI podem funcionar normalmente.";
-
-    if (loading && !device) {
-        return (
-            <span className="text-muted-foreground text-sm tabular-nums">
-                …
-            </span>
-        );
-    }
-    if (!device) {
-        return (
-            <span className="text-muted-foreground text-sm" title="Sem dados">
-                —
-            </span>
-        );
-    }
-    if (!device.streamSupported) {
-        const hint =
-            device.lastConnectionError ??
-            "Monitoramento de stream indisponível.";
-        return (
-            <Badge
-                variant="secondary"
-                className="font-normal"
-                title={hint}
-            >
-                N/D
-            </Badge>
-        );
-    }
-    if (device.connected) {
-        return (
-            <Badge
-                variant="outline"
-                className="border-emerald-200 bg-emerald-50 font-normal text-emerald-800 hover:bg-emerald-50"
-                title={monitorOnlineHint}
-            >
-                Online
-            </Badge>
-        );
-    }
-    return (
-        <Badge
-            variant="outline"
-            className="border-red-200 bg-red-50 font-normal text-red-800 hover:bg-red-50"
-            title={monitorOfflineHint}
-        >
-            Offline
-        </Badge>
-    );
-}
 
 export function ReadersTable({
     readers,
@@ -189,7 +129,7 @@ export function ReadersTable({
         });
     }
 
-    const colSpan = canManage ? 8 : 7;
+    const colSpan = canManage ? 9 : 7;
 
     return (
         <>
@@ -257,6 +197,9 @@ export function ReadersTable({
                             <TableHead>Direção</TableHead>
                             <TableHead>Status</TableHead>
                             {canManage ? (
+                                <TableHead>Abrir</TableHead>
+                            ) : null}
+                            {canManage ? (
                                 <TableHead className="text-right">
                                     Ações
                                 </TableHead>
@@ -302,8 +245,11 @@ export function ReadersTable({
                                             ] ?? row.brand}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="font-mono text-sm">
-                                        {row.ip}:{row.port}
+                                    <TableCell>
+                                        <ReaderEndpointDialog
+                                            readerName={row.name}
+                                            endpoint={`${row.ip}:${row.port}`}
+                                        />
                                     </TableCell>
                                     <TableCell>
                                         <ConnectionBadge
@@ -352,6 +298,16 @@ export function ReadersTable({
                                             )}
                                         </div>
                                     </TableCell>
+                                    {canManage ? (
+                                        <TableCell>
+                                            <ReaderOpenDoorButton
+                                                readerId={row.id}
+                                                readerName={row.name}
+                                                disabled={!row.isActive}
+                                                variant="company"
+                                            />
+                                        </TableCell>
+                                    ) : null}
                                     {canManage ? (
                                         <TableCell className="text-right">
                                             <div className="flex items-center justify-end gap-2">

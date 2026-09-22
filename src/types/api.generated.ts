@@ -866,6 +866,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/readers/{readerId}/credentials/reveal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revelar a senha salva do leitor (apenas admin da empresa) */
+        post: operations["ReadersController_revealCredentials"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/readers/{readerId}/open": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Acionar abertura remota do leitor */
+        post: operations["ReadersController_openDoor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/readers/{readerId}/active": {
         parameters: {
             query?: never;
@@ -883,6 +917,23 @@ export interface paths {
         patch: operations["ReadersController_setActive"];
         trace?: never;
     };
+    "/api/client/readers/monitor/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status de monitoramento dos leitores da unidade (conexão stream) */
+        get: operations["ClientReadersController_monitorStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/client/readers": {
         parameters: {
             query?: never;
@@ -890,10 +941,27 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Listar leitores faciais da unidade atual (id e nome) */
+        /** Listar leitores faciais da unidade atual */
         get: operations["ClientReadersController_list"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/readers/{readerId}/open": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Acionar abertura remota do leitor da unidade */
+        post: operations["ClientReadersController_openDoor"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6105,6 +6173,44 @@ export interface operations {
             };
         };
     };
+    ReadersController_revealCredentials: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                readerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReadersController_openDoor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                readerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ReadersController_setActive: {
         parameters: {
             query?: never;
@@ -6112,6 +6218,23 @@ export interface operations {
             path: {
                 readerId: string;
             };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientReadersController_monitorStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -6134,6 +6257,25 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientReadersController_openDoor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                readerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };

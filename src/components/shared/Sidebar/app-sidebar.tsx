@@ -6,6 +6,7 @@ import {
     BriefcaseBusiness,
     Building2,
     Camera,
+    DoorOpen,
     FileBarChart,
     FlaskConical,
     History,
@@ -237,6 +238,11 @@ function navItemsForRole(
                     title: "Acessos",
                     url: "/client/acessos",
                     icon: History,
+                },
+                {
+                    title: "Leitores",
+                    url: "/client/leitores",
+                    icon: DoorOpen,
                 },
                 {
                     title: "Relatórios",
