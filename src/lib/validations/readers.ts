@@ -91,10 +91,12 @@ const readerFields = z.object({
 });
 
 function autoRegisterIdOk(input: {
+    brand?: string;
     connectionMode?: string;
     autoRegisterDeviceId?: string;
 }): boolean {
     if (input.connectionMode !== "auto_register") return true;
+    if (input.brand === "hikvision") return true;
     return (input.autoRegisterDeviceId ?? "").trim().length > 0;
 }
 

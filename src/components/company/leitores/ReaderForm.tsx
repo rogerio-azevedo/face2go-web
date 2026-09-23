@@ -1,9 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Copy, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useForm, useWatch, type Resolver } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -46,6 +46,10 @@ const controlClass =
 const hintClass =
     "font-normal lowercase normal-case tracking-normal text-muted-foreground";
 
+function ehomeDeviceId(readerId: string): string {
+    return readerId.replaceAll("-", "");
+}
+
 function toCreateApiBody(data: ReaderFormPayload) {
     const body: Record<string, unknown> = {
         clientId: data.clientId,
@@ -60,8 +64,13 @@ function toCreateApiBody(data: ReaderFormPayload) {
         isActive: data.isActive,
         restrictMinors: data.restrictMinors,
         connectionMode: data.connectionMode,
-        autoRegisterDeviceId: data.autoRegisterDeviceId.trim() || undefined,
     };
+    if (data.brand === "hikvision") {
+        body.autoRegisterDeviceId = "";
+    } else {
+        body.autoRegisterDeviceId =
+            data.autoRegisterDeviceId.trim() || undefined;
+    }
     if (data.direction !== "") {
         body.direction = data.direction;
     }
@@ -90,8 +99,11 @@ function toUpdateApiBody(
         username: data.username.trim() ? data.username.trim() : null,
         restrictMinors: data.restrictMinors,
         connectionMode: data.connectionMode,
-        autoRegisterDeviceId: data.autoRegisterDeviceId.trim() || null,
     };
+    if (data.brand !== "hikvision") {
+        body.autoRegisterDeviceId =
+            data.autoRegisterDeviceId.trim() || null;
+    }
     if (data.password.length > 0 && data.password !== revealedPassword) {
         body.password = data.password;
     }
@@ -121,6 +133,10 @@ export function ReaderForm({
     const [revealedPassword, setRevealedPassword] = useState<string | null>(
         null,
     );
+    const [createdReaderId, setCreatedReaderId] = useState<string | null>(
+        null,
+    );
+    const createdReaderIdRef = useRef<string | null>(null);
 
     const defaultClientId = clients[0]?.id ?? "";
 
@@ -191,11 +207,15 @@ export function ReaderForm({
 
     useEffect(() => {
         deferInEffect(() => {
-            if (open) {
-                reset(defaultValues);
-                setShowPassword(false);
-                setRevealedPassword(null);
+            if (!open) {
+                createdReaderIdRef.current = null;
+                setCreatedReaderId(null);
+                return;
             }
+            if (createdReaderIdRef.current) return;
+            reset(defaultValues);
+            setShowPassword(false);
+            setRevealedPassword(null);
         });
     }, [open, defaultValues, reset]);
 
@@ -212,13 +232,43 @@ export function ReaderForm({
         toast.success(`Config enviada ao leitor (Post Eventos ${label}).`);
     }
 
+    const ehomeSourceId =
+        mode === "edit" ? reader?.id : createdReaderId;
+    const ehomeId = ehomeSourceId ? ehomeDeviceId(ehomeSourceId) : "";
+
+    async function copyEhomeId() {
+        if (!ehomeId) return;
+        try {
+            await navigator.clipboard.writeText(ehomeId);
+            toast.success("ID EHome copiado.");
+        } catch {
+            toast.error("Não foi possível copiar.");
+        }
+    }
+
     async function submit(data: ReaderFormPayload) {
+        if (createdReaderId) {
+            onOpenChange(false);
+            return;
+        }
         setIsSubmitting(true);
         try {
             if (mode === "create") {
                 const result = await createReaderAction(toCreateApiBody(data));
                 if ("error" in result) {
                     toast.error(result.error);
+                    return;
+                }
+                if (
+                    data.brand === "hikvision" &&
+                    data.connectionMode === "auto_register"
+                ) {
+                    createdReaderIdRef.current = result.id;
+                    setCreatedReaderId(result.id);
+                    toast.success(
+                        "Leitor cadastrado. Copie o ID EHome e cole no aparelho.",
+                    );
+                    router.refresh();
                     return;
                 }
                 toast.success("Leitor cadastrado.");
@@ -423,28 +473,56 @@ export function ReaderForm({
                                                 className={fieldLabel}
                                             >
                                                 {isHikvision
-                                                    ? "ID EHome *"
+                                                    ? "ID EHome"
                                                     : "ID de registro automático *"}
                                             </Label>
-                                            <Input
-                                                id="reader-autoreg-id"
-                                                className={cn(
-                                                    "bg-card h-10 px-3",
-                                                    controlClass,
-                                                )}
-                                                aria-invalid={
-                                                    !!errors.autoRegisterDeviceId
-                                                }
-                                                {...register("autoRegisterDeviceId")}
-                                                placeholder={
-                                                    isHikvision
-                                                        ? "catraca-01"
-                                                        : "f2g-salao-01"
-                                                }
-                                            />
+                                            {isHikvision ? (
+                                                <div className="flex gap-2">
+                                                    <Input
+                                                        id="reader-autoreg-id"
+                                                        readOnly
+                                                        value={ehomeId}
+                                                        placeholder="Salve o leitor para gerar o ID"
+                                                        className={cn(
+                                                            "bg-card h-10 px-3 font-mono",
+                                                            controlClass,
+                                                        )}
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        className="shrink-0"
+                                                        disabled={!ehomeId}
+                                                        onClick={() =>
+                                                            void copyEhomeId()
+                                                        }
+                                                    >
+                                                        <Copy
+                                                            className="size-4"
+                                                            aria-hidden
+                                                        />
+                                                        Copiar
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <Input
+                                                    id="reader-autoreg-id"
+                                                    className={cn(
+                                                        "bg-card h-10 px-3",
+                                                        controlClass,
+                                                    )}
+                                                    aria-invalid={
+                                                        !!errors.autoRegisterDeviceId
+                                                    }
+                                                    {...register(
+                                                        "autoRegisterDeviceId",
+                                                    )}
+                                                    placeholder="f2g-salao-01"
+                                                />
+                                            )}
                                             <p className="text-muted-foreground text-xs">
                                                 {isHikvision
-                                                    ? "Device ID da tela Platform Access. No leitor: Rede → Platform Access, ISUP 5.0, servidor 184.194.233.81, porta 7660, criptografia ligada com a mesma chave ISUP_KEY do gateway."
+                                                    ? "Salve o leitor, copie este código e cole no Device ID do aparelho (Rede → Platform Access, ISUP 5.0, servidor 184.194.233.81, porta 7660, chave ISUP_KEY). Sem hífen."
                                                     : "O mesmo Dispositivo ID configurado no leitor, em Rede → Registro automático de CGI."}
                                             </p>
                                             {errors.autoRegisterDeviceId ? (
@@ -838,22 +916,34 @@ export function ReaderForm({
                                 )}
                             </Button>
                         ) : null}
-                        <Button
-                            type="submit"
-                            className="w-full shadow-md sm:w-auto"
-                            disabled={isSubmitting || isProvisioning || isRevealing}
-                        >
-                            {isSubmitting ? (
-                                <>
-                                    <Loader2 className="mr-2 size-4 animate-spin" />
-                                    Salvando...
-                                </>
-                            ) : mode === "create" ? (
-                                "Cadastrar leitor"
-                            ) : (
-                                "Salvar alterações"
-                            )}
-                        </Button>
+                        {createdReaderId ? (
+                            <Button
+                                type="button"
+                                className="w-full shadow-md sm:w-auto"
+                                onClick={() => onOpenChange(false)}
+                            >
+                                Fechar
+                            </Button>
+                        ) : (
+                            <Button
+                                type="submit"
+                                className="w-full shadow-md sm:w-auto"
+                                disabled={
+                                    isSubmitting || isProvisioning || isRevealing
+                                }
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="mr-2 size-4 animate-spin" />
+                                        Salvando...
+                                    </>
+                                ) : mode === "create" ? (
+                                    "Cadastrar leitor"
+                                ) : (
+                                    "Salvar alterações"
+                                )}
+                            </Button>
+                        )}
                     </SheetFooter>
                 </form>
             </SheetContent>
