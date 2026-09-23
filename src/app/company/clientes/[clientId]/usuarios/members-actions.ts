@@ -266,6 +266,7 @@ export async function deleteMemberAction(
 export async function syncMemberFaceAction(
     clientId: string,
     memberId: string,
+    allowSimilarFace = false,
 ): Promise<
     | {
           success: true;
@@ -280,7 +281,10 @@ export async function syncMemberFaceAction(
     try {
         const res = await apiFetchAuthed(
             `/api/clients/${cid.data}/members/${mid.data}/face/sync`,
-            { method: "POST" },
+            {
+                method: "POST",
+                body: JSON.stringify({ allowSimilarFace }),
+            },
         );
         const data = (await parseResponseJson(res)) as {
             deviceSyncStatus?: string;

@@ -42,15 +42,32 @@ export function useFaceSyncOffer(params: {
     }, []);
 
     const runSync = useCallback(
-        async (id: string, name: string) => {
+        async (
+            id: string,
+            name: string,
+            options?: { allowSimilarFace?: boolean },
+        ) => {
+            const allowSimilarFace = options?.allowSimilarFace === true;
             setOfferTarget(null);
             try {
                 const res =
                     kind === "student"
-                        ? await syncStudentFaceAction(clientId, id)
+                        ? await syncStudentFaceAction(
+                              clientId,
+                              id,
+                              allowSimilarFace,
+                          )
                         : kind === "member"
-                          ? await syncMemberFaceAction(clientId, id)
-                          : await syncResponsibleFaceAction(clientId, id);
+                          ? await syncMemberFaceAction(
+                                clientId,
+                                id,
+                                allowSimilarFace,
+                            )
+                          : await syncResponsibleFaceAction(
+                                clientId,
+                                id,
+                                allowSimilarFace,
+                            );
                 if ("error" in res) {
                     toast.error(res.error);
                     return;
@@ -63,7 +80,9 @@ export function useFaceSyncOffer(params: {
                     return;
                 }
                 toast.success(
-                    `Sync de ${name} enfileirado. Pode sair desta tela.`,
+                    allowSimilarFace
+                        ? `Liberação de face parecida de ${name} enfileirada. Pode sair desta tela.`
+                        : `Sync de ${name} enfileirado. Pode sair desta tela.`,
                 );
                 void queryClient.invalidateQueries({
                     queryKey: ["school-face-sync", clientId],

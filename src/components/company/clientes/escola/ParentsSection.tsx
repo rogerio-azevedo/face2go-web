@@ -6,6 +6,8 @@ import { useCallback, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { listResponsiblesAction } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
+import { AllowSimilarFaceButton } from "@/features/faces/components/AllowSimilarFaceDialog";
+import { isSimilarFaceSyncError } from "@/lib/similar-face-error";
 import { deferInEffect } from "@/lib/defer-in-effect";
 import { emptyPaginated } from "@/lib/pagination";
 import { useFaceSyncOffer } from "@/lib/use-face-sync-offer";
@@ -97,6 +99,17 @@ export function ParentsSection({
         setSyncingId(row.id);
         try {
             await faceSyncOffer.runSync(row.id, row.name);
+        } finally {
+            setSyncingId(null);
+        }
+    }
+
+    async function handleAllowSimilar(row: ResponsibleRow) {
+        setSyncingId(row.id);
+        try {
+            await faceSyncOffer.runSync(row.id, row.name, {
+                allowSimilarFace: true,
+            });
         } finally {
             setSyncingId(null);
         }
@@ -236,6 +249,25 @@ export function ParentsSection({
                                                     Sincronizar
                                                 </span>
                                             </Button>
+                                            {isAdmin &&
+                                            isSimilarFaceSyncError(
+                                                row.deviceSyncError,
+                                            ) ? (
+                                                <AllowSimilarFaceButton
+                                                    personName={row.name}
+                                                    error={row.deviceSyncError}
+                                                    disabled={
+                                                        row.faceId == null ||
+                                                        syncingId === row.id ||
+                                                        tableBusy
+                                                    }
+                                                    onConfirm={() =>
+                                                        void handleAllowSimilar(
+                                                            row,
+                                                        )
+                                                    }
+                                                />
+                                            ) : null}
                                             <Button
                                                 type="button"
                                                 variant="outline"

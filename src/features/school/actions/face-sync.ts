@@ -12,6 +12,7 @@ import { revalidateSchoolRoutes } from './shared';
 export async function syncStudentFaceAction(
   clientId: string,
   studentId: string,
+  allowSimilarFace = false,
 ): Promise<
   | {
       success: true;
@@ -26,7 +27,10 @@ export async function syncStudentFaceAction(
   try {
     const res = await apiFetchAuthed(
       `/api/clients/${cid.data}/students/${sid.data}/face/sync`,
-      { method: 'POST' },
+      {
+        method: 'POST',
+        body: JSON.stringify({ allowSimilarFace }),
+      },
     );
     const data = (await parseResponseJson(res)) as {
       deviceSyncStatus?: string;
@@ -47,6 +51,7 @@ export async function syncStudentFaceAction(
 export async function syncResponsibleFaceAction(
   clientId: string,
   responsibleId: string,
+  allowSimilarFace = false,
 ): Promise<
   | {
       success: true;
@@ -61,7 +66,10 @@ export async function syncResponsibleFaceAction(
   try {
     const res = await apiFetchAuthed(
       `/api/clients/${cid.data}/responsibles/${rid.data}/face/sync`,
-      { method: 'POST' },
+      {
+        method: 'POST',
+        body: JSON.stringify({ allowSimilarFace }),
+      },
     );
     const data = (await parseResponseJson(res)) as {
       deviceSyncStatus?: string;

@@ -25,6 +25,7 @@ import {
 import { ExportRegistrationsExcelButton } from "@/features/registrations/components/ExportRegistrationsExcelButton";
 import { RegistrationEditSheet } from "@/features/registrations/components/RegistrationEditSheet";
 import { RegistrationsFaceSyncAllModal } from "@/features/registrations/components/RegistrationsFaceSyncAllModal";
+import { AllowSimilarFaceDialog } from "@/features/faces/components/AllowSimilarFaceDialog";
 import { RegistrationRowActions } from "@/features/registrations/components/RegistrationRowActions";
 import { DeviceSyncStatusBadge } from "@/components/company/clientes/escola/DeviceSyncStatusBadge";
 import { UnblockPersonDialog } from "@/components/company/clientes/escola/UnblockPersonDialog";
@@ -209,6 +210,8 @@ export function RegistrationsReviewBoard({
     const [forceRow, setForceRow] = useState<ClientRegistrationListRow | null>(
         null,
     );
+    const [similarRow, setSimilarRow] =
+        useState<ClientRegistrationListRow | null>(null);
     const [unblockOpen, setUnblockOpen] = useState(false);
     const [editRow, setEditRow] = useState<ClientRegistrationListRow | null>(
         null,
@@ -471,7 +474,7 @@ export function RegistrationsReviewBoard({
 
     async function runSyncFace(
         row: ClientRegistrationListRow,
-        options?: { force?: boolean },
+        options?: { force?: boolean; allowSimilarFace?: boolean },
     ) {
         if (variant === "company" && !companyClientId) {
             toast.error("Cliente inválido.");
@@ -814,6 +817,9 @@ export function RegistrationsReviewBoard({
                                             onView={() => void openDetail(row)}
                                             onSync={() => void runSyncFace(row)}
                                             onForceSync={() => setForceRow(row)}
+                                            onAllowSimilarFace={() =>
+                                                setSimilarRow(row)
+                                            }
                                             onEdit={() => setEditRow(row)}
                                             onRetake={() => void openRetake(row)}
                                             onDelete={() => runDelete(row)}
@@ -1202,6 +1208,22 @@ export function RegistrationsReviewBoard({
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            <AllowSimilarFaceDialog
+                open={similarRow != null}
+                onOpenChange={(open) => {
+                    if (!open) setSimilarRow(null);
+                }}
+                personName={similarRow?.name ?? "este cadastro"}
+                error={similarRow?.deviceSyncError}
+                busy={pending}
+                onConfirm={() => {
+                    if (!similarRow) return;
+                    const row = similarRow;
+                    setSimilarRow(null);
+                    void runSyncFace(row, { allowSimilarFace: true });
+                }}
+            />
         </div>
     );
 }

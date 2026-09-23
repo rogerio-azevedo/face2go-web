@@ -9,10 +9,12 @@ import {
     Phone,
     RefreshCw,
     RotateCcw,
+    ShieldAlert,
     Trash2,
 } from "lucide-react";
 import { useState } from "react";
 
+import { isSimilarFaceSyncError } from "@/lib/similar-face-error";
 import type { ClientRegistrationListRow } from "@/types/domain";
 import {
     AlertDialog,
@@ -57,6 +59,7 @@ export function RegistrationRowActions({
     onView,
     onSync,
     onForceSync,
+    onAllowSimilarFace,
     onEdit,
     onRetake,
     onDelete,
@@ -69,6 +72,7 @@ export function RegistrationRowActions({
     onView: () => void;
     onSync: () => void;
     onForceSync: () => void;
+    onAllowSimilarFace: () => void;
     onEdit: () => void;
     onRetake: () => void;
     onDelete: () => Promise<void>;
@@ -87,6 +91,8 @@ export function RegistrationRowActions({
         (row.status === "draft" || row.status === "approved");
     const canDelete = isAdmin && isApproved;
     const canRestore = isAdmin && isDeleted;
+    const canAllowSimilar =
+        isAdmin && canSync && isSimilarFaceSyncError(row.deviceSyncError);
 
     async function run(kind: "delete" | "restore") {
         setWorking(true);
@@ -160,6 +166,12 @@ export function RegistrationRowActions({
                                 <RotateCcw />
                                 Forçar sincronização
                             </DropdownMenuItem>
+                            {canAllowSimilar ? (
+                                <DropdownMenuItem onClick={onAllowSimilarFace}>
+                                    <ShieldAlert />
+                                    Permitir face parecida
+                                </DropdownMenuItem>
+                            ) : null}
                         </>
                     ) : null}
                     {canEdit ? (

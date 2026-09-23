@@ -9,6 +9,8 @@ import {
     listClientRolesAction,
     listMembersAction,
 } from "@/app/company/clientes/[clientId]/usuarios/members-actions";
+import { AllowSimilarFaceButton } from "@/features/faces/components/AllowSimilarFaceDialog";
+import { isSimilarFaceSyncError } from "@/lib/similar-face-error";
 import { listShiftsAction } from "@/app/company/clientes/[clientId]/usuarios/shifts-actions";
 import { emptyPaginated } from "@/lib/pagination";
 import { useFaceSyncOffer } from "@/lib/use-face-sync-offer";
@@ -114,6 +116,17 @@ export function MembersSection({
         setSyncingId(row.id);
         try {
             await faceSyncOffer.runSync(row.id, row.name);
+        } finally {
+            setSyncingId(null);
+        }
+    }
+
+    async function handleAllowSimilar(row: MemberRow) {
+        setSyncingId(row.id);
+        try {
+            await faceSyncOffer.runSync(row.id, row.name, {
+                allowSimilarFace: true,
+            });
         } finally {
             setSyncingId(null);
         }
@@ -263,6 +276,25 @@ export function MembersSection({
                                                     Sincronizar
                                                 </span>
                                             </Button>
+                                            {isAdmin &&
+                                            isSimilarFaceSyncError(
+                                                row.deviceSyncError,
+                                            ) ? (
+                                                <AllowSimilarFaceButton
+                                                    personName={row.name}
+                                                    error={row.deviceSyncError}
+                                                    disabled={
+                                                        row.faceId == null ||
+                                                        syncingId === row.id ||
+                                                        tableBusy
+                                                    }
+                                                    onConfirm={() =>
+                                                        void handleAllowSimilar(
+                                                            row,
+                                                        )
+                                                    }
+                                                />
+                                            ) : null}
                                             <Button
                                                 type="button"
                                                 variant="outline"

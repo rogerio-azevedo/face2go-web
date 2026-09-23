@@ -20,20 +20,23 @@ export function useRegistrationFaceSync(params: {
         async (
             registrationId: string,
             name: string,
-            options?: { force?: boolean },
+            options?: { force?: boolean; allowSimilarFace?: boolean },
         ) => {
             const force = options?.force === true;
+            const allowSimilarFace = options?.allowSimilarFace === true;
             try {
                 const res =
                     variant === "client"
                         ? await syncClientRegistrationFaceAction(
                               registrationId,
                               force,
+                              allowSimilarFace,
                           )
                         : await syncCompanyRegistrationFaceAction(
                               companyClientId ?? "",
                               registrationId,
                               force,
+                              allowSimilarFace,
                           );
                 if ("error" in res) {
                     toast.error(res.error);
@@ -52,9 +55,11 @@ export function useRegistrationFaceSync(params: {
                 }
 
                 toast.success(
-                    force
-                        ? `Reenvio forçado de ${name} enfileirado. Pode sair desta tela.`
-                        : `Sync de ${name} enfileirado. Pode sair desta tela.`,
+                    allowSimilarFace
+                        ? `Liberação de face parecida de ${name} enfileirada. Pode sair desta tela.`
+                        : force
+                          ? `Reenvio forçado de ${name} enfileirado. Pode sair desta tela.`
+                          : `Sync de ${name} enfileirado. Pode sair desta tela.`,
                 );
                 void queryClient.invalidateQueries({
                     queryKey: ["registration-face-sync-all"],

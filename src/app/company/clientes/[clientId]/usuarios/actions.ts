@@ -262,6 +262,7 @@ export async function syncCompanyRegistrationFaceAction(
     clientId: string,
     registrationId: string,
     force = false,
+    allowSimilarFace = false,
 ): Promise<
     | {
           success: true;
@@ -278,7 +279,7 @@ export async function syncCompanyRegistrationFaceAction(
             `/api/clients/${cid.data}/faces/${rid.data}/sync`,
             {
                 method: 'POST',
-                body: JSON.stringify({ force }),
+                body: JSON.stringify({ force, allowSimilarFace }),
             },
         );
         const data = (await parseResponseJson(res)) as {
