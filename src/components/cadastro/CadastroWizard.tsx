@@ -28,10 +28,7 @@ import {
     BIRTH_DATE_FORMATTED_MAX_LENGTH,
     birthDateMaskToIso,
 } from "@/lib/utils/date";
-import {
-    applyPhoneMaskInput,
-    PHONE_FORMATTED_MAX_LENGTH,
-} from "@/lib/utils/phone";
+import { applyPhoneMaskInput } from "@/lib/utils/phone";
 import {
     defaultConfigForClientType,
     isFieldRequired,
@@ -48,6 +45,14 @@ type Preview = {
 
 function optionalLabel(base: string, required: boolean) {
     return required ? base : `${base} (opcional)`;
+}
+
+function phoneFieldError(value: string): string | null {
+    const digits = onlyDigits(value);
+    if (digits.length === 0 || digits.length === 10 || digits.length === 11) {
+        return null;
+    }
+    return "Informe o telefone com DDD (10 ou 11 dígitos).";
 }
 
 function cpfCnpjFieldError(value: string): string | null {
@@ -157,10 +162,10 @@ export function CadastroWizard({ code }: { code: string }) {
         }
         if (isFieldVisible(fields.phone)) {
             const phoneDigits = onlyDigits(phone);
-            if (isFieldRequired(fields.phone) && phoneDigits.length < 8) {
+            if (isFieldRequired(fields.phone) && phoneDigits.length === 0) {
                 return false;
             }
-            if (phoneDigits && phoneDigits.length < 8) return false;
+            if (phoneFieldError(phone)) return false;
         }
         if (isFieldVisible(fields.email)) {
             if (isFieldRequired(fields.email) && !email.includes("@")) {
@@ -183,6 +188,10 @@ export function CadastroWizard({ code }: { code: string }) {
         [document, fields.document],
     );
     const documentError = documentFormatError ?? documentConflict;
+    const phoneError = useMemo(
+        () => (isFieldVisible(fields.phone) ? phoneFieldError(phone) : null),
+        [phone, fields.phone],
+    );
 
     const canStep2 = useMemo(() => {
         if (isFieldRequired(fields.block) && !block.trim()) return false;
@@ -444,9 +453,21 @@ export function CadastroWizard({ code }: { code: string }) {
                                     }
                                     placeholder="(00) 00000-0000"
                                     inputMode="numeric"
-                                    autoComplete="tel"
-                                    maxLength={PHONE_FORMATTED_MAX_LENGTH}
+                                    autoComplete="tel-national"
+                                    aria-invalid={!!phoneError}
+                                    aria-describedby={
+                                        phoneError ? "ph-error" : undefined
+                                    }
                                 />
+                                {phoneError ? (
+                                    <p
+                                        id="ph-error"
+                                        role="alert"
+                                        className="text-sm text-destructive"
+                                    >
+                                        {phoneError}
+                                    </p>
+                                ) : null}
                             </div>
                         ) : null}
                         {isFieldVisible(fields.email) ? (

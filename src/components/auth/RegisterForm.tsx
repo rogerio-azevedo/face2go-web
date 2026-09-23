@@ -23,6 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { normalizeBrazilPhoneInput } from "@/lib/utils/phone";
 
 const companyRoleLabels: Record<string, string> = {
     company_admin: "Administrador da empresa",
@@ -300,9 +301,15 @@ export function RegisterForm() {
                                     <Label htmlFor="phone">Telefone</Label>
                                     <Input
                                         id="phone"
-                                        autoComplete="tel"
+                                        autoComplete="tel-national"
                                         value={phone}
-                                        onChange={(e) => setPhone(e.target.value)}
+                                        onChange={(e) =>
+                                            setPhone(
+                                                normalizeBrazilPhoneInput(
+                                                    e.target.value,
+                                                ),
+                                            )
+                                        }
                                     />
                                 </div>
                                 <div className="grid gap-2">

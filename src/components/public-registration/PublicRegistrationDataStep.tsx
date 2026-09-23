@@ -10,6 +10,7 @@ import {
     CPF_FORMATTED_MAX_LENGTH,
     normalizeCpf,
 } from "@/lib/utils/document";
+import { normalizeBrazilPhoneInput } from "@/lib/utils/phone";
 
 import type { PublicRegistrationFormData } from "./types";
 
@@ -95,8 +96,10 @@ export function PublicRegistrationDataStep({
                 <Input
                     id="phone"
                     value={form.phone}
-                    onChange={(e) => update("phone", e.target.value)}
-                    autoComplete="tel"
+                    onChange={(e) =>
+                        update("phone", normalizeBrazilPhoneInput(e.target.value))
+                    }
+                    autoComplete="tel-national"
                     inputMode="tel"
                 />
             </div>
