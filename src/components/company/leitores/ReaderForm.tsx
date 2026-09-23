@@ -64,13 +64,8 @@ function toCreateApiBody(data: ReaderFormPayload) {
         isActive: data.isActive,
         restrictMinors: data.restrictMinors,
         connectionMode: data.connectionMode,
+        autoRegisterDeviceId: "",
     };
-    if (data.brand === "hikvision") {
-        body.autoRegisterDeviceId = "";
-    } else {
-        body.autoRegisterDeviceId =
-            data.autoRegisterDeviceId.trim() || undefined;
-    }
     if (data.direction !== "") {
         body.direction = data.direction;
     }
@@ -100,10 +95,6 @@ function toUpdateApiBody(
         restrictMinors: data.restrictMinors,
         connectionMode: data.connectionMode,
     };
-    if (data.brand !== "hikvision") {
-        body.autoRegisterDeviceId =
-            data.autoRegisterDeviceId.trim() || null;
-    }
     if (data.password.length > 0 && data.password !== revealedPassword) {
         body.password = data.password;
     }
@@ -219,12 +210,17 @@ export function ReaderForm({
         });
     }, [open, defaultValues, reset]);
 
-    async function provisionAfterPersist(readerId: string) {
+    async function provisionAfterPersist(
+        readerId: string,
+        options?: { quietWithoutGateway?: boolean },
+    ) {
         if (brand !== "intelbras") {
             return;
         }
         const provision = await provisionIntelbrasPushAction(readerId);
         if ("error" in provision) {
+            const missingGateway = provision.error.includes("gateway Intelbras");
+            if (options?.quietWithoutGateway && missingGateway) return;
             toast.error(provision.error);
             return;
         }
@@ -240,7 +236,7 @@ export function ReaderForm({
         if (!ehomeId) return;
         try {
             await navigator.clipboard.writeText(ehomeId);
-            toast.success("ID EHome copiado.");
+            toast.success("ID copiado.");
         } catch {
             toast.error("Não foi possível copiar.");
         }
@@ -259,20 +255,22 @@ export function ReaderForm({
                     toast.error(result.error);
                     return;
                 }
-                if (
-                    data.brand === "hikvision" &&
-                    data.connectionMode === "auto_register"
-                ) {
+                if (data.connectionMode === "auto_register") {
                     createdReaderIdRef.current = result.id;
                     setCreatedReaderId(result.id);
                     toast.success(
-                        "Leitor cadastrado. Copie o ID EHome e cole no aparelho.",
+                        "Leitor cadastrado. Copie o ID e cole no aparelho.",
                     );
+                    await provisionAfterPersist(result.id, {
+                        quietWithoutGateway: true,
+                    });
                     router.refresh();
                     return;
                 }
                 toast.success("Leitor cadastrado.");
-                await provisionAfterPersist(result.id);
+                await provisionAfterPersist(result.id, {
+                    quietWithoutGateway: true,
+                });
             } else {
                 if (!reader) {
                     toast.error("Leitor não informado.");
@@ -287,7 +285,9 @@ export function ReaderForm({
                     return;
                 }
                 toast.success("Leitor atualizado.");
-                await provisionAfterPersist(reader.id);
+                await provisionAfterPersist(reader.id, {
+                    quietWithoutGateway: true,
+                });
             }
             onOpenChange(false);
             router.refresh();
@@ -474,62 +474,40 @@ export function ReaderForm({
                                             >
                                                 {isHikvision
                                                     ? "ID EHome"
-                                                    : "ID de registro automático *"}
+                                                    : "ID de registro automático"}
                                             </Label>
-                                            {isHikvision ? (
-                                                <div className="flex gap-2">
-                                                    <Input
-                                                        id="reader-autoreg-id"
-                                                        readOnly
-                                                        value={ehomeId}
-                                                        placeholder="Salve o leitor para gerar o ID"
-                                                        className={cn(
-                                                            "bg-card h-10 px-3 font-mono",
-                                                            controlClass,
-                                                        )}
-                                                    />
-                                                    <Button
-                                                        type="button"
-                                                        variant="outline"
-                                                        className="shrink-0"
-                                                        disabled={!ehomeId}
-                                                        onClick={() =>
-                                                            void copyEhomeId()
-                                                        }
-                                                    >
-                                                        <Copy
-                                                            className="size-4"
-                                                            aria-hidden
-                                                        />
-                                                        Copiar
-                                                    </Button>
-                                                </div>
-                                            ) : (
+                                            <div className="flex gap-2">
                                                 <Input
                                                     id="reader-autoreg-id"
+                                                    readOnly
+                                                    value={ehomeId}
+                                                    placeholder="Salve o leitor para gerar o ID"
                                                     className={cn(
-                                                        "bg-card h-10 px-3",
+                                                        "bg-card h-10 px-3 font-mono",
                                                         controlClass,
                                                     )}
-                                                    aria-invalid={
-                                                        !!errors.autoRegisterDeviceId
-                                                    }
-                                                    {...register(
-                                                        "autoRegisterDeviceId",
-                                                    )}
-                                                    placeholder="f2g-salao-01"
                                                 />
-                                            )}
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    className="shrink-0"
+                                                    disabled={!ehomeId}
+                                                    onClick={() =>
+                                                        void copyEhomeId()
+                                                    }
+                                                >
+                                                    <Copy
+                                                        className="size-4"
+                                                        aria-hidden
+                                                    />
+                                                    Copiar
+                                                </Button>
+                                            </div>
                                             <p className="text-muted-foreground text-xs">
                                                 {isHikvision
                                                     ? "Salve o leitor, copie este código e cole no Device ID do aparelho (Rede → Platform Access, ISUP 5.0, servidor 184.194.233.81, porta 7660, chave ISUP_KEY). Sem hífen."
-                                                    : "O mesmo Dispositivo ID configurado no leitor, em Rede → Registro automático de CGI."}
+                                                    : "Salve o leitor, copie este código e cole no Dispositivo ID do aparelho (Rede → Registro automático de CGI). Sem hífen."}
                                             </p>
-                                            {errors.autoRegisterDeviceId ? (
-                                                <p className="text-destructive text-xs">
-                                                    {errors.autoRegisterDeviceId.message}
-                                                </p>
-                                            ) : null}
                                         </div>
                                     ) : null}
                                 </>
