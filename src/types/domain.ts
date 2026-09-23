@@ -235,6 +235,7 @@ export type CompanyUserListRow = {
 export type RegistrationLinkListRow = {
     id: string;
     code: string;
+    name: string | null;
     isActive: boolean;
     validFrom: string | null;
     expiresAt: string | null;

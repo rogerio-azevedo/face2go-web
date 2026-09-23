@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import {
     type CreateRegistrationLinkBody,
+    REGISTRATION_LINK_NAME_MAX,
     defaultTemporaryVigenciaLocal,
     localDateTimeRangeToIso,
 } from "@/lib/registration-link-schedule";
@@ -38,6 +39,7 @@ export function CreateRegistrationLinkSheet({
     title?: string;
 }) {
     const [choice, setChoice] = useState<ScheduleChoice>("permanent");
+    const [name, setName] = useState("");
     const [dateTimeFrom, setDateTimeFrom] = useState("");
     const [dateTimeUntil, setDateTimeUntil] = useState("");
     const [submitting, setSubmitting] = useState(false);
@@ -46,6 +48,7 @@ export function CreateRegistrationLinkSheet({
         deferInEffect(() => {
             if (open) {
                 setChoice("permanent");
+                setName("");
                 setDateTimeFrom("");
                 setDateTimeUntil("");
                 setSubmitting(false);
@@ -61,6 +64,11 @@ export function CreateRegistrationLinkSheet({
     }
 
     async function handleConfirm() {
+        const trimmedName = name.trim();
+        if (trimmedName.length > REGISTRATION_LINK_NAME_MAX) {
+            toast.error("O nome pode ter no máximo 80 caracteres.");
+            return;
+        }
         let body: CreateRegistrationLinkBody;
         if (choice === "permanent") {
             body = { kind: "permanent" };
@@ -86,6 +94,7 @@ export function CreateRegistrationLinkSheet({
                 return;
             }
         }
+        if (trimmedName) body = { ...body, name: trimmedName };
         setSubmitting(true);
         try {
             const result = await onSubmit(body);
@@ -117,6 +126,20 @@ export function CreateRegistrationLinkSheet({
                 </SheetHeader>
 
                 <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-4 py-5">
+                    <div className="space-y-2">
+                        <Label htmlFor="link-name">Nome do link</Label>
+                        <Input
+                            id="link-name"
+                            value={name}
+                            maxLength={REGISTRATION_LINK_NAME_MAX}
+                            placeholder="QR na porta, grupo do WhatsApp"
+                            onChange={(e) => setName(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                            Opcional. Serve só para você identificar este link
+                            na lista.
+                        </p>
+                    </div>
                     <div className="space-y-2">
                         <Label className="text-xs font-medium text-muted-foreground">
                             Tipo de vigência

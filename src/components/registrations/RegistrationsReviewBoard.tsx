@@ -22,6 +22,7 @@ import {
     restoreCompanyRegistrationAction,
     unblockCompanyRegistrationAction,
 } from "@/app/company/clientes/[clientId]/usuarios/actions";
+import { ExportRegistrationsExcelButton } from "@/features/registrations/components/ExportRegistrationsExcelButton";
 import { RegistrationEditSheet } from "@/features/registrations/components/RegistrationEditSheet";
 import { RegistrationsFaceSyncAllModal } from "@/features/registrations/components/RegistrationsFaceSyncAllModal";
 import { RegistrationRowActions } from "@/features/registrations/components/RegistrationRowActions";
@@ -29,6 +30,7 @@ import { DeviceSyncStatusBadge } from "@/components/company/clientes/escola/Devi
 import { UnblockPersonDialog } from "@/components/company/clientes/escola/UnblockPersonDialog";
 import { listRegistrationsAction } from "@/features/registrations/actions/list";
 import { emptyRegistrationsPage } from "@/lib/pagination";
+import { formatCpfOrCnpj } from "@/lib/utils/document";
 import { useRegistrationFaceSync } from "@/features/registrations/hooks/use-registration-face-sync";
 import { useRegistrationBatchSync } from "@/features/registrations/hooks/use-registration-batch-sync";
 import { deferInEffect } from "@/lib/defer-in-effect";
@@ -527,7 +529,7 @@ export function RegistrationsReviewBoard({
 
     return (
         <div className="space-y-4">
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
                 {(Object.keys(TAB_LABELS) as Tab[]).map((k) => (
                     <Button
                         key={k}
@@ -557,6 +559,16 @@ export function RegistrationsReviewBoard({
                         ) : null}
                     </Button>
                 ) : null}
+                <div className="ml-auto">
+                    <ExportRegistrationsExcelButton
+                        variant={variant}
+                        companyClientId={companyClientId}
+                        search={search}
+                        block={block}
+                        unit={unit}
+                        room={room}
+                    />
+                </div>
             </div>
 
             {showLinks && linksPanel ? (
@@ -623,6 +635,9 @@ export function RegistrationsReviewBoard({
                                 onClick={() => toggleSort("name")}
                             />
                             <TableHead className="hidden sm:table-cell">
+                                CPF
+                            </TableHead>
+                            <TableHead className="hidden sm:table-cell">
                                 Nascimento
                             </TableHead>
                             <SortableHead
@@ -650,7 +665,7 @@ export function RegistrationsReviewBoard({
                         {filtered.length === 0 ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={7}
+                                    colSpan={8}
                                     className="py-10 text-center text-muted-foreground"
                                 >
                                     Nenhum registro nesta lista.
@@ -738,6 +753,11 @@ export function RegistrationsReviewBoard({
                                             ) : null}
                                         </div>
                                     </TableCell>
+                                    <TableCell className="hidden font-mono text-xs sm:table-cell">
+                                        {row.document
+                                            ? formatCpfOrCnpj(row.document)
+                                            : "—"}
+                                    </TableCell>
                                     <TableCell className="hidden text-xs sm:table-cell">
                                         {formatBirthDate(row.birthDate)}
                                     </TableCell>
@@ -797,7 +817,11 @@ export function RegistrationsReviewBoard({
                         <SheetDescription>
                             {activeRow ? (
                                 <>
-                                    Documento: {activeRow.document ?? "—"} ·{" "}
+                                    Documento:{" "}
+                                    {activeRow.document
+                                        ? formatCpfOrCnpj(activeRow.document)
+                                        : "—"}{" "}
+                                    ·{" "}
                                     {activeRow.phone ?? "—"}
                                 </>
                             ) : null}
@@ -836,6 +860,19 @@ export function RegistrationsReviewBoard({
                                                 : "Rejeitado"}
                                     </Badge>
                                 </div>
+                                {activeRow.status === "rejected" ? (
+                                    <div className="space-y-1">
+                                        <p className="text-sm font-medium text-destructive">
+                                            Motivo:{" "}
+                                            {activeRow.rejectionNotes?.trim() ||
+                                                "—"}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Rejeitado em{" "}
+                                            {formatWhen(activeRow.approvedAt)}
+                                        </p>
+                                    </div>
+                                ) : null}
                                 {activeRow.status === "blocked" ? (
                                     <div className="space-y-1">
                                         <p className="text-sm font-medium text-destructive">
@@ -933,6 +970,14 @@ export function RegistrationsReviewBoard({
                     </div>
                     {activeRow?.status === "draft" ? (
                         <SheetFooter className="flex-row flex-wrap gap-2 sm:justify-end">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                disabled={pending}
+                                onClick={() => setEditRow(activeRow)}
+                            >
+                                Editar
+                            </Button>
                             <Button
                                 type="button"
                                 variant="destructive"

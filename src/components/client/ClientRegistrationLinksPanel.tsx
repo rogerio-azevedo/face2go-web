@@ -2,15 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Copy, Link2, MessageCircle, QrCode, Trash2 } from "lucide-react";
+import { Copy, Link2, MessageCircle, Pencil, QrCode, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
     createClientRegistrationLinkAction,
     deactivateClientRegistrationLinkAction,
     deleteClientRegistrationLinkAction,
+    renameClientRegistrationLinkAction,
 } from "@/app/client/cadastros/actions";
 import { CreateRegistrationLinkSheet } from "@/components/registrations/CreateRegistrationLinkSheet";
+import { RenameRegistrationLinkDialog } from "@/components/registrations/RenameRegistrationLinkDialog";
 import {
     RegistrationLinkQrDialog,
     type RegistrationLinkQrTarget,
@@ -66,6 +68,8 @@ export function ClientRegistrationLinksPanel({
     const [qrTarget, setQrTarget] =
         useState<RegistrationLinkQrTarget | null>(null);
     const [linkToDelete, setLinkToDelete] =
+        useState<RegistrationLinkListRow | null>(null);
+    const [linkToRename, setLinkToRename] =
         useState<RegistrationLinkListRow | null>(null);
 
     function copyText(text: string, message: string) {
@@ -195,6 +199,7 @@ export function ClientRegistrationLinksPanel({
                 <Table>
                     <TableHeader>
                         <TableRow>
+                            <TableHead>Nome</TableHead>
                             <TableHead>Código</TableHead>
                             <TableHead className="hidden md:table-cell">
                                 Criado em
@@ -210,7 +215,7 @@ export function ClientRegistrationLinksPanel({
                         {initialLinks.length === 0 ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={5}
+                                    colSpan={6}
                                     className="text-center text-sm text-muted-foreground"
                                 >
                                     Nenhum link ainda. Clique em &quot;Gerar
@@ -220,6 +225,28 @@ export function ClientRegistrationLinksPanel({
                         ) : (
                             initialLinks.map((row) => (
                                 <TableRow key={row.id}>
+                                    <TableCell>
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-sm">
+                                                {row.name?.trim()
+                                                    ? row.name
+                                                    : "—"}
+                                            </span>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon-sm"
+                                                aria-label="Editar nome"
+                                                title="Editar nome"
+                                                disabled={pending}
+                                                onClick={() =>
+                                                    setLinkToRename(row)
+                                                }
+                                            >
+                                                <Pencil className="size-3.5" />
+                                            </Button>
+                                        </div>
+                                    </TableCell>
                                     <TableCell className="font-mono text-xs">
                                         {row.code}
                                     </TableCell>
@@ -316,6 +343,28 @@ export function ClientRegistrationLinksPanel({
                     </TableBody>
                     </Table>
             </div>
+            <RenameRegistrationLinkDialog
+                open={linkToRename != null}
+                onOpenChange={(open) => {
+                    if (!open && !pending) setLinkToRename(null);
+                }}
+                initialName={linkToRename?.name ?? null}
+                onSubmit={async (name) => {
+                    if (!linkToRename) {
+                        return { ok: false as const, error: "Link inválido." };
+                    }
+                    const result = await renameClientRegistrationLinkAction(
+                        linkToRename.id,
+                        name,
+                    );
+                    if ("error" in result) {
+                        return { ok: false as const, error: result.error };
+                    }
+                    setLinkToRename(null);
+                    router.refresh();
+                    return { ok: true as const };
+                }}
+            />
             <RegistrationLinkQrDialog
                 open={qrTarget !== null}
                 onOpenChange={(next) => {

@@ -1,6 +1,15 @@
 "use client";
 
-import { Eye, MoreHorizontal, Pencil, RefreshCw, RotateCcw, Trash2 } from "lucide-react";
+import {
+    Eye,
+    MessageCircle,
+    MoreHorizontal,
+    Pencil,
+    Phone,
+    RefreshCw,
+    RotateCcw,
+    Trash2,
+} from "lucide-react";
 import { useState } from "react";
 
 import type { ClientRegistrationListRow } from "@/types/domain";
@@ -24,6 +33,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 type ListTab = "draft" | "approved" | "rejected" | "blocked" | "deleted";
+
+/** Dígitos prontos para wa.me / tel:, com DDI 55. */
+function toBrazilContactNumber(phone: string | null): string | null {
+    if (!phone) return null;
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length === 10 || digits.length === 11) return `55${digits}`;
+    if (
+        (digits.length === 12 || digits.length === 13) &&
+        digits.startsWith("55")
+    ) {
+        return digits;
+    }
+    return null;
+}
 
 export function RegistrationRowActions({
     row,
@@ -51,10 +74,11 @@ export function RegistrationRowActions({
     const [confirm, setConfirm] = useState<"delete" | "restore" | null>(null);
     const [working, setWorking] = useState(false);
 
+    const contactNumber = toBrazilContactNumber(row.phone);
     const isDeleted = tab === "deleted" || row.isActive === false;
     const isApproved = row.status === "approved" && !isDeleted;
     const canSync = isApproved && row.faceId != null;
-    const canEdit = isApproved;
+    const canEdit = isApproved || (row.status === "draft" && !isDeleted);
     const canDelete = isAdmin && isApproved;
     const canRestore = isAdmin && isDeleted;
 
@@ -89,6 +113,30 @@ export function RegistrationRowActions({
                     <DropdownMenuItem onClick={onView}>
                         <Eye />
                         Visualizar
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        disabled={!contactNumber}
+                        onClick={() => {
+                            if (!contactNumber) return;
+                            window.open(
+                                `https://wa.me/${contactNumber}`,
+                                "_blank",
+                                "noopener,noreferrer",
+                            );
+                        }}
+                    >
+                        <MessageCircle />
+                        WhatsApp
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        disabled={!contactNumber}
+                        onClick={() => {
+                            if (!contactNumber) return;
+                            window.location.href = `tel:+${contactNumber}`;
+                        }}
+                    >
+                        <Phone />
+                        Ligar
                     </DropdownMenuItem>
                     {canSync ? (
                         <>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { Copy, Link2, Loader2, MessageCircle, QrCode, Trash2 } from "lucide-react";
+import { Copy, Link2, Loader2, MessageCircle, Pencil, QrCode, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -9,9 +9,11 @@ import {
     deactivateCompanyRegistrationLinkAction,
     deleteCompanyRegistrationLinkAction,
     listCompanyRegistrationLinksAction,
+    renameCompanyRegistrationLinkAction,
 } from "@/app/company/clientes/[clientId]/usuarios/actions";
 import { deferInEffect } from "@/lib/defer-in-effect";
 import { CreateRegistrationLinkSheet } from "@/components/registrations/CreateRegistrationLinkSheet";
+import { RenameRegistrationLinkDialog } from "@/components/registrations/RenameRegistrationLinkDialog";
 import {
     RegistrationLinkQrDialog,
     type RegistrationLinkQrTarget,
@@ -68,6 +70,8 @@ export function CompanyClientRegistrationLinksPanel({
     const [qrTarget, setQrTarget] =
         useState<RegistrationLinkQrTarget | null>(null);
     const [linkToDelete, setLinkToDelete] =
+        useState<RegistrationLinkListRow | null>(null);
+    const [linkToRename, setLinkToRename] =
         useState<RegistrationLinkListRow | null>(null);
 
     function reloadLinks() {
@@ -253,6 +257,7 @@ export function CompanyClientRegistrationLinksPanel({
                 <Table>
                     <TableHeader>
                         <TableRow>
+                            <TableHead>Nome</TableHead>
                             <TableHead>Código</TableHead>
                             <TableHead className="hidden md:table-cell">
                                 Criado em
@@ -268,7 +273,7 @@ export function CompanyClientRegistrationLinksPanel({
                         {loading ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={5}
+                                    colSpan={6}
                                     className="text-center text-sm text-muted-foreground"
                                 >
                                     <Loader2 className="mx-auto size-5 animate-spin" />
@@ -277,7 +282,7 @@ export function CompanyClientRegistrationLinksPanel({
                         ) : links.length === 0 ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={5}
+                                    colSpan={6}
                                     className="text-center text-sm text-muted-foreground"
                                 >
                                     Nenhum link ainda. Clique em &quot;Gerar
@@ -287,6 +292,28 @@ export function CompanyClientRegistrationLinksPanel({
                         ) : (
                             links.map((row) => (
                                 <TableRow key={row.id}>
+                                    <TableCell>
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-sm">
+                                                {row.name?.trim()
+                                                    ? row.name
+                                                    : "—"}
+                                            </span>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon-sm"
+                                                aria-label="Editar nome"
+                                                title="Editar nome"
+                                                disabled={pending}
+                                                onClick={() =>
+                                                    setLinkToRename(row)
+                                                }
+                                            >
+                                                <Pencil className="size-3.5" />
+                                            </Button>
+                                        </div>
+                                    </TableCell>
                                     <TableCell className="font-mono text-xs">
                                         {row.code}
                                     </TableCell>
@@ -383,6 +410,29 @@ export function CompanyClientRegistrationLinksPanel({
                     </TableBody>
                 </Table>
             </div>
+            <RenameRegistrationLinkDialog
+                open={linkToRename != null}
+                onOpenChange={(open) => {
+                    if (!open && !pending) setLinkToRename(null);
+                }}
+                initialName={linkToRename?.name ?? null}
+                onSubmit={async (name) => {
+                    if (!linkToRename) {
+                        return { ok: false as const, error: "Link inválido." };
+                    }
+                    const result = await renameCompanyRegistrationLinkAction(
+                        clientId,
+                        linkToRename.id,
+                        name,
+                    );
+                    if ("error" in result) {
+                        return { ok: false as const, error: result.error };
+                    }
+                    setLinkToRename(null);
+                    reloadLinks();
+                    return { ok: true as const };
+                }}
+            />
             <RegistrationLinkQrDialog
                 open={qrTarget !== null}
                 onOpenChange={(next) => {

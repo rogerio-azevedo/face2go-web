@@ -48,6 +48,34 @@ export async function createClientRegistrationLinkAction(
     }
 }
 
+export async function renameClientRegistrationLinkAction(
+    linkId: string,
+    name: string,
+): Promise<{ success: true } | { error: string }> {
+    const pid = z.string().uuid().safeParse(linkId);
+    const parsedName = z.string().trim().max(80).safeParse(name);
+    if (!pid.success || !parsedName.success) {
+        return { error: 'Dados inválidos.' };
+    }
+    try {
+        const res = await apiFetchAuthed(
+            `/api/client/registration-links/${pid.data}`,
+            {
+                method: 'PATCH',
+                body: JSON.stringify({ name: parsedName.data }),
+            },
+        );
+        const data = await parseResponseJson(res);
+        if (!res.ok) {
+            return { error: nestErrorMessage(data) };
+        }
+        revalidatePath('/client/cadastros');
+        return { success: true };
+    } catch {
+        return { error: 'Sem permissão.' };
+    }
+}
+
 export async function deactivateClientRegistrationLinkAction(
     linkId: string,
 ): Promise<{ success: true } | { error: string }> {

@@ -1,6 +1,9 @@
-export type CreateRegistrationLinkBody =
+export const REGISTRATION_LINK_NAME_MAX = 80;
+
+export type CreateRegistrationLinkBody = (
     | { kind: "permanent" }
-    | { kind: "temporary"; validFrom: string; validUntil: string };
+    | { kind: "temporary"; validFrom: string; validUntil: string }
+) & { name?: string };
 
 /** Formata Date para valor de input datetime-local (YYYY-MM-DDTHH:mm) no horário local. */
 export function toDatetimeLocalValue(d: Date): string {

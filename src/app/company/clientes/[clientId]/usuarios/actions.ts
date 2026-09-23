@@ -185,6 +185,34 @@ export async function createCompanyRegistrationLinkAction(
     }
 }
 
+export async function renameCompanyRegistrationLinkAction(
+    clientId: string,
+    linkId: string,
+    name: string,
+): Promise<{ success: true } | { error: string }> {
+    const cid = z.string().uuid().safeParse(clientId);
+    const lid = z.string().uuid().safeParse(linkId);
+    const parsedName = z.string().trim().max(80).safeParse(name);
+    if (!cid.success || !lid.success || !parsedName.success) {
+        return { error: 'Dados inválidos.' };
+    }
+    try {
+        const res = await apiFetchAuthed(
+            `/api/clients/${cid.data}/registration-links/${lid.data}`,
+            {
+                method: 'PATCH',
+                body: JSON.stringify({ name: parsedName.data }),
+            },
+        );
+        const data = await parseResponseJson(res);
+        if (!res.ok) return { error: nestErrorMessage(data) };
+        revalidatePath(`/company/clientes/${cid.data}/usuarios`);
+        return { success: true };
+    } catch {
+        return { error: 'Sem permissão.' };
+    }
+}
+
 export async function deactivateCompanyRegistrationLinkAction(
     clientId: string,
     linkId: string,
