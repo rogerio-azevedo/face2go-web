@@ -1,6 +1,7 @@
 "use client";
 
 import {
+    Camera,
     Eye,
     MessageCircle,
     MoreHorizontal,
@@ -57,6 +58,7 @@ export function RegistrationRowActions({
     onSync,
     onForceSync,
     onEdit,
+    onRetake,
     onDelete,
     onRestore,
 }: {
@@ -68,6 +70,7 @@ export function RegistrationRowActions({
     onSync: () => void;
     onForceSync: () => void;
     onEdit: () => void;
+    onRetake: () => void;
     onDelete: () => Promise<void>;
     onRestore: () => Promise<void>;
 }) {
@@ -79,6 +82,9 @@ export function RegistrationRowActions({
     const isApproved = row.status === "approved" && !isDeleted;
     const canSync = isApproved && row.faceId != null;
     const canEdit = isApproved || (row.status === "draft" && !isDeleted);
+    const canRetake =
+        !isDeleted &&
+        (row.status === "draft" || row.status === "approved");
     const canDelete = isAdmin && isApproved;
     const canRestore = isAdmin && isDeleted;
 
@@ -114,6 +120,12 @@ export function RegistrationRowActions({
                         <Eye />
                         Visualizar
                     </DropdownMenuItem>
+                    {canRetake ? (
+                        <DropdownMenuItem onClick={onRetake}>
+                            <Camera />
+                            Refazer foto
+                        </DropdownMenuItem>
+                    ) : null}
                     <DropdownMenuItem
                         disabled={!contactNumber}
                         onClick={() => {

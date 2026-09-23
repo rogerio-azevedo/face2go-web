@@ -27,6 +27,13 @@ type CadastroFaceStepProps = {
     onUploaded: (faceImageKey: string) => void;
     /** Chamado ao tirar outra foto, para limpar a chave já enviada no wizard. */
     onUploadCleared?: () => void;
+    /** Substitui o endpoint padrão do cadastro público. */
+    uploadUrl?: string;
+    /** Quando false, o multipart não envia registrationId. */
+    sendRegistrationId?: boolean;
+    successToast?: string;
+    uploadedMessage?: string;
+    allowAnotherPhoto?: boolean;
 };
 
 const STAGE_BUTTON_CLASS = "h-14 w-full text-base";
@@ -36,6 +43,11 @@ export function CadastroFaceStep({
     registrationId,
     onUploaded,
     onUploadCleared,
+    uploadUrl,
+    sendRegistrationId = true,
+    successToast = "Foto enviada. Agora conclua o cadastro abaixo.",
+    uploadedMessage = "Foto recebida com sucesso. Toque em “Enviar cadastro” para finalizar.",
+    allowAnotherPhoto = true,
 }: CadastroFaceStepProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const streamRef = useRef<MediaStream | null>(null);
@@ -178,14 +190,16 @@ export function CadastroFaceStep({
             }
             const formData = new FormData();
             formData.append("file", blob, "face.jpg");
-            formData.append("registrationId", registrationId);
-            const res = await fetch(
-                `${getApiBaseUrl()}/api/register/${encodeURIComponent(code.trim())}/upload-photo`,
-                {
-                    method: "POST",
-                    body: formData,
-                },
-            );
+            if (sendRegistrationId) {
+                formData.append("registrationId", registrationId);
+            }
+            const endpoint =
+                uploadUrl ??
+                `${getApiBaseUrl()}/api/register/${encodeURIComponent(code.trim())}/upload-photo`;
+            const res = await fetch(endpoint, {
+                method: "POST",
+                body: formData,
+            });
             const data = (await res.json()) as {
                 faceImageKey?: string;
                 message?: string | string[];
@@ -198,7 +212,7 @@ export function CadastroFaceStep({
             }
             if (!data.faceImageKey) throw new Error("Resposta inválida.");
             setStatus("uploaded");
-            toast.success("Foto enviada. Agora conclua o cadastro abaixo.");
+            if (successToast) toast.success(successToast);
             onUploaded(data.faceImageKey);
         } catch (err) {
             setStatus("preview_local");
@@ -333,18 +347,19 @@ export function CadastroFaceStep({
                     />
                     <div className="space-y-2">
                         <p className="text-center text-sm font-medium text-emerald-700 dark:text-emerald-500">
-                            Foto recebida com sucesso. Toque em &quot;Enviar cadastro&quot;
-                            para finalizar.
+                            {uploadedMessage}
                         </p>
-                        <Button
-                            type="button"
-                            size="lg"
-                            variant="outline"
-                            className="h-11 w-full"
-                            onClick={resetCapture}
-                        >
-                            Tirar outra foto
-                        </Button>
+                        {allowAnotherPhoto ? (
+                            <Button
+                                type="button"
+                                size="lg"
+                                variant="outline"
+                                className="h-11 w-full"
+                                onClick={resetCapture}
+                            >
+                                Tirar outra foto
+                            </Button>
+                        ) : null}
                     </div>
                 </div>
             ) : null}

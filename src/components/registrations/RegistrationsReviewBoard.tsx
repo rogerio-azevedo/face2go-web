@@ -28,7 +28,9 @@ import { RegistrationsFaceSyncAllModal } from "@/features/registrations/componen
 import { RegistrationRowActions } from "@/features/registrations/components/RegistrationRowActions";
 import { DeviceSyncStatusBadge } from "@/components/company/clientes/escola/DeviceSyncStatusBadge";
 import { UnblockPersonDialog } from "@/components/company/clientes/escola/UnblockPersonDialog";
+import { createFaceRetakeLinkAction } from "@/features/registrations/actions/face-retake";
 import { listRegistrationsAction } from "@/features/registrations/actions/list";
+import { FaceRetakeLinkDialog } from "@/features/registrations/components/FaceRetakeLinkDialog";
 import { emptyRegistrationsPage } from "@/lib/pagination";
 import { formatCpfOrCnpj } from "@/lib/utils/document";
 import { useRegistrationFaceSync } from "@/features/registrations/hooks/use-registration-face-sync";
@@ -211,6 +213,14 @@ export function RegistrationsReviewBoard({
     const [editRow, setEditRow] = useState<ClientRegistrationListRow | null>(
         null,
     );
+    const [retakeBusyId, setRetakeBusyId] = useState<string | null>(null);
+    const [retakeLink, setRetakeLink] = useState<{
+        personName: string | null;
+        phone: string | null;
+        url: string;
+        message: string;
+        expiresAt: string;
+    } | null>(null);
     const [loading, setLoading] = useState(true);
     const [pending, startTransition] = useTransition();
     const [showLinks, setShowLinks] = useState(false);
@@ -495,6 +505,27 @@ export function RegistrationsReviewBoard({
         void runSyncFace(activeRow);
     }
 
+    async function openRetake(row: ClientRegistrationListRow) {
+        setRetakeBusyId(row.id);
+        const result = await createFaceRetakeLinkAction(
+            variant,
+            row.id,
+            companyClientId,
+        );
+        setRetakeBusyId(null);
+        if (!result.ok) {
+            toast.error(result.error);
+            return;
+        }
+        setRetakeLink({
+            personName: row.name,
+            phone: row.phone,
+            url: result.result.url,
+            message: result.result.message,
+            expiresAt: result.result.expiresAt,
+        });
+    }
+
     async function runDelete(row: ClientRegistrationListRow) {
         const res =
             variant === "client"
@@ -776,12 +807,15 @@ export function RegistrationsReviewBoard({
                                             tab={tab}
                                             isAdmin={isAdmin}
                                             busy={
-                                                pending || syncingId === row.id
+                                                pending ||
+                                                syncingId === row.id ||
+                                                retakeBusyId === row.id
                                             }
                                             onView={() => void openDetail(row)}
                                             onSync={() => void runSyncFace(row)}
                                             onForceSync={() => setForceRow(row)}
                                             onEdit={() => setEditRow(row)}
+                                            onRetake={() => void openRetake(row)}
                                             onDelete={() => runDelete(row)}
                                             onRestore={() => runRestore(row)}
                                         />
@@ -970,6 +1004,19 @@ export function RegistrationsReviewBoard({
                     </div>
                     {activeRow?.status === "draft" ? (
                         <SheetFooter className="flex-row flex-wrap gap-2 sm:justify-end">
+                            {activeRow.isActive ? (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    disabled={
+                                        pending ||
+                                        retakeBusyId === activeRow.id
+                                    }
+                                    onClick={() => void openRetake(activeRow)}
+                                >
+                                    Refazer foto
+                                </Button>
+                            ) : null}
                             <Button
                                 type="button"
                                 variant="outline"
@@ -1004,6 +1051,19 @@ export function RegistrationsReviewBoard({
                         </SheetFooter>
                     ) : activeRow?.status === "approved" ? (
                         <SheetFooter className="flex-row flex-wrap gap-2 sm:justify-end">
+                            {activeRow.isActive ? (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    disabled={
+                                        pending ||
+                                        retakeBusyId === activeRow.id
+                                    }
+                                    onClick={() => void openRetake(activeRow)}
+                                >
+                                    Refazer foto
+                                </Button>
+                            ) : null}
                             <Button
                                 type="button"
                                 variant="outline"
@@ -1072,6 +1132,18 @@ export function RegistrationsReviewBoard({
                     ) : null}
                 </SheetContent>
             </Sheet>
+
+            <FaceRetakeLinkDialog
+                open={retakeLink != null}
+                onOpenChange={(open) => {
+                    if (!open) setRetakeLink(null);
+                }}
+                personName={retakeLink?.personName ?? null}
+                phone={retakeLink?.phone ?? null}
+                url={retakeLink?.url ?? ""}
+                message={retakeLink?.message ?? ""}
+                expiresAt={retakeLink?.expiresAt ?? ""}
+            />
 
             <RegistrationEditSheet
                 open={editRow != null}
