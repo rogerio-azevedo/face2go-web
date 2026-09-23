@@ -116,6 +116,8 @@ export type ReaderListRow = {
     hasCredentials: boolean;
     isActive: boolean;
     restrictMinors: boolean;
+    connectionMode?: 'direct' | 'auto_register';
+    autoRegisterDeviceId?: string | null;
     lastSeenAt: string | null;
     createdAt: string;
 };

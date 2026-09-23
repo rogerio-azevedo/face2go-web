@@ -33,6 +33,16 @@ export const READER_BRANDS = ["intelbras", "hikvision"] as const;
 export type ReaderBrandSlug = (typeof READER_BRANDS)[number];
 
 export const READER_DIRECTIONS = ["in", "out"] as const;
+
+export const READER_CONNECTION_MODES = ["direct", "auto_register"] as const;
+
+export const READER_CONNECTION_MODE_LABELS: Record<
+    (typeof READER_CONNECTION_MODES)[number],
+    string
+> = {
+    direct: "Direto (IP ou NAT)",
+    auto_register: "Registro automático (sem NAT)",
+};
 export type ReaderDirectionSlug = (typeof READER_DIRECTIONS)[number];
 
 export const READER_BRAND_LABELS: Record<ReaderBrandSlug, string> = {
@@ -76,7 +86,17 @@ const readerFields = z.object({
     password: z.string(),
     isActive: z.boolean(),
     restrictMinors: z.boolean(),
+    connectionMode: z.enum(READER_CONNECTION_MODES),
+    autoRegisterDeviceId: z.string().max(64, "ID muito longo"),
 });
+
+function autoRegisterIdOk(input: {
+    connectionMode?: string;
+    autoRegisterDeviceId?: string;
+}): boolean {
+    if (input.connectionMode !== "auto_register") return true;
+    return (input.autoRegisterDeviceId ?? "").trim().length > 0;
+}
 
 function passwordLengthOk(password: string | undefined): boolean {
     if (password === undefined || password.length === 0) return true;
@@ -84,13 +104,15 @@ function passwordLengthOk(password: string | undefined): boolean {
 }
 
 /** Schema do formulário (react-hook-form). */
-export const readerFormSchema = readerFields.refine(
-    (d) => passwordLengthOk(d.password),
-    {
+export const readerFormSchema = readerFields
+    .refine((d) => passwordLengthOk(d.password), {
         message: "Senha deve ter entre 4 e 256 caracteres",
         path: ["password"],
-    },
-);
+    })
+    .refine((d) => autoRegisterIdOk(d), {
+        message: "Informe o ID de registro automático do leitor.",
+        path: ["autoRegisterDeviceId"],
+    });
 
 const readerCreateApiFields = readerFields
     .omit({ direction: true })
@@ -113,7 +135,11 @@ export const createReaderSchema = readerCreateApiFields
             message: "Informe o usuário do leitor para salvar a senha.",
             path: ["username"],
         },
-    );
+    )
+    .refine((d) => autoRegisterIdOk(d), {
+        message: "Informe o ID de registro automático do leitor.",
+        path: ["autoRegisterDeviceId"],
+    });
 
 /** PATCH enviado à API: sentido nulo limpa o campo no servidor. */
 export const updateReaderSchema = readerFields
@@ -124,6 +150,10 @@ export const updateReaderSchema = readerFields
     .refine((d) => passwordLengthOk(d.password), {
         message: "Senha deve ter entre 4 e 256 caracteres",
         path: ["password"],
+    })
+    .refine((d) => autoRegisterIdOk(d), {
+        message: "Informe o ID de registro automático do leitor.",
+        path: ["autoRegisterDeviceId"],
     });
 
 /** Alias legado (imports antigos). */
@@ -145,6 +175,8 @@ export type ReaderFormPayload = {
     password: string;
     isActive: boolean;
     restrictMinors: boolean;
+    connectionMode: "direct" | "auto_register";
+    autoRegisterDeviceId: string;
 };
 
 export type ReaderUpdatePayload = z.infer<typeof updateReaderSchema>;

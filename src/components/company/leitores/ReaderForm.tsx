@@ -30,6 +30,8 @@ import { Switch } from "@/components/ui/switch";
 import {
     READER_BRANDS,
     READER_BRAND_LABELS,
+    READER_CONNECTION_MODES,
+    READER_CONNECTION_MODE_LABELS,
     READER_DIRECTIONS,
     READER_DIRECTION_LABELS,
     readerFormSchema,
@@ -57,6 +59,8 @@ function toCreateApiBody(data: ReaderFormPayload) {
         location: data.location,
         isActive: data.isActive,
         restrictMinors: data.restrictMinors,
+        connectionMode: data.connectionMode,
+        autoRegisterDeviceId: data.autoRegisterDeviceId.trim() || undefined,
     };
     if (data.direction !== "") {
         body.direction = data.direction;
@@ -85,6 +89,8 @@ function toUpdateApiBody(
         direction: data.direction === "" ? null : data.direction,
         username: data.username.trim() ? data.username.trim() : null,
         restrictMinors: data.restrictMinors,
+        connectionMode: data.connectionMode,
+        autoRegisterDeviceId: data.autoRegisterDeviceId.trim() || null,
     };
     if (data.password.length > 0 && data.password !== revealedPassword) {
         body.password = data.password;
@@ -134,6 +140,8 @@ export function ReaderForm({
             password: "",
             isActive: true,
             restrictMinors: false,
+            connectionMode: "direct",
+            autoRegisterDeviceId: "",
         }),
         [defaultClientId],
     );
@@ -155,6 +163,8 @@ export function ReaderForm({
                 password: "",
                 isActive: reader.isActive,
                 restrictMinors: reader.restrictMinors === true,
+                connectionMode: reader.connectionMode ?? "direct",
+                autoRegisterDeviceId: reader.autoRegisterDeviceId ?? "",
             };
         }
         return emptyDefaults;
@@ -174,7 +184,10 @@ export function ReaderForm({
     } = form;
 
     const brand = useWatch({ control, name: "brand" });
+    const connectionMode = useWatch({ control, name: "connectionMode" });
     const isIntelbras = brand === "intelbras";
+    const isHikvision = brand === "hikvision";
+    const showsConnectionMode = isIntelbras || isHikvision;
 
     useEffect(() => {
         deferInEffect(() => {
@@ -377,6 +390,73 @@ export function ReaderForm({
                                 ) : null}
                             </div>
 
+                            {showsConnectionMode ? (
+                                <>
+                                    <div className="min-w-0 space-y-2">
+                                        <Label
+                                            htmlFor="reader-connection-mode"
+                                            className={fieldLabel}
+                                        >
+                                            Conexão
+                                        </Label>
+                                        <select
+                                            id="reader-connection-mode"
+                                            className={cn(
+                                                "border-input bg-card text-foreground flex h-10 w-full rounded-md border px-3 py-2 text-sm shadow-sm",
+                                                errors.connectionMode &&
+                                                    "border-destructive ring-2 ring-destructive/20",
+                                            )}
+                                            aria-invalid={!!errors.connectionMode}
+                                            {...register("connectionMode")}
+                                        >
+                                            {READER_CONNECTION_MODES.map((mode) => (
+                                                <option key={mode} value={mode}>
+                                                    {READER_CONNECTION_MODE_LABELS[mode]}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    {connectionMode === "auto_register" ? (
+                                        <div className="min-w-0 space-y-2">
+                                            <Label
+                                                htmlFor="reader-autoreg-id"
+                                                className={fieldLabel}
+                                            >
+                                                {isHikvision
+                                                    ? "ID EHome *"
+                                                    : "ID de registro automático *"}
+                                            </Label>
+                                            <Input
+                                                id="reader-autoreg-id"
+                                                className={cn(
+                                                    "bg-card h-10 px-3",
+                                                    controlClass,
+                                                )}
+                                                aria-invalid={
+                                                    !!errors.autoRegisterDeviceId
+                                                }
+                                                {...register("autoRegisterDeviceId")}
+                                                placeholder={
+                                                    isHikvision
+                                                        ? "catraca-01"
+                                                        : "f2g-salao-01"
+                                                }
+                                            />
+                                            <p className="text-muted-foreground text-xs">
+                                                {isHikvision
+                                                    ? "Device ID da tela Platform Access. No leitor: Rede → Platform Access, ISUP 5.0, servidor 184.194.233.81, porta 7660, criptografia ligada com a mesma chave ISUP_KEY do gateway."
+                                                    : "O mesmo Dispositivo ID configurado no leitor, em Rede → Registro automático de CGI."}
+                                            </p>
+                                            {errors.autoRegisterDeviceId ? (
+                                                <p className="text-destructive text-xs">
+                                                    {errors.autoRegisterDeviceId.message}
+                                                </p>
+                                            ) : null}
+                                        </div>
+                                    ) : null}
+                                </>
+                            ) : null}
+
                             <div className="min-w-0 space-y-2">
                                 <Label htmlFor="reader-direction" className={fieldLabel}>
                                     Sentido{" "}
@@ -550,7 +630,9 @@ export function ReaderForm({
                                 <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
                                     {isIntelbras
                                         ? "Usuário e senha do painel HTTP (Digest). Em Intelbras, o Face2Go envia a config POST (1.0/2.0) para o aparelho; o leitor é que chama o servidor."
-                                        : "Usuário e senha do painel HTTP (Digest). Em Hikvision, o Face2Go conecta no leitor (alertStream/poll) — não há POST de eventos."}
+                                        : isHikvision && connectionMode === "auto_register"
+                                          ? "Usuário e senha do painel HTTP. Os comandos saem pela sessão ISUP que o leitor abre até 184.194.233.81:7660; o Face2Go não conecta no IP do aparelho."
+                                          : "Usuário e senha do painel HTTP (Digest). Em Hikvision, o Face2Go conecta no leitor (alertStream/poll) — não há POST de eventos."}
                                     A senha é armazenada criptografada.
                                     {mode === "edit"
                                         ? " O ícone de olho mostra a senha já salva."
