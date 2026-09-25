@@ -848,9 +848,9 @@ export function RegistrationsReviewBoard({
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                 <SheetContent
                     side="right"
-                    className="w-full data-[side=right]:sm:max-w-xl"
+                    className="max-h-dvh w-full overflow-hidden data-[side=right]:sm:max-w-xl"
                 >
-                    <SheetHeader>
+                    <SheetHeader className="shrink-0">
                         <SheetTitle>
                             {activeRow?.name ?? "Cadastro"}
                         </SheetTitle>
@@ -867,7 +867,7 @@ export function RegistrationsReviewBoard({
                             ) : null}
                         </SheetDescription>
                     </SheetHeader>
-                    <div className="flex flex-col gap-3 px-4">
+                    <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4">
                         {activeRow ? (
                             <>
                                 <p className="text-xs text-muted-foreground">
@@ -1009,7 +1009,7 @@ export function RegistrationsReviewBoard({
                         ) : null}
                     </div>
                     {activeRow?.status === "draft" ? (
-                        <SheetFooter className="flex-row flex-wrap gap-2 sm:justify-end">
+                        <SheetFooter className="shrink-0 flex-row flex-wrap gap-2 pb-[max(1rem,env(safe-area-inset-bottom))] sm:justify-end">
                             {activeRow.isActive ? (
                                 <Button
                                     type="button"
@@ -1056,7 +1056,7 @@ export function RegistrationsReviewBoard({
                             </Button>
                         </SheetFooter>
                     ) : activeRow?.status === "approved" ? (
-                        <SheetFooter className="flex-row flex-wrap gap-2 sm:justify-end">
+                        <SheetFooter className="shrink-0 flex-row flex-wrap gap-2 pb-[max(1rem,env(safe-area-inset-bottom))] sm:justify-end">
                             {activeRow.isActive ? (
                                 <Button
                                     type="button"
@@ -1103,7 +1103,7 @@ export function RegistrationsReviewBoard({
                             ) : null}
                         </SheetFooter>
                     ) : activeRow?.status === "blocked" ? (
-                        <SheetFooter className="flex-row flex-wrap gap-2 sm:justify-end">
+                        <SheetFooter className="shrink-0 flex-row flex-wrap gap-2 pb-[max(1rem,env(safe-area-inset-bottom))] sm:justify-end">
                             <Button
                                 type="button"
                                 disabled={pending}
