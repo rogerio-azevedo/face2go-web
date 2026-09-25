@@ -191,7 +191,7 @@ export function ReadersTable({
                             <TableHead>Nome</TableHead>
                             <TableHead>Marca</TableHead>
                             <TableHead>Endereço</TableHead>
-                            <TableHead title="Monitor de eventos (stream/poll) — não indica se o ISAPI responde">
+                            <TableHead title="No modo direto, monitor de eventos. No registro automático (sem NAT), sessão do gateway.">
                                 Conexão
                             </TableHead>
                             <TableHead>Direção</TableHead>
@@ -255,6 +255,7 @@ export function ReadersTable({
                                         <ConnectionBadge
                                             device={monitorByReaderId[row.id]}
                                             loading={monitorLoading}
+                                            connectionMode={row.connectionMode}
                                         />
                                     </TableCell>
                                     <TableCell>

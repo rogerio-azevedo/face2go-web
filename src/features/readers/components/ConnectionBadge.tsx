@@ -4,15 +4,21 @@ import type { ReaderMonitorDeviceApiRow } from "@/types/domain";
 export function ConnectionBadge({
     device,
     loading,
+    connectionMode,
 }: {
     device: ReaderMonitorDeviceApiRow | undefined;
     loading: boolean;
+    connectionMode?: "direct" | "auto_register";
 }) {
-    const monitorOnlineHint =
-        "Monitor de eventos ativo — recebendo passagens em tempo real.";
+    const autoRegister = connectionMode === "auto_register";
+    const monitorOnlineHint = autoRegister
+        ? "Sessão de registro automático ativa."
+        : "Monitor de eventos ativo — recebendo passagens em tempo real.";
     const monitorOfflineHint =
         device?.lastConnectionError ??
-        "Monitor de eventos inativo — cadastro, sync e listagem ISAPI podem funcionar normalmente.";
+        (autoRegister
+            ? "Sem sessão no gateway de registro automático."
+            : "Monitor de eventos inativo — cadastro, sync e listagem ISAPI podem funcionar normalmente.");
 
     if (loading && !device) {
         return (
