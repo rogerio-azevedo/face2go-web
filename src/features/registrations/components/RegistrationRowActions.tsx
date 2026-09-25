@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+import { humanizeDeviceSyncError } from "@/lib/face-sync-result";
 import { isSimilarFaceSyncError } from "@/lib/similar-face-error";
 import type { ClientRegistrationListRow } from "@/types/domain";
 import {
@@ -200,7 +201,7 @@ export function RegistrationRowActions({
                         <>
                             <DropdownMenuSeparator />
                             <p className="text-destructive max-w-72 px-2 py-1.5 text-xs whitespace-normal">
-                                {row.deviceSyncError}
+                                {humanizeDeviceSyncError(row.deviceSyncError)}
                             </p>
                         </>
                     ) : null}

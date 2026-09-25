@@ -10,9 +10,38 @@ import {
     syncStudentFaceAction,
 } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
 import type { FaceSyncSaveHint } from "@/lib/face-sync-after-edit";
-import { isFaceSyncPending } from "@/lib/face-sync-result";
+import {
+    deviceSyncFailureMessage,
+    isFaceSyncPending,
+} from "@/lib/face-sync-result";
+import { getPersonFaceSyncStatusAction } from "@/features/school/actions/face-sync";
 
 type FaceSyncOfferTarget = { id: string; name: string };
+
+const SETTLE_POLL_MS = 2500;
+const SETTLE_POLL_MAX = 48;
+
+async function waitForQueuedFaceSync(params: {
+    clientId: string;
+    id: string;
+    kind: "student" | "responsible" | "member";
+}): Promise<{ deviceSyncStatus: string; deviceSyncError: string | null } | null> {
+    for (let attempt = 0; attempt < SETTLE_POLL_MAX; attempt++) {
+        await new Promise((resolve) => setTimeout(resolve, SETTLE_POLL_MS));
+        const status = await getPersonFaceSyncStatusAction(
+            params.clientId,
+            params.id,
+            params.kind,
+        );
+        if ("error" in status) return null;
+        if (isFaceSyncPending(status.deviceSyncStatus)) continue;
+        return {
+            deviceSyncStatus: status.deviceSyncStatus,
+            deviceSyncError: status.deviceSyncError,
+        };
+    }
+    return null;
+}
 
 export function useFaceSyncOffer(params: {
     clientId: string;
@@ -74,7 +103,7 @@ export function useFaceSyncOffer(params: {
                 }
                 if (!isFaceSyncPending(res.deviceSyncStatus)) {
                     toast.error(
-                        res.deviceSyncError ?? "Não foi possível sincronizar.",
+                        deviceSyncFailureMessage(res.deviceSyncError),
                     );
                     onAfterSync?.();
                     return;
@@ -88,6 +117,15 @@ export function useFaceSyncOffer(params: {
                     queryKey: ["school-face-sync", clientId],
                 });
                 onAfterSync?.();
+                void waitForQueuedFaceSync({ clientId, id, kind }).then(
+                    (settled) => {
+                        onAfterSync?.();
+                        if (settled?.deviceSyncStatus !== "sync_failed") return;
+                        toast.error(
+                            deviceSyncFailureMessage(settled.deviceSyncError),
+                        );
+                    },
+                );
             } catch {
                 toast.error("Não foi possível sincronizar.");
             }

@@ -199,6 +199,7 @@ export function StudentsSection({
                     clientId={clientId}
                     kind="students"
                     disabled={tableBusy}
+                    onJobsFinished={refresh}
                 />
             </div>
 

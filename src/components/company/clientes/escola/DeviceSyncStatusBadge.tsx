@@ -2,8 +2,18 @@
 
 import type { DeviceSyncStatus } from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import {
+    deviceSyncFailureMessage,
+    humanizeDeviceSyncError,
     isPartialSyncError,
     readerSyncFraction,
 } from "@/lib/face-sync-result";
@@ -38,7 +48,8 @@ function syncStatusTitle(params: {
     isMinor?: boolean | null;
 }): string | undefined {
     const { status, error, fraction, incomplete, isMinor } = params;
-    if (error) return error;
+    const readable = humanizeDeviceSyncError(error);
+    if (readable) return readable;
     if (status === "synced" && fraction) {
         if (isMinor === true && incomplete) {
             return `Sincronizado em ${fraction} leitores. Menor não entra em leitor 18+.`;
@@ -49,6 +60,15 @@ function syncStatusTitle(params: {
         return `Sincronizado em ${fraction} leitores.`;
     }
     return undefined;
+}
+
+function clickableDetail(
+    status: DeviceSyncStatus | null | undefined,
+    error?: string | null,
+): string | null {
+    if (status === "sync_failed") return deviceSyncFailureMessage(error);
+    const readable = humanizeDeviceSyncError(error);
+    return readable || null;
 }
 
 export function DeviceSyncStatusBadge({
@@ -83,24 +103,55 @@ export function DeviceSyncStatusBadge({
     const incomplete =
         syncedCount != null && totalCount != null && syncedCount < totalCount;
     const label = syncStatusLabel(status, error);
+    const detail = clickableDetail(status, error);
+    const text = fraction ? `${label} ${fraction}` : label;
+    const className = cn(
+        "whitespace-nowrap",
+        partial &&
+            "border-amber-500/40 bg-amber-100 text-amber-900 hover:bg-amber-100 dark:bg-amber-950/50 dark:text-amber-100",
+        detail && "cursor-pointer",
+    );
+
+    if (!detail) {
+        return (
+            <Badge
+                variant={syncStatusBadgeVariant(status, error)}
+                title={syncStatusTitle({
+                    status,
+                    error,
+                    fraction,
+                    incomplete,
+                    isMinor,
+                })}
+                className={className}
+            >
+                {text}
+            </Badge>
+        );
+    }
 
     return (
-        <Badge
-            variant={syncStatusBadgeVariant(status, error)}
-            title={syncStatusTitle({
-                status,
-                error,
-                fraction,
-                incomplete,
-                isMinor,
-            })}
-            className={cn(
-                "whitespace-nowrap",
-                partial &&
-                    "border-amber-500/40 bg-amber-100 text-amber-900 hover:bg-amber-100 dark:bg-amber-950/50 dark:text-amber-100",
-            )}
-        >
-            {fraction ? `${label} ${fraction}` : label}
-        </Badge>
+        <Dialog>
+            <Badge
+                variant={syncStatusBadgeVariant(status, error)}
+                render={<DialogTrigger />}
+                className={className}
+                aria-label={`Ver motivo: ${label}`}
+            >
+                {text}
+            </Badge>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>
+                        {partial
+                            ? "Sincronização parcial"
+                            : "Erro na sincronização"}
+                    </DialogTitle>
+                    <DialogDescription className="text-foreground whitespace-normal">
+                        {detail}
+                    </DialogDescription>
+                </DialogHeader>
+            </DialogContent>
+        </Dialog>
     );
 }

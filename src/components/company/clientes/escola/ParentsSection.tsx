@@ -140,6 +140,7 @@ export function ParentsSection({
                     clientId={clientId}
                     kind="responsibles"
                     disabled={tableBusy}
+                    onJobsFinished={refresh}
                 />
             </div>
 

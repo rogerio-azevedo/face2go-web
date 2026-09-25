@@ -3,9 +3,15 @@
 import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 
-import { getSchoolFaceSyncStatusAction } from "@/features/school/actions/face-sync";
+import {
+    getSchoolFaceSyncStatusAction,
+    type SchoolFaceSyncJob,
+} from "@/features/school/actions/face-sync";
 
-export function useSchoolFaceSync(clientId: string, onFinished?: () => void) {
+export function useSchoolFaceSync(
+    clientId: string,
+    onFinished?: (job: SchoolFaceSyncJob | null) => void,
+) {
     const query = useQuery({
         queryKey: ["school-face-sync", clientId],
         queryFn: async () => {
@@ -21,13 +27,15 @@ export function useSchoolFaceSync(clientId: string, onFinished?: () => void) {
     const activeJob = jobs[0] ?? null;
     const syncBusy = jobs.length > 0;
     const prevBusy = useRef(false);
+    const lastJob = useRef<SchoolFaceSyncJob | null>(null);
 
     useEffect(() => {
+        if (activeJob) lastJob.current = activeJob;
         if (prevBusy.current && !syncBusy) {
-            onFinished?.();
+            onFinished?.(lastJob.current);
         }
         prevBusy.current = syncBusy;
-    }, [onFinished, syncBusy]);
+    }, [activeJob, onFinished, syncBusy]);
 
     return { ...query, jobs, activeJob, syncBusy };
 }

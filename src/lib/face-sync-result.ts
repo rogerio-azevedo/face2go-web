@@ -11,6 +11,33 @@ export function isPartialSyncError(error: string | null | undefined): boolean {
     return error?.toLowerCase().includes("parcialmente") ?? false;
 }
 
+const FALLBACK_SYNC_ERROR = "Falha na sincronização. Tente de novo.";
+
+/** Textos técnicos já persistidos em `device_sync_error` (gateway / env). */
+export function humanizeDeviceSyncError(
+    error: string | null | undefined,
+): string {
+    if (error == null) return "";
+    const t = error.trim();
+    if (!t) return "";
+    return t
+        .replace(
+            /Leitor(?: Hikvision)? em registro automático sem (?:READER_GATEWAY_URL\/READER_GATEWAY_TOKEN|HIK_GATEWAY_URL\/HIK_GATEWAY_TOKEN)/gi,
+            "O leitor está em registro automático, mas o gateway não está configurado.",
+        )
+        .replace(
+            /Leitor(?: Hikvision)? em registro automático sem (?:ID de dispositivo|ID EHome)/gi,
+            "O leitor está em registro automático sem ID de dispositivo.",
+        )
+        .trim();
+}
+
+export function deviceSyncFailureMessage(
+    error: string | null | undefined,
+): string {
+    return humanizeDeviceSyncError(error) || FALLBACK_SYNC_ERROR;
+}
+
 /** Fração `synced/total` de leitores, ou null se ainda não dá para mostrar. */
 export function readerSyncFraction(
     synced: number | null | undefined,

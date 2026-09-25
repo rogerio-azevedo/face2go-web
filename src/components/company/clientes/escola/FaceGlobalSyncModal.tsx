@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import { Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
-import { enqueueSchoolFaceSyncAction } from "@/features/school/actions/face-sync";
+import {
+    enqueueSchoolFaceSyncAction,
+    type SchoolFaceSyncJob,
+} from "@/features/school/actions/face-sync";
 import { useSchoolFaceSync } from "@/features/school/hooks/use-school-face-sync";
 import { Button } from "@/components/ui/button";
 
@@ -13,6 +16,7 @@ type FaceGlobalSyncModalProps = {
     clientId: string;
     kind: "students" | "responsibles";
     disabled?: boolean;
+    onJobsFinished?: () => void;
 };
 
 const LABELS = {
@@ -55,13 +59,20 @@ export function FaceGlobalSyncModal({
     clientId,
     kind,
     disabled = false,
+    onJobsFinished,
 }: FaceGlobalSyncModalProps) {
     const router = useRouter();
     const labels = LABELS[kind];
-    const handleFinished = useCallback(() => {
-        toast.success("Sincronização concluída em segundo plano.");
-        router.refresh();
-    }, [router]);
+    const handleFinished = useCallback(
+        (job: SchoolFaceSyncJob | null) => {
+            if (job?.kind === "face.school" || job?.kind === "face.reader") {
+                toast.success("Sincronização concluída em segundo plano.");
+            }
+            router.refresh();
+            onJobsFinished?.();
+        },
+        [onJobsFinished, router],
+    );
     const { syncBusy, activeJob, refetch } = useSchoolFaceSync(
         clientId,
         handleFinished,
