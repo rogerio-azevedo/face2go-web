@@ -16,8 +16,8 @@ import {
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import type { ClientSystemUserRow } from '@/app/client/equipe/actions';
 
-import type { TelegramLink } from './actions';
-import { useCreateTelegramLink } from './use-telegram-alerts';
+import type { TelegramLink } from '../actions';
+import { useCreateTelegramLink } from '../use-telegram-alerts';
 
 function formatExpires(iso: string) {
     const date = new Date(iso);
