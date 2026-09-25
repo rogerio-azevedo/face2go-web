@@ -21,6 +21,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/clients/{clientId}/device-sync-jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Fila de sync de dispositivos do cliente */
+        get: operations["ClientDeviceSyncJobsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{clientId}/device-sync-jobs/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Contagem de jobs por status */
+        get: operations["ClientDeviceSyncJobsController_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{clientId}/device-sync-jobs/cancel-queued": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancela todos os jobs ainda na fila */
+        post: operations["ClientDeviceSyncJobsController_cancelQueued"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{clientId}/device-sync-jobs/{jobId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancela um job (na fila: imediato; em execução: no próximo item) */
+        post: operations["ClientDeviceSyncJobsController_cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{clientId}/device-sync-jobs/{jobId}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reenfileira um job com falha ou cancelado */
+        post: operations["ClientDeviceSyncJobsController_retry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/companies/{id}/features": {
         parameters: {
             query?: never;
@@ -4724,6 +4809,59 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        DeviceSyncJobListDto: {
+            items: {
+                /** Format: uuid */
+                jobId: string;
+                /** @enum {string} */
+                kind: "face.person" | "face.reader" | "face.school" | "lpr.vehicle" | "lpr.camera";
+                /** @enum {string} */
+                status: "queued" | "running" | "done" | "failed" | "canceled";
+                targetId: string;
+                label: string | null;
+                entityKind: string | null;
+                force: boolean;
+                processed: number;
+                total: number;
+                attempts: number;
+                cancelRequested: boolean;
+                error: string | null;
+                createdAt: string;
+                startedAt: string | null;
+                finishedAt: string | null;
+            }[];
+            total: number;
+            page: number;
+            pageSize: number;
+        };
+        DeviceSyncJobSummaryDto: {
+            queued: number;
+            running: number;
+            done: number;
+            failed: number;
+            canceled: number;
+        };
+        DeviceSyncCancelQueuedResultDto: {
+            canceled: number;
+        };
+        DeviceSyncJobCancelResultDto: {
+            /** @enum {string} */
+            result: "canceled" | "cancel_requested";
+        };
+        DeviceSyncJobDto: {
+            /** Format: uuid */
+            jobId: string;
+            kind: string;
+            /** @enum {string} */
+            status: "queued" | "running" | "done" | "failed" | "canceled";
+            force: boolean;
+            /** Format: uuid */
+            targetId: string;
+            entityKind?: string;
+            processed: number;
+            total: number;
+            error: string | null;
+        };
         ToggleCompanyFeatureDto: {
             enabled: boolean;
         };
@@ -5056,6 +5194,118 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    ClientDeviceSyncJobsController_list: {
+        parameters: {
+            query?: {
+                status?: ("queued" | "running" | "done" | "failed" | "canceled") | "active";
+                kind?: "face.person" | "face.reader" | "face.school" | "lpr.vehicle" | "lpr.camera";
+                page?: number;
+                pageSize?: number;
+            };
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceSyncJobListDto"];
+                };
+            };
+        };
+    };
+    ClientDeviceSyncJobsController_summary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceSyncJobSummaryDto"];
+                };
+            };
+        };
+    };
+    ClientDeviceSyncJobsController_cancelQueued: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceSyncCancelQueuedResultDto"];
+                };
+            };
+        };
+    };
+    ClientDeviceSyncJobsController_cancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                jobId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceSyncJobCancelResultDto"];
+                };
+            };
+        };
+    };
+    ClientDeviceSyncJobsController_retry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                jobId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceSyncJobDto"];
+                };
             };
         };
     };

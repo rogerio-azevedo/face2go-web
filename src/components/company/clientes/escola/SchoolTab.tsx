@@ -9,6 +9,7 @@ import {
 
 import { InvitesSection } from "./InvitesSection";
 import { ClientAddressesPanel } from "@/components/company/clientes/enderecos/ClientAddressesPanel";
+import { DeviceSyncQueuePanel } from "@/features/device-sync/components/DeviceSyncQueuePanel";
 import { MembersSection } from "./MembersSection";
 import { ParentsSection } from "./ParentsSection";
 import { PickupAuthorizationsSection } from "./PickupAuthorizationsSection";
@@ -41,6 +42,9 @@ export function SchoolTab({
                     <TabsTrigger value="invites">Visitantes</TabsTrigger>
                     <TabsTrigger value="vehicles">Veículos</TabsTrigger>
                     <TabsTrigger value="addresses">Endereços</TabsTrigger>
+                    {isAdmin ? (
+                        <TabsTrigger value="sync-queue">Fila de sync</TabsTrigger>
+                    ) : null}
                 </TabsList>
                 <TabsContent value="students" className="pt-4">
                     <StudentsSection clientId={clientId} isAdmin={isAdmin} />
@@ -72,6 +76,11 @@ export function SchoolTab({
                         canEdit={canEditAddresses}
                     />
                 </TabsContent>
+                {isAdmin ? (
+                    <TabsContent value="sync-queue" className="pt-4">
+                        <DeviceSyncQueuePanel clientId={clientId} />
+                    </TabsContent>
+                ) : null}
             </Tabs>
         </div>
     );

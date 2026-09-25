@@ -4,6 +4,7 @@ import { CompanyClientRegistrationLinksPanel } from "@/components/company/client
 import { ClientAddressesPanel } from "@/components/company/clientes/enderecos/ClientAddressesPanel";
 import { SchoolTab } from "@/components/company/clientes/escola/SchoolTab";
 import { RegistrationsReviewBoard } from "@/components/registrations/RegistrationsReviewBoard";
+import { DeviceSyncQueuePanel } from "@/features/device-sync/components/DeviceSyncQueuePanel";
 import { RegistrationFieldsConfigPanel } from "@/features/registrations/components/RegistrationFieldsConfigPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -45,6 +46,9 @@ export function ClientDetailTabs({
                     Campos do cadastro
                 </TabsTrigger>
                 <TabsTrigger value="addresses">Endereços</TabsTrigger>
+                {isAdmin ? (
+                    <TabsTrigger value="sync-queue">Fila de sync</TabsTrigger>
+                ) : null}
             </TabsList>
 
             <TabsContent value="requests" className="space-y-4">
@@ -80,6 +84,12 @@ export function ClientDetailTabs({
                     canEdit={canEditAddresses}
                 />
             </TabsContent>
+
+            {isAdmin ? (
+                <TabsContent value="sync-queue" className="space-y-4">
+                    <DeviceSyncQueuePanel clientId={clientId} />
+                </TabsContent>
+            ) : null}
         </Tabs>
     );
 }
