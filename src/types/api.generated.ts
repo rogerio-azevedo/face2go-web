@@ -4293,6 +4293,75 @@ export interface paths {
         patch: operations["NotificationsController_registerPushToken"];
         trace?: never;
     };
+    "/telegram/webhook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Webhook do bot de alertas do Telegram */
+        post: operations["TelegramWebhookController_webhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/client/telegram-alerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar chats do Telegram vinculados ao cliente */
+        get: operations["TelegramAlertsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/client/telegram-alerts/link-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Gerar link de vínculo de usuário ou grupo */
+        post: operations["TelegramAlertsController_createLinkToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/client/telegram-alerts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remover um chat do Telegram */
+        delete: operations["TelegramAlertsController_remove"];
+        options?: never;
+        head?: never;
+        /** Ativar ou desativar um chat do Telegram */
+        patch: operations["TelegramAlertsController_setActive"];
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -5118,6 +5187,20 @@ export interface components {
         };
         UpdatePushTokenDto: {
             pushToken: string;
+        };
+        TelegramWebhookDto: {
+            update_id?: number;
+            message?: unknown;
+            my_chat_member?: unknown;
+        };
+        CreateTelegramLinkTokenDto: {
+            /** @enum {string} */
+            kind: "user" | "group";
+            /** Format: uuid */
+            targetUserId?: string;
+        };
+        UpdateTelegramChatDto: {
+            isActive: boolean;
         };
         SimulateFaceAccessDto: {
             /** Format: uuid */
@@ -11347,6 +11430,107 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["UpdatePushTokenDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    TelegramWebhookController_webhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TelegramWebhookDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    TelegramAlertsController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    TelegramAlertsController_createLinkToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTelegramLinkTokenDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    TelegramAlertsController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    TelegramAlertsController_setActive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTelegramChatDto"];
             };
         };
         responses: {

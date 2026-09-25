@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import type { ComponentProps } from "react";
 import {
+    Bell,
     BriefcaseBusiness,
     Building2,
     Camera,
@@ -253,6 +254,11 @@ function navItemsForRole(
                     title: "Equipe",
                     url: "/client/equipe",
                     icon: UserCog,
+                },
+                {
+                    title: "Alertas",
+                    url: "/client/alertas",
+                    icon: Bell,
                 },
             ];
         case "client_operator":
