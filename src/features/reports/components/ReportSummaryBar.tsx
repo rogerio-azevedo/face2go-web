@@ -3,7 +3,7 @@
 import { Car, ScanFace, Users } from 'lucide-react';
 
 import type { EnrollmentSummary } from '@/features/reports/types';
-import { ENROLLMENT_GROUP_LABEL } from '@/features/reports/types';
+import { enrollmentGroupLabel } from '@/features/reports/types';
 import { cn } from '@/lib/utils';
 
 type ReportSummaryBarProps = {
@@ -76,7 +76,7 @@ export function ReportSummaryBar({ summary, loading }: ReportSummaryBarProps) {
 
   if (!summary) return null;
 
-  const groupLabel = ENROLLMENT_GROUP_LABEL[summary.group];
+  const groupLabel = enrollmentGroupLabel(summary.group, summary.clientType);
   const showVehicle = summary.withVehicle !== undefined;
   const percentWithoutFace =
     summary.total > 0

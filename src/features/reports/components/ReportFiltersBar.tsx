@@ -97,7 +97,7 @@ export function ReportFiltersBar({
   exportDisabled,
 }: ReportFiltersBarProps) {
   const showClassFilter = group === 'students';
-  const showVehicleFilters = group !== 'students';
+  const showVehicleFilters = group === 'responsibles' || group === 'members';
   const filtersDisabled = !clientId && scope === 'company';
 
   return (

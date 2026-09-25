@@ -157,6 +157,8 @@ export function ReportTable({
                     hasFace={row.hasFace}
                     hasReaders={row.hasFacialReaders}
                     error={row.deviceSyncError}
+                    syncedCount={row.readerSyncSynced}
+                    totalCount={row.readerSyncTotal}
                   />
                 </TableCell>
                 <TableCell className="p-1 text-center">

@@ -4,6 +4,7 @@ export const enrollmentGroupSchema = z.enum([
   'students',
   'responsibles',
   'members',
+  'registrations',
 ]);
 
 export type EnrollmentGroup = z.infer<typeof enrollmentGroupSchema>;

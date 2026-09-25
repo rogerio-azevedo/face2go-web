@@ -15,6 +15,8 @@ export type EnrollmentListItem = {
   deviceSyncStatus: 'pending_sync' | 'synced' | 'sync_failed' | null;
   deviceSyncError?: string | null;
   hasFacialReaders: boolean;
+  readerSyncSynced?: number | null;
+  readerSyncTotal?: number | null;
   hasLogin?: boolean;
 };
 
@@ -29,7 +31,18 @@ export const ENROLLMENT_GROUP_LABEL: Record<EnrollmentGroup, string> = {
   students: 'Alunos',
   responsibles: 'Responsáveis',
   members: 'Membros',
+  registrations: 'Usuários',
 };
+
+export function enrollmentGroupLabel(
+  group: EnrollmentGroup,
+  clientType?: string | null,
+): string {
+  if (group === 'registrations') {
+    return clientType === 'condominium' ? 'Moradores' : 'Usuários';
+  }
+  return ENROLLMENT_GROUP_LABEL[group];
+}
 
 export function groupsForClientType(
   clientType: string | null | undefined,
@@ -37,5 +50,8 @@ export function groupsForClientType(
   if (clientType === 'school') {
     return ['students', 'responsibles', 'members'];
   }
-  return ['members'];
+  if (!clientType) {
+    return ['students', 'responsibles', 'members'];
+  }
+  return ['registrations'];
 }

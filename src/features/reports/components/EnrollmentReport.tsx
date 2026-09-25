@@ -31,6 +31,10 @@ const ALL_GROUPS: EnrollmentGroup[] = [
   'members',
 ];
 
+function showsVehicle(group: EnrollmentGroup): boolean {
+  return group === 'responsibles' || group === 'members';
+}
+
 export function EnrollmentReport({
   scope,
   clients = [],
@@ -49,14 +53,15 @@ export function EnrollmentReport({
 
   const selectedClient = clients.find((client) => client.id === clientId);
   const hasFace = withFace ? true : withoutFace ? false : undefined;
-  const hasVehicle =
-    group === 'students'
-      ? undefined
-      : withVehicle
-        ? true
-        : withoutVehicle
-          ? false
-          : undefined;
+  const showVehicle = showsVehicle(group);
+  const showLogin = showVehicle;
+  const hasVehicle = showVehicle
+    ? withVehicle
+      ? true
+      : withoutVehicle
+        ? false
+        : undefined
+    : undefined;
   const queryInput = {
     scope,
     clientId: clientId || undefined,
@@ -82,7 +87,7 @@ export function EnrollmentReport({
     setGroup(groups[0]);
     setClassId('');
     setPage(1);
-    if (groups[0] === 'students') {
+    if (groups[0] && !showsVehicle(groups[0])) {
       setWithVehicle(false);
       setWithoutVehicle(false);
     }
@@ -122,7 +127,7 @@ export function EnrollmentReport({
           setGroup(next);
           setClassId('');
           setPage(1);
-          if (next === 'students') {
+          if (next !== 'responsibles' && next !== 'members') {
             setWithVehicle(false);
             setWithoutVehicle(false);
           }
@@ -184,8 +189,8 @@ export function EnrollmentReport({
             loading={listQuery.isLoading}
             showClass={group === 'students'}
             showRole={group === 'members'}
-            showLogin={group !== 'students'}
-            showVehicle={group !== 'students'}
+            showLogin={showLogin}
+            showVehicle={showVehicle}
             page={list.page}
             pageSize={list.pageSize}
             total={list.total}
