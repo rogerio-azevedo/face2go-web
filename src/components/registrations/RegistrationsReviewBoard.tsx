@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowDown, ArrowUp, ArrowUpDown, Loader2, RotateCcw } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState, useTransition, type ReactNode } from "react";
 import { toast } from "sonner";
 
@@ -30,12 +31,20 @@ import { RegistrationRowActions } from "@/features/registrations/components/Regi
 import { DeviceSyncStatusBadge } from "@/components/company/clientes/escola/DeviceSyncStatusBadge";
 import { UnblockPersonDialog } from "@/components/company/clientes/escola/UnblockPersonDialog";
 import { createFaceRetakeLinkAction } from "@/features/registrations/actions/face-retake";
-import { listRegistrationsAction } from "@/features/registrations/actions/list";
 import { FaceRetakeLinkDialog } from "@/features/registrations/components/FaceRetakeLinkDialog";
-import { emptyRegistrationsPage } from "@/lib/pagination";
+import {
+    DEFAULT_SCHOOL_PAGE_SIZE,
+    PAGE_SIZE_OPTIONS,
+    totalPages,
+} from "@/lib/pagination";
 import { formatCpfOrCnpj } from "@/lib/utils/document";
 import { useRegistrationFaceSync } from "@/features/registrations/hooks/use-registration-face-sync";
 import { useRegistrationBatchSync } from "@/features/registrations/hooks/use-registration-batch-sync";
+import {
+    invalidateRegistrationsList,
+    registrationsListQueryKey,
+    useRegistrationsList,
+} from "@/features/registrations/hooks/use-registrations-list";
 import { deferInEffect } from "@/lib/defer-in-effect";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import type {
@@ -190,9 +199,9 @@ export function RegistrationsReviewBoard({
     linksPanel?: ReactNode;
     linksCount?: number;
 }) {
-    const [page, setPage] = useState<PaginatedRegistrationsResponse>(
-        emptyRegistrationsPage(),
-    );
+    const queryClient = useQueryClient();
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState<number>(DEFAULT_SCHOOL_PAGE_SIZE);
     const [tab, setTab] = useState<Tab>("draft");
     const [search, setSearch] = useState("");
     const [block, setBlock] = useState("");
@@ -224,83 +233,66 @@ export function RegistrationsReviewBoard({
         message: string;
         expiresAt: string;
     } | null>(null);
-    const [loading, setLoading] = useState(true);
     const [pending, startTransition] = useTransition();
     const [showLinks, setShowLinks] = useState(false);
 
-    const fetchList = useCallback(
-        async (
-            nextPage: number,
-            nextSearch: string,
-            nextTab: Tab,
-            opts?: { silent?: boolean },
-        ) => {
-            if (!opts?.silent) setLoading(true);
-            try {
-                const r = await listRegistrationsAction(variant, {
-                    companyClientId,
-                    page: nextPage,
-                    pageSize: page.pageSize,
-                    search: nextSearch || undefined,
-                    block: block || undefined,
-                    unit: unit || undefined,
-                    room: room || undefined,
-                    status: nextTab,
-                });
-                if (!r.ok) {
-                    toast.error(r.error);
-                    return null;
-                }
-                const lastPage = Math.max(
-                    1,
-                    Math.ceil(r.result.total / r.result.pageSize) || 1,
-                );
-                if (r.result.data.length === 0 && r.result.page > lastPage) {
-                    setPage((prev) => ({ ...prev, page: lastPage }));
-                    return r.result;
-                }
-                setPage(r.result);
-                setActiveRow((prev) => {
-                    if (!prev) return prev;
-                    return (
-                        r.result.data.find((row) => row.id === prev.id) ?? prev
-                    );
-                });
-                return r.result;
-            } finally {
-                if (!opts?.silent) setLoading(false);
-            }
-        },
-        [variant, companyClientId, page.pageSize, block, unit, room],
-    );
+    const listFilters = {
+        variant,
+        companyClientId,
+        page,
+        pageSize,
+        search: search.trim() || undefined,
+        block: block.trim() || undefined,
+        unit: unit.trim() || undefined,
+        room: room.trim() || undefined,
+        status: tab,
+    };
+    const listQuery = useRegistrationsList(listFilters);
+    const rows = listQuery.data?.data;
+    const total = listQuery.data?.total ?? 0;
+    const resolvedClientType =
+        clientTypeProp ?? listQuery.data?.clientType ?? null;
+
+    const refreshList = useCallback(() => {
+        void invalidateRegistrationsList(
+            queryClient,
+            variant,
+            companyClientId,
+        );
+    }, [queryClient, variant, companyClientId]);
 
     const { runSync } = useRegistrationFaceSync({
         variant,
         companyClientId,
-        onAfterSync: () => {
-            void fetchList(page.page, search, tab, { silent: true });
-        },
+        onAfterSync: refreshList,
     });
 
     useRegistrationBatchSync({
         variant,
         companyClientId,
-        onFinished: () => {
-            void fetchList(page.page, search, tab, { silent: true });
-        },
+        onFinished: refreshList,
     });
 
     useEffect(() => {
+        const data = listQuery.data;
+        if (!data || listQuery.isPlaceholderData) return;
         deferInEffect(() => {
-            void fetchList(page.page, search, tab);
+            setActiveRow((prev) => {
+                if (!prev) return prev;
+                return data.data.find((row) => row.id === prev.id) ?? prev;
+            });
+            const lastPage = totalPages(data.total, pageSize);
+            if (data.data.length === 0 && page > lastPage) {
+                setPage(lastPage);
+            }
         });
-    }, [page.page, search, tab, fetchList]);
+    }, [listQuery.data, listQuery.isPlaceholderData, page, pageSize]);
 
     const filtered = useMemo(() => {
-        return [...page.data].sort((a, b) =>
+        return [...(rows ?? [])].sort((a, b) =>
             compareRows(a, b, sortField, sortDir),
         );
-    }, [page.data, sortField, sortDir]);
+    }, [rows, sortField, sortDir]);
 
     const toggleSort = useCallback((field: SortField) => {
         if (sortField === field) {
@@ -311,43 +303,32 @@ export function RegistrationsReviewBoard({
         setSortDir(field === "submittedAt" ? "desc" : "asc");
     }, [sortField]);
 
-    const resetToFirstPage = useCallback(() => {
-        setPage((prev) => (prev.page === 1 ? prev : { ...prev, page: 1 }));
+    const handleSearchChange = useCallback((value: string) => {
+        setSearch(value);
+        setPage(1);
     }, []);
 
-    const handleSearchChange = useCallback(
-        (value: string) => {
-            setSearch(value);
-            resetToFirstPage();
-        },
-        [resetToFirstPage],
-    );
+    const handleBlockChange = useCallback((value: string) => {
+        setBlock(value);
+        setPage(1);
+    }, []);
 
-    const handleBlockChange = useCallback(
-        (value: string) => {
-            setBlock(value);
-            resetToFirstPage();
-        },
-        [resetToFirstPage],
-    );
+    const handleUnitChange = useCallback((value: string) => {
+        setUnit(value);
+        setPage(1);
+    }, []);
 
-    const handleUnitChange = useCallback(
-        (value: string) => {
-            setUnit(value);
-            resetToFirstPage();
-        },
-        [resetToFirstPage],
-    );
+    const handleRoomChange = useCallback((value: string) => {
+        setRoom(value);
+        setPage(1);
+    }, []);
 
-    const handleRoomChange = useCallback(
-        (value: string) => {
-            setRoom(value);
-            resetToFirstPage();
-        },
-        [resetToFirstPage],
-    );
+    const handlePageSizeChange = useCallback((next: number) => {
+        setPageSize(next);
+        setPage(1);
+    }, []);
 
-    const locationType = clientTypeProp ?? page.clientType;
+    const locationType = resolvedClientType;
     const showBlockUnit = locationType === "condominium";
     const showRoom =
         locationType === "office" || locationType === "clinic";
@@ -355,7 +336,7 @@ export function RegistrationsReviewBoard({
     function handleTabChange(next: Tab) {
         setShowLinks(false);
         setTab(next);
-        setPage((prev) => (prev.page === 1 ? prev : { ...prev, page: 1 }));
+        setPage(1);
     }
 
     async function openDetail(row: ClientRegistrationListRow) {
@@ -394,7 +375,7 @@ export function RegistrationsReviewBoard({
             }
             toast.success("Cadastro aprovado.");
             setSheetOpen(false);
-            void fetchList(page.page, search, tab);
+            refreshList();
         });
     }
 
@@ -418,7 +399,7 @@ export function RegistrationsReviewBoard({
             }
             toast.success("Cadastro rejeitado.");
             setSheetOpen(false);
-            void fetchList(page.page, search, tab);
+            refreshList();
         });
     }
 
@@ -444,7 +425,7 @@ export function RegistrationsReviewBoard({
             }
             toast.success("Cadastro bloqueado. A face será enviada ao leitor sem abrir a porta.");
             setSheetOpen(false);
-            void fetchList(page.page, search, tab);
+            refreshList();
         });
     }
 
@@ -467,8 +448,9 @@ export function RegistrationsReviewBoard({
             );
             setUnblockOpen(false);
             setSheetOpen(false);
-            setPage((prev) => (prev.page === 1 ? prev : { ...prev, page: 1 }));
+            setPage(1);
             setTab("approved");
+            refreshList();
         });
     }
 
@@ -489,12 +471,18 @@ export function RegistrationsReviewBoard({
                 deviceSyncStatus: result.deviceSyncStatus as DeviceSyncStatus,
                 deviceSyncError: result.deviceSyncError,
             };
-            setPage((prev) => ({
-                ...prev,
-                data: prev.data.map((r) =>
-                    r.id === row.id ? { ...r, ...patch } : r,
-                ),
-            }));
+            queryClient.setQueryData<PaginatedRegistrationsResponse>(
+                registrationsListQueryKey(listFilters),
+                (prev) => {
+                    if (!prev) return prev;
+                    return {
+                        ...prev,
+                        data: prev.data.map((r) =>
+                            r.id === row.id ? { ...r, ...patch } : r,
+                        ),
+                    };
+                },
+            );
             setActiveRow((prev) =>
                 prev?.id === row.id ? { ...prev, ...patch } : prev,
             );
@@ -542,7 +530,7 @@ export function RegistrationsReviewBoard({
             return;
         }
         toast.success("Cadastro excluído.");
-        void fetchList(page.page, search, tab);
+        refreshList();
     }
 
     async function runRestore(row: ClientRegistrationListRow) {
@@ -558,7 +546,7 @@ export function RegistrationsReviewBoard({
             return;
         }
         toast.success("Cadastro restaurado. A face será reenviada aos leitores.");
-        void fetchList(page.page, search, tab);
+        refreshList();
     }
 
     return (
@@ -574,7 +562,7 @@ export function RegistrationsReviewBoard({
                     >
                         {TAB_LABELS[k]}
                         <span className="ml-1.5 rounded-md bg-background/20 px-1.5 text-xs">
-                            {page.counts[k]}
+                            {listQuery.data?.counts[k] ?? 0}
                         </span>
                     </Button>
                 ))}
@@ -653,7 +641,7 @@ export function RegistrationsReviewBoard({
             </div>
 
             <div className="relative rounded-md border">
-                {loading ? (
+                {listQuery.isFetching ? (
                     <div className="bg-background/60 absolute inset-0 z-10 flex items-center justify-center rounded-md">
                         <Loader2 className="text-muted-foreground size-6 animate-spin" />
                     </div>
@@ -834,13 +822,13 @@ export function RegistrationsReviewBoard({
             </div>
 
             <DataTablePagination
-                page={page.page}
-                pageSize={page.pageSize}
-                total={page.total}
-                onPageChange={(next) =>
-                    setPage((prev) => ({ ...prev, page: next }))
-                }
-                disabled={loading || pending}
+                page={page}
+                pageSize={pageSize}
+                total={total}
+                onPageChange={setPage}
+                onPageSizeChange={handlePageSizeChange}
+                pageSizeOptions={PAGE_SIZE_OPTIONS}
+                disabled={listQuery.isFetching || pending}
             />
             </>
             )}
@@ -1157,11 +1145,11 @@ export function RegistrationsReviewBoard({
                     if (!open) setEditRow(null);
                 }}
                 row={editRow}
-                clientType={page.clientType ?? null}
+                clientType={resolvedClientType}
                 variant={variant}
                 companyClientId={companyClientId}
                 onSuccess={() => {
-                    void fetchList(page.page, search, tab);
+                    refreshList();
                 }}
             />
 

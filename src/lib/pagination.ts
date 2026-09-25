@@ -5,6 +5,8 @@ import type {
 
 export const DEFAULT_SCHOOL_PAGE_SIZE = 20;
 
+export const PAGE_SIZE_OPTIONS = [20, 50, 100] as const;
+
 export type SchoolListParams = {
     page?: number;
     pageSize?: number;

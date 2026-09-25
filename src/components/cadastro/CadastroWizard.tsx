@@ -522,15 +522,30 @@ export function CadastroWizard({ code }: { code: string }) {
                                 }
                                 className="mt-0.5"
                             />
-                            <Label
-                                htmlFor="truth"
-                                className="text-xs font-normal leading-snug text-muted-foreground"
-                            >
-                                Declaro, sob pena da lei, que os dados e a foto
-                                enviados são meus e verdadeiros. Informações
-                                falsas podem cancelar o cadastro e sujeitar o
-                                responsável às sanções legais.
-                            </Label>
+                            <div className="space-y-1.5">
+                                <Label
+                                    htmlFor="truth"
+                                    className="text-xs font-normal leading-snug text-muted-foreground"
+                                >
+                                    Declaro, sob pena da lei, que os dados e a
+                                    foto enviados são meus e verdadeiros.
+                                    Informações falsas podem cancelar o
+                                    cadastro e sujeitar o responsável às
+                                    sanções legais.
+                                </Label>
+                                <p className="text-xs leading-snug text-muted-foreground">
+                                    Ao seguir, você concorda com as políticas
+                                    de privacidade:{" "}
+                                    <a
+                                        href="https://www.face2go.com.br/privacy-policy"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="font-medium text-brand-cyan-blue underline"
+                                    >
+                                        Privacidade
+                                    </a>.
+                                </p>
+                            </div>
                         </div>
                         <Button
                             type="button"
