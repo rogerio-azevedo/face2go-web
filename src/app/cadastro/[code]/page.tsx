@@ -1,8 +1,24 @@
+import type { Metadata } from "next";
+
 import { CadastroWizard } from "@/components/cadastro/CadastroWizard";
+import {
+    buildPublicLinkMetadata,
+    fetchRegisterPreview,
+} from "@/lib/responsible-register-metadata";
 
 type PageProps = {
     params: Promise<{ code: string }>;
 };
+
+export async function generateMetadata({
+    params,
+}: PageProps): Promise<Metadata> {
+    const { code } = await params;
+    const preview = await fetchRegisterPreview(code ?? "");
+    const appBrand = preview?.appBrand ?? "face2go";
+
+    return buildPublicLinkMetadata(appBrand);
+}
 
 export default async function CadastroPublicPage({ params }: PageProps) {
     const { code } = await params;

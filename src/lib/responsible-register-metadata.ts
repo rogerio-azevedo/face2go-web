@@ -93,6 +93,12 @@ export async function fetchPickupRegisterPreview(
     return fetchPublicLinkPreview<PublicLinkPreview>("pickup-register", code);
 }
 
+export async function fetchRegisterPreview(
+    code: string,
+): Promise<PublicLinkPreview | null> {
+    return fetchPublicLinkPreview<PublicLinkPreview>("register", code);
+}
+
 export function buildResponsibleRegisterMetadata(
     appBrand: ResponsibleRegisterAppBrand,
 ): Metadata {
