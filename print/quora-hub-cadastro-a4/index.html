@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quora Hub — Cadastre seu acesso</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 210mm;
+      height: 297mm;
+      overflow: hidden;
+      background: #ffffff;
+      color: #141414;
+      font-family: "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .poster {
+      width: 210mm;
+      height: 297mm;
+      display: flex;
+      flex-direction: column;
+      background: #ffffff;
+    }
+
+    .header {
+      background: #000000;
+      height: 66mm;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 11mm 22mm;
+      flex-shrink: 0;
+    }
+
+    .header img {
+      display: block;
+      height: 38mm;
+      width: auto;
+      max-width: 146mm;
+      object-fit: contain;
+    }
+
+    .accent {
+      height: 1.6px;
+      background: #a8d428;
+      flex-shrink: 0;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12mm 18mm 0;
+      min-height: 0;
+    }
+
+    .hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 0;
+    }
+
+    h1 {
+      font-size: 24pt;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      line-height: 1.15;
+      text-align: center;
+      color: #111111;
+      text-transform: uppercase;
+    }
+
+    .lead {
+      margin-top: 5mm;
+      font-size: 12.5pt;
+      font-weight: 400;
+      letter-spacing: 0.01em;
+      color: #4a4a4a;
+      text-align: center;
+      line-height: 1.35;
+    }
+
+    .qr-wrap {
+      margin-top: 8mm;
+      padding: 4mm;
+      background: #ffffff;
+    }
+
+    .qr-wrap img {
+      display: block;
+      width: 102mm;
+      height: 102mm;
+      image-rendering: -webkit-optimize-contrast;
+    }
+
+    .hint {
+      margin-top: 6mm;
+      max-width: 140mm;
+      font-size: 11pt;
+      font-weight: 400;
+      color: #555555;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .notes {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5mm;
+      padding: 4mm 0 6mm;
+      flex-shrink: 0;
+    }
+
+    .age {
+      display: inline-block;
+      padding: 2.2mm 5.5mm;
+      border-radius: 100px;
+      background: #f4f8e6;
+      color: #4d5c28;
+      font-size: 9.5pt;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      text-align: center;
+      line-height: 1.35;
+    }
+
+    .after {
+      font-size: 9.5pt;
+      font-weight: 400;
+      color: #7a7a7a;
+      text-align: center;
+      line-height: 1.45;
+      max-width: 130mm;
+    }
+
+    .footer {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 5mm 18mm 8mm;
+      border-top: 0.4px solid #e6e6e6;
+    }
+
+    .footer img {
+      display: block;
+      height: 8mm;
+      width: auto;
+      opacity: 0.8;
+    }
+
+    .footer-tag {
+      margin-top: 2.2mm;
+      font-size: 7.2pt;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      color: #8a8a8a;
+      text-align: center;
+    }
+
+    .footer-copy {
+      margin-top: 1mm;
+      font-size: 6.5pt;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      color: #a3a3a3;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <article class="poster">
+    <header class="header">
+      <img src="logo-quora-hub.png" alt="Quora Hub" />
+    </header>
+    <div class="accent" aria-hidden="true"></div>
+
+    <main class="main">
+      <div class="hero">
+        <h1>Cadastre seu acesso</h1>
+        <p class="lead">Escaneie o QR Code e faça seu cadastro.</p>
+        <div class="qr-wrap">
+          <img src="qr-cadastro.png" alt="QR Code para cadastro de acesso" />
+        </div>
+        <p class="hint">Aponte a câmera do celular e siga as instruções na tela.</p>
+      </div>
+
+      <div class="notes">
+        <p class="age">Cadastro permitido para pessoas com 12 anos ou mais.</p>
+        <p class="after">Após o envio, seu cadastro será analisado e aprovado em breve.</p>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <img src="face2go-dark.svg" alt="Face2Go" />
+      <p class="footer-tag">Tecnologia de acesso por Face2Go</p>
+      <p class="footer-copy">© 2026 Face2Go</p>
+    </footer>
+  </article>
+</body>
+</html>

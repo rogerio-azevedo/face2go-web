@@ -15,9 +15,10 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
     const { code } = await params;
     const preview = await fetchInviteRegisterPreview(code ?? "");
-    const appBrand = preview?.appBrand ?? "face2go";
-
-    return buildPublicLinkMetadata(appBrand);
+    return buildPublicLinkMetadata(
+        preview?.appBrand ?? "face2go",
+        preview?.clientType,
+    );
 }
 
 export default async function ConvitePublicPage({ params }: PageProps) {
