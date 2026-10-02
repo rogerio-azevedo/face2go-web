@@ -1,6 +1,6 @@
 /** Tipos alinhados às respostas JSON da API Nest (datas como ISO string). */
 
-/** Resposta de `GET /api/dashboard/stats`. */
+/** Resposta de `GET /api/dashboard/stats` (painel da empresa). */
 export type DashboardStats = {
     clients?: number;
     students: number;

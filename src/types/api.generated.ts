@@ -4266,8 +4266,25 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Contagens do painel (escopo empresa ou cliente conforme o papel) */
+        /** Contagens do painel da empresa */
         get: operations["DashboardController_getStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/client/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Painel da unidade: pendências, pessoas, leitores e acessos do dia */
+        get: operations["ClientDashboardController_getOverview"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5184,6 +5201,42 @@ export interface components {
         UploadFaceDto: {
             /** @description Imagem JPEG em base64 (opcional prefixo data:image/jpeg;base64,) */
             imageBase64: string;
+        };
+        ClientDashboardDto: {
+            /** @enum {string} */
+            clientType: "office" | "clinic" | "condominium" | "school" | "other";
+            timezoneOffsetMinutes: number;
+            registrations: {
+                pending: number;
+                approved: number;
+            };
+            activeRegistrationLinks: number;
+            people: {
+                members: number;
+                students: number;
+                responsibles: number;
+            };
+            schoolClasses: number;
+            vehicles: number;
+            cameras: number;
+            readers: {
+                total: number;
+                online: number;
+            };
+            accessesToday: {
+                granted: number;
+                denied: number;
+            };
+            recentAccesses: {
+                id: string;
+                personName: string | null;
+                readerName: string;
+                /** @enum {string} */
+                status: "granted" | "denied";
+                createdAt: string;
+                /** @enum {string|null} */
+                readerDirection: "in" | "out" | null;
+            }[];
         };
         UpdatePushTokenDto: {
             pushToken: string;
@@ -11420,6 +11473,25 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    ClientDashboardController_getOverview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientDashboardDto"];
+                };
             };
         };
     };

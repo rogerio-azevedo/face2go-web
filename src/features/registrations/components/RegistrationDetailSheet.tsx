@@ -395,6 +395,19 @@ export function RegistrationDetailSheet({
                             </div>
                         </SheetFooter>
                     ) : null}
+                    {row?.status === "rejected" ? (
+                        <SheetFooter className="shrink-0 border-t pb-[max(1rem,env(safe-area-inset-bottom))]">
+                            <Button
+                                type="button"
+                                size="lg"
+                                className="h-11 w-full"
+                                disabled={pending}
+                                onClick={onApprove}
+                            >
+                                Aprovar
+                            </Button>
+                        </SheetFooter>
+                    ) : null}
                     {row?.status === "approved" ? (
                         <SheetFooter className="shrink-0 border-t pb-[max(1rem,env(safe-area-inset-bottom))]">
                             <div

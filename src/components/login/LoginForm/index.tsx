@@ -35,12 +35,27 @@ import type { LoginResponse, UserContext } from "@/types/auth-context";
 
 const marketingUrl = process.env.NEXT_PUBLIC_MARKETING_URL?.trim() ?? "";
 
+/** Só caminho interno. Rejeita URL absoluta, protocol-relative e barra invertida. */
+function safeInternalPath(value: string | null): string | null {
+    if (!value || !value.startsWith("/") || value.startsWith("//")) return null;
+    if (value.includes("\\") || value.includes("://")) return null;
+    return value;
+}
+
+function destinationAfterLogin(
+    role: string | undefined,
+    callbackUrl: string | null,
+): string {
+    return safeInternalPath(callbackUrl) ?? getDashboardPathForRole(role);
+}
+
 type LoginStep = "credentials" | "context";
 
 export function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const errorParam = searchParams.get("error");
+    const callbackUrl = searchParams.get("callbackUrl");
     const registeredParam = searchParams.get("registered");
     const inviteParam = searchParams.get("invite")?.trim() ?? "";
     const identifierParam = searchParams.get("identifier")?.trim() ?? "";
@@ -93,7 +108,7 @@ export function LoginForm() {
         }
 
         toast.success("Login realizado.");
-        router.push(getDashboardPathForRole(selected.user.role));
+        router.push(destinationAfterLogin(selected.user.role, callbackUrl));
         router.refresh();
     };
 
@@ -112,7 +127,9 @@ export function LoginForm() {
                 }
 
                 toast.success("Login realizado.");
-                router.push(getDashboardPathForRole(payload.user.role));
+                router.push(
+                    destinationAfterLogin(payload.user.role, callbackUrl),
+                );
                 router.refresh();
                 return;
             }

@@ -80,6 +80,8 @@ export function RegistrationsReviewBoard({
     clientType: clientTypeProp,
     linksPanel,
     linksCount,
+    initialShowLinks = false,
+    initialTab = "draft",
 }: {
     variant: "client" | "company";
     companyClientId?: string;
@@ -87,12 +89,14 @@ export function RegistrationsReviewBoard({
     clientType?: string | null;
     linksPanel?: ReactNode;
     linksCount?: number;
+    initialShowLinks?: boolean;
+    initialTab?: RegistrationListTab;
 }) {
     const queryClient = useQueryClient();
     const review = useRegistrationReviewActions({ variant, companyClientId });
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState<number>(DEFAULT_SCHOOL_PAGE_SIZE);
-    const [tab, setTab] = useState<RegistrationListTab>("draft");
+    const [tab, setTab] = useState<RegistrationListTab>(initialTab);
     const [search, setSearch] = useState("");
     const [block, setBlock] = useState("");
     const [unit, setUnit] = useState("");
@@ -123,7 +127,7 @@ export function RegistrationsReviewBoard({
         expiresAt: string;
     } | null>(null);
     const [pending, startTransition] = useTransition();
-    const [showLinks, setShowLinks] = useState(false);
+    const [showLinks, setShowLinks] = useState(initialShowLinks);
 
     const listFilters = {
         variant,

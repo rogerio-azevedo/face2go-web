@@ -8,11 +8,34 @@ import {
     apiFetchAuthed,
     parseResponseJson,
 } from "@/lib/api-fetch";
+import type { RegistrationListTab } from "@/features/registrations/lib/registration-format";
 import type { RegistrationLinkListRow } from "@/types/domain";
 
-export default async function ClientCadastrosPage() {
+const REGISTRATION_TABS: RegistrationListTab[] = [
+    "draft",
+    "approved",
+    "rejected",
+    "blocked",
+    "deleted",
+];
+
+function registrationTab(value: string | undefined): RegistrationListTab {
+    if (value && REGISTRATION_TABS.includes(value as RegistrationListTab)) {
+        return value as RegistrationListTab;
+    }
+    return "draft";
+}
+
+export default async function ClientCadastrosPage({
+    searchParams,
+}: {
+    searchParams: Promise<{ view?: string; tab?: string }>;
+}) {
     const session = await auth();
     const role = session?.user?.role;
+    const sp = await searchParams;
+    const initialShowLinks = sp.view === "links";
+    const initialTab = registrationTab(sp.tab);
     if (role !== "client_admin" && role !== "client_operator") {
         redirect("/client/dashboard");
     }
@@ -40,8 +63,11 @@ export default async function ClientCadastrosPage() {
                 description="Moradores, colaboradores e visitantes que acessam pelo leitor facial."
             />
             <RegistrationsReviewBoard
+                key={`${initialShowLinks ? "links" : "list"}-${initialTab}`}
                 variant="client"
                 isAdmin={role === "client_admin"}
+                initialShowLinks={initialShowLinks}
+                initialTab={initialTab}
                 linksCount={links.filter((row) => row.isActive).length}
                 linksPanel={
                     <ClientRegistrationLinksPanel

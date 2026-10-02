@@ -1,101 +1,111 @@
-import {
-    Camera,
-    Car,
-    GraduationCap,
-    ScanLine,
-    School,
-    Users,
-} from "lucide-react";
-
-import { DashboardStatsCard } from "@/components/shared/DashboardStatsCard";
-import { PageHeader } from "@/components/shared/PageHeader";
+import { auth } from "@/auth";
+import { ClientKpis } from "@/features/dashboard/components/ClientKpis";
+import { GettingStartedChecklist } from "@/features/dashboard/components/GettingStartedChecklist";
+import { PendingRegistrationsCard } from "@/features/dashboard/components/PendingRegistrationsCard";
+import { QuickActions } from "@/features/dashboard/components/QuickActions";
+import { RecentAccessesList } from "@/features/dashboard/components/RecentAccessesList";
+import { buildClientKpis } from "@/features/dashboard/lib/client-kpis";
+import type { ClientDashboard } from "@/features/dashboard/types";
 import { apiFetchAuthed } from "@/lib/api-fetch";
-import type { DashboardStats } from "@/types/domain";
+import { PageHeader } from "@/components/shared/PageHeader";
 
-const EMPTY_STATS: DashboardStats = {
-    students: 0,
-    responsibles: 0,
+const EMPTY_DASHBOARD: ClientDashboard = {
+    clientType: "other",
+    timezoneOffsetMinutes: 0,
+    registrations: { pending: 0, approved: 0 },
+    activeRegistrationLinks: 0,
+    people: { members: 0, students: 0, responsibles: 0 },
     schoolClasses: 0,
     vehicles: 0,
-    facialReaders: 0,
     cameras: 0,
+    readers: { total: 0, online: 0 },
+    accessesToday: { granted: 0, denied: 0 },
+    recentAccesses: [],
 };
 
-export default async function ClientDashboardPage() {
-    let stats: DashboardStats = EMPTY_STATS;
+function unitName(
+    context: { type?: string; clientName?: string } | null | undefined,
+): string | null {
+    if (
+        context &&
+        (context.type === "client" ||
+            context.type === "member" ||
+            context.type === "responsible") &&
+        context.clientName
+    ) {
+        return context.clientName;
+    }
+    return null;
+}
 
+export default async function ClientDashboardPage() {
+    const session = await auth();
+    const role = session?.user?.role;
+    const canManage = role === "client_admin" || role === "client_operator";
+    const canManageReaders = role === "client_admin";
+    const name = unitName(session?.activeContext);
+
+    let data = EMPTY_DASHBOARD;
     try {
-        const res = await apiFetchAuthed("/api/dashboard/stats");
+        const res = await apiFetchAuthed("/api/client/dashboard");
         if (res.ok) {
-            stats = (await res.json()) as DashboardStats;
+            data = (await res.json()) as ClientDashboard;
         }
     } catch {
-        stats = EMPTY_STATS;
+        data = EMPTY_DASHBOARD;
     }
+
+    const peopleCount =
+        data.people.members + data.people.students + data.people.responsibles;
+    const operating = data.readers.total > 0 && peopleCount > 0;
+    const setupDone =
+        data.readers.online > 0 &&
+        data.activeRegistrationLinks > 0 &&
+        data.registrations.approved > 0;
+
+    const description = !canManage
+        ? "Acessos e pessoas da unidade."
+        : data.clientType === "school"
+          ? "Alunos, acessos de hoje e o que ainda precisa de aprovação."
+          : "Pessoas, acessos de hoje e o que ainda precisa de aprovação.";
 
     return (
         <div className="space-y-6">
             <PageHeader
-                title="Painel"
-                description="Visão geral dos cadastros da sua unidade."
+                title={name ? `Olá, ${name}` : "Painel"}
+                description={description}
             />
 
-            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <li>
-                    <DashboardStatsCard
-                        title="Alunos"
-                        value={stats.students}
-                        description="Alunos cadastrados na unidade."
-                        icon={GraduationCap}
-                        iconClassName="bg-sky-600"
-                    />
-                </li>
-                <li>
-                    <DashboardStatsCard
-                        title="Responsáveis"
-                        value={stats.responsibles}
-                        description="Responsáveis vinculados aos alunos."
-                        icon={Users}
-                        iconClassName="bg-violet-600"
-                    />
-                </li>
-                <li>
-                    <DashboardStatsCard
-                        title="Turmas"
-                        value={stats.schoolClasses}
-                        description="Turmas cadastradas na escola."
-                        icon={School}
-                        iconClassName="bg-amber-600"
-                    />
-                </li>
-                <li>
-                    <DashboardStatsCard
-                        title="Veículos"
-                        value={stats.vehicles}
-                        description="Veículos cadastrados para acesso LPR."
-                        icon={Car}
-                        iconClassName="bg-orange-600"
-                    />
-                </li>
-                <li>
-                    <DashboardStatsCard
-                        title="Leitores"
-                        value={stats.facialReaders}
-                        description="Leitores faciais da unidade."
-                        icon={ScanLine}
-                        iconClassName="bg-teal-600"
-                    />
-                </li>
-                <li>
-                    <DashboardStatsCard
-                        title="Câmeras"
-                        value={stats.cameras}
-                        description="Câmeras LPR e de monitoramento da unidade."
-                        icon={Camera}
-                        iconClassName="bg-blue-600"
-                    />
-                </li>
-            </ul>
+            {canManage && data.registrations.pending > 0 ? (
+                <PendingRegistrationsCard count={data.registrations.pending} />
+            ) : null}
+
+            {canManage && !operating && !setupDone ? (
+                <GettingStartedChecklist
+                    readerOnline={data.readers.online > 0}
+                    hasRegistrationLink={data.activeRegistrationLinks > 0}
+                    hasApprovedRegistration={data.registrations.approved > 0}
+                    canManageReaders={canManageReaders}
+                />
+            ) : null}
+
+            {canManage ? (
+                <QuickActions
+                    pendingCount={data.registrations.pending}
+                    canManageReaders={canManageReaders}
+                />
+            ) : null}
+
+            <ClientKpis
+                items={buildClientKpis(data, {
+                    canOpenReaders: canManageReaders,
+                })}
+            />
+
+            <RecentAccessesList
+                items={data.recentAccesses}
+                timezoneOffsetMinutes={data.timezoneOffsetMinutes}
+            />
         </div>
     );
 }
