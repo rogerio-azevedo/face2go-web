@@ -1,6 +1,12 @@
 import { Suspense } from "react";
 
 import { JoinContextForm } from "@/components/auth/JoinContextForm";
+import { buildGenericPlatformMetadata } from "@/lib/responsible-register-metadata";
+
+export const metadata = buildGenericPlatformMetadata(
+    "Entrar no contexto • Face2Go",
+    "Aceite o convite e acesse a plataforma Face2Go.",
+);
 
 export default function JoinPage() {
     return (

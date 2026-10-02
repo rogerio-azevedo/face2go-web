@@ -23,6 +23,12 @@ export type ResponsibleRegisterPreview = {
     faceApprovalStatus: string;
 };
 
+const GENERIC_OG_IMAGE = {
+    url: "/og/face2go-generic.png",
+    width: 1200,
+    height: 630,
+} as const;
+
 const BRAND_METADATA: Record<
     ResponsibleRegisterAppBrand,
     Pick<Metadata, "title" | "description" | "openGraph">
@@ -109,4 +115,25 @@ export function buildPublicLinkMetadata(
     appBrand: PublicLinkAppBrand = "face2go",
 ): Metadata {
     return buildResponsibleRegisterMetadata(appBrand);
+}
+
+export function buildGenericPlatformMetadata(
+    title: string,
+    description: string,
+): Metadata {
+    return {
+        title,
+        description,
+        openGraph: {
+            title,
+            description,
+            images: [GENERIC_OG_IMAGE],
+        },
+        twitter: {
+            card: "summary_large_image",
+            title,
+            description,
+            images: [GENERIC_OG_IMAGE.url],
+        },
+    };
 }

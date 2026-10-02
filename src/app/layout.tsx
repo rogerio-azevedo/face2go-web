@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { AppProviders } from "@/components/shared/AppProviders";
-import { getAppBaseUrl } from "@/lib/responsible-register-metadata";
+import {
+    buildGenericPlatformMetadata,
+    getAppBaseUrl,
+} from "@/lib/responsible-register-metadata";
 
 import "./brand-theme.css";
 import "./globals.css";
@@ -17,10 +20,13 @@ const geistMono = Geist_Mono({
     subsets: ["latin"],
 });
 
+const PLATFORM_TITLE = "Face2go - Plataforma de Controle de Acesso";
+const PLATFORM_DESCRIPTION =
+    "Plataforma para gestão de cadastro integrada a leitores faciais, CFTV, câmeras LPR e catracas — soluções para escolas, clínicas, empresas e escritórios.";
+
 export const metadata: Metadata = {
     metadataBase: new URL(getAppBaseUrl()),
-    title: "Face2go - Plataforma de Controle de Acesso",
-    description: "Plataforma para gestão de cadastro integrada a leitores faciais, CFTV, câmeras LPR e catracas — soluções para escolas, clínicas, empresas e escritórios.",
+    ...buildGenericPlatformMetadata(PLATFORM_TITLE, PLATFORM_DESCRIPTION),
 };
 
 export default function RootLayout({

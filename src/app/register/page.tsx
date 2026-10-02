@@ -1,6 +1,12 @@
 import { Suspense } from "react";
 
 import { RegisterForm } from "@/components/auth/RegisterForm";
+import { buildGenericPlatformMetadata } from "@/lib/responsible-register-metadata";
+
+export const metadata = buildGenericPlatformMetadata(
+    "Cadastro • Face2Go",
+    "Conclua seu cadastro na plataforma Face2Go.",
+);
 
 export default function RegisterPage() {
     return (
