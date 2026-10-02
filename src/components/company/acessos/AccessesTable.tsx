@@ -11,6 +11,7 @@ import type {
 } from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -76,6 +77,7 @@ type Props = {
         block: string;
         unit: string;
         readerId: string;
+        onlyDenied: boolean;
     };
     /** Bearer JWT para `GET /api/accesses/:id/photo` no navegador. */
     accessToken: string;
@@ -189,6 +191,7 @@ export function AccessesTable({
         const block = String(fd.get("block") ?? "").trim();
         const unit = String(fd.get("unit") ?? "").trim();
         const readerId = String(fd.get("readerId") ?? "").trim();
+        const onlyDenied = fd.get("onlyDenied") === "true";
         startTransition(() => {
             router.push(
                 buildHref({
@@ -199,6 +202,7 @@ export function AccessesTable({
                     block: block || undefined,
                     unit: unit || undefined,
                     readerId: readerId || undefined,
+                    onlyDenied: onlyDenied ? "true" : undefined,
                     page: undefined,
                     type: undefined,
                 }),
@@ -339,6 +343,17 @@ export function AccessesTable({
                         placeholder="Unidade"
                         defaultValue={filters.unit}
                     />
+                </div>
+                <div className="flex h-9 items-center gap-2">
+                    <Checkbox
+                        id="filter-only-denied"
+                        name="onlyDenied"
+                        value="true"
+                        defaultChecked={filters.onlyDenied}
+                    />
+                    <Label htmlFor="filter-only-denied" className="font-normal">
+                        Mostrar apenas bloqueados
+                    </Label>
                 </div>
                 <Button type="submit" disabled={pending}>
                     Filtrar

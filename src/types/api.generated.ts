@@ -6942,6 +6942,7 @@ export interface operations {
                 block?: string;
                 unit?: string;
                 readerId?: string;
+                onlyDenied?: "true" | "false";
                 clientId?: string;
             };
             header?: never;
@@ -6988,6 +6989,7 @@ export interface operations {
                 block?: string;
                 unit?: string;
                 readerId?: string;
+                onlyDenied?: "true" | "false";
             };
             header?: never;
             path?: never;
@@ -7419,6 +7421,7 @@ export interface operations {
                 block?: string;
                 unit?: string;
                 readerId?: string;
+                onlyDenied?: "true" | "false";
             };
             header?: never;
             path?: never;

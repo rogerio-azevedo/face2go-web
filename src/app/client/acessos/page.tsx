@@ -20,6 +20,7 @@ type SearchParams = {
     block?: string;
     unit?: string;
     readerId?: string;
+    onlyDenied?: string;
 };
 
 const EMPTY_FACIAL: AccessesListResponse = {
@@ -67,6 +68,7 @@ export default async function ClientAccessesPage({
         if (sp.block?.trim()) qs.set("block", sp.block.trim());
         if (sp.unit?.trim()) qs.set("unit", sp.unit.trim());
         if (sp.readerId?.trim()) qs.set("readerId", sp.readerId.trim());
+        if (sp.onlyDenied === "true") qs.set("onlyDenied", "true");
     }
 
     const query = qs.toString();
@@ -115,6 +117,7 @@ export default async function ClientAccessesPage({
         block: sp.block?.trim() ?? "",
         unit: sp.unit?.trim() ?? "",
         readerId: sp.readerId?.trim() ?? "",
+        onlyDenied: sp.onlyDenied === "true",
     };
 
     return (

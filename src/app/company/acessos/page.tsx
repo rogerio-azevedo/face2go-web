@@ -24,6 +24,7 @@ type SearchParams = {
     block?: string;
     unit?: string;
     readerId?: string;
+    onlyDenied?: string;
 };
 
 export default async function CompanyAccessesPage({
@@ -63,6 +64,7 @@ export default async function CompanyAccessesPage({
         if (sp.block?.trim()) qs.set("block", sp.block.trim());
         if (sp.unit?.trim()) qs.set("unit", sp.unit.trim());
         if (sp.readerId?.trim()) qs.set("readerId", sp.readerId.trim());
+        if (sp.onlyDenied === "true") qs.set("onlyDenied", "true");
     }
 
     const query = qs.toString();
@@ -130,6 +132,7 @@ export default async function CompanyAccessesPage({
         block: sp.block?.trim() ?? "",
         unit: sp.unit?.trim() ?? "",
         readerId: sp.readerId?.trim() ?? "",
+        onlyDenied: sp.onlyDenied === "true",
     };
 
     return (
