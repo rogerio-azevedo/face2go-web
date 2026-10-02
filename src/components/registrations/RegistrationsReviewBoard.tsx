@@ -1,57 +1,27 @@
 "use client";
 
-import { ArrowDown, ArrowUp, ArrowUpDown, Loader2, RotateCcw } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useState, useTransition, type ReactNode } from "react";
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useState,
+    useTransition,
+    type ReactNode,
+} from "react";
 import { toast } from "sonner";
 
 import {
-    approveClientRegistrationAction,
-    blockClientRegistrationAction,
     deleteClientRegistrationAction,
-    getClientRegistrationFaceUrlAction,
-    rejectClientRegistrationAction,
     restoreClientRegistrationAction,
-    unblockClientRegistrationAction,
 } from "@/app/client/cadastros/actions";
 import {
-    approveCompanyRegistrationAction,
-    blockCompanyRegistrationAction,
     deleteCompanyRegistrationAction,
-    getCompanyRegistrationFaceUrlAction,
-    rejectCompanyRegistrationAction,
     restoreCompanyRegistrationAction,
-    unblockCompanyRegistrationAction,
 } from "@/app/company/clientes/[clientId]/usuarios/actions";
-import { ExportRegistrationsExcelButton } from "@/features/registrations/components/ExportRegistrationsExcelButton";
-import { RegistrationEditSheet } from "@/features/registrations/components/RegistrationEditSheet";
-import { RegistrationsFaceSyncAllModal } from "@/features/registrations/components/RegistrationsFaceSyncAllModal";
 import { AllowSimilarFaceDialog } from "@/features/faces/components/AllowSimilarFaceDialog";
-import { RegistrationRowActions } from "@/features/registrations/components/RegistrationRowActions";
-import { DeviceSyncStatusBadge } from "@/components/company/clientes/escola/DeviceSyncStatusBadge";
 import { UnblockPersonDialog } from "@/components/company/clientes/escola/UnblockPersonDialog";
-import { createFaceRetakeLinkAction } from "@/features/registrations/actions/face-retake";
-import { FaceRetakeLinkDialog } from "@/features/registrations/components/FaceRetakeLinkDialog";
-import {
-    DEFAULT_SCHOOL_PAGE_SIZE,
-    PAGE_SIZE_OPTIONS,
-    totalPages,
-} from "@/lib/pagination";
-import { formatCpfOrCnpj } from "@/lib/utils/document";
-import { useRegistrationFaceSync } from "@/features/registrations/hooks/use-registration-face-sync";
-import { useRegistrationBatchSync } from "@/features/registrations/hooks/use-registration-batch-sync";
-import {
-    invalidateRegistrationsList,
-    registrationsListQueryKey,
-    useRegistrationsList,
-} from "@/features/registrations/hooks/use-registrations-list";
-import { deferInEffect } from "@/lib/defer-in-effect";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
-import type {
-    ClientRegistrationListRow,
-    DeviceSyncStatus,
-    PaginatedRegistrationsResponse,
-} from "@/types/domain";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -62,127 +32,46 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { FaceCirclePhoto } from "@/components/ui/face-circle-photo";
-import { Label } from "@/components/ui/label";
-import { SearchInput } from "@/components/ui/search-input";
+import { createFaceRetakeLinkAction } from "@/features/registrations/actions/face-retake";
+import { FaceRetakeLinkDialog } from "@/features/registrations/components/FaceRetakeLinkDialog";
+import { RegistrationDecisionDialog } from "@/features/registrations/components/RegistrationDecisionDialog";
+import type { RegistrationDecision } from "@/features/registrations/components/RegistrationDecisionDialog";
+import { RegistrationDetailSheet } from "@/features/registrations/components/RegistrationDetailSheet";
+import { RegistrationEditSheet } from "@/features/registrations/components/RegistrationEditSheet";
+import { RegistrationsMobileList } from "@/features/registrations/components/RegistrationsMobileList";
+import { RegistrationsTable } from "@/features/registrations/components/RegistrationsTable";
+import { RegistrationsToolbar } from "@/features/registrations/components/RegistrationsToolbar";
+import { useRegistrationBatchSync } from "@/features/registrations/hooks/use-registration-batch-sync";
+import { useRegistrationFaceSync } from "@/features/registrations/hooks/use-registration-face-sync";
+import { useRegistrationReviewActions } from "@/features/registrations/hooks/use-registration-review-actions";
 import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle,
-} from "@/components/ui/sheet";
+    invalidateRegistrationsList,
+    registrationsListQueryKey,
+    useRegistrationsList,
+} from "@/features/registrations/hooks/use-registrations-list";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
+    compareRegistrationRows,
+    type RegistrationListTab,
+    type RegistrationSortDir,
+    type RegistrationSortField,
+} from "@/features/registrations/lib/registration-format";
+import { deferInEffect } from "@/lib/defer-in-effect";
+import {
+    DEFAULT_SCHOOL_PAGE_SIZE,
+    PAGE_SIZE_OPTIONS,
+    totalPages,
+} from "@/lib/pagination";
+import type {
+    ClientRegistrationListRow,
+    DeviceSyncStatus,
+    PaginatedRegistrationsResponse,
+} from "@/types/domain";
 
-type Tab = "draft" | "approved" | "rejected" | "blocked" | "deleted";
-type SortField = "submittedAt" | "name" | "local";
-type SortDir = "asc" | "desc";
-
-const TAB_LABELS: Record<Tab, string> = {
-    draft: "Aguardando aprovação",
-    approved: "Aprovados",
-    rejected: "Rejeitados",
-    blocked: "Bloqueados",
-    deleted: "Excluídos",
-};
-
-function formatWhen(iso: string | null) {
-    if (!iso) return "—";
-    try {
-        return new Intl.DateTimeFormat("pt-BR", {
-            dateStyle: "short",
-            timeStyle: "short",
-        }).format(new Date(iso));
-    } catch {
-        return iso;
-    }
-}
-
-/** YYYY-MM-DD → DD/MM/AAAA, sem Date() para evitar deslocamento de fuso. */
-function formatBirthDate(iso: string | null) {
-    if (!iso) return "—";
-    const [year, month, day] = iso.slice(0, 10).split("-");
-    if (!year || !month || !day) return iso;
-    return `${day}/${month}/${year}`;
-}
-
-function extraSummary(row: ClientRegistrationListRow): string {
-    const d = row.additionalData;
-    if (!d || typeof d !== "object") return "—";
-    if ("block" in d && "unit" in d) {
-        return `Bloco ${String(d.block)} · Unid. ${String(d.unit)}`;
-    }
-    if ("room" in d) {
-        return `Sala ${String(d.room)}`;
-    }
-    return "—";
-}
-
-function compareRows(
-    a: ClientRegistrationListRow,
-    b: ClientRegistrationListRow,
-    field: SortField,
-    dir: SortDir,
-): number {
-    let cmp = 0;
-    if (field === "name") {
-        cmp = (a.name ?? "").localeCompare(b.name ?? "", "pt-BR", {
-            sensitivity: "base",
-        });
-    } else if (field === "local") {
-        cmp = extraSummary(a).localeCompare(extraSummary(b), "pt-BR", {
-            sensitivity: "base",
-        });
-    } else {
-        const ta = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
-        const tb = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
-        cmp = ta - tb;
-    }
-    return dir === "asc" ? cmp : -cmp;
-}
-
-function SortableHead({
-    label,
-    active,
-    dir,
-    onClick,
-    className,
-}: {
-    label: string;
-    active: boolean;
-    dir: SortDir;
-    onClick: () => void;
-    className?: string;
-}) {
-    const Icon = active ? (dir === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
-    return (
-        <TableHead className={className}>
-            <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="-ml-2 h-8 gap-1 px-2 font-medium"
-                onClick={onClick}
-                aria-sort={
-                    active ? (dir === "asc" ? "ascending" : "descending") : "none"
-                }
-            >
-                {label}
-                <Icon className="size-3.5 opacity-60" aria-hidden />
-            </Button>
-        </TableHead>
-    );
-}
+const DECISION_SUCCESS = {
+    approve: "Cadastro aprovado.",
+    reject: "Cadastro rejeitado.",
+    block: "Cadastro bloqueado. A face será enviada ao leitor sem abrir a porta.",
+} as const;
 
 export function RegistrationsReviewBoard({
     variant,
@@ -200,21 +89,21 @@ export function RegistrationsReviewBoard({
     linksCount?: number;
 }) {
     const queryClient = useQueryClient();
+    const review = useRegistrationReviewActions({ variant, companyClientId });
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState<number>(DEFAULT_SCHOOL_PAGE_SIZE);
-    const [tab, setTab] = useState<Tab>("draft");
+    const [tab, setTab] = useState<RegistrationListTab>("draft");
     const [search, setSearch] = useState("");
     const [block, setBlock] = useState("");
     const [unit, setUnit] = useState("");
     const [room, setRoom] = useState("");
-    const [sortField, setSortField] = useState<SortField>("submittedAt");
-    const [sortDir, setSortDir] = useState<SortDir>("desc");
+    const [sortField, setSortField] = useState<RegistrationSortField>("submittedAt");
+    const [sortDir, setSortDir] = useState<RegistrationSortDir>("desc");
     const [sheetOpen, setSheetOpen] = useState(false);
     const [activeRow, setActiveRow] = useState<ClientRegistrationListRow | null>(
         null,
     );
-    const [faceUrl, setFaceUrl] = useState<string | null>(null);
-    const [rejectNotes, setRejectNotes] = useState("");
+    const [decision, setDecision] = useState<RegistrationDecision | null>(null);
     const [syncingId, setSyncingId] = useState<string | null>(null);
     const [forceRow, setForceRow] = useState<ClientRegistrationListRow | null>(
         null,
@@ -267,7 +156,7 @@ export function RegistrationsReviewBoard({
         onAfterSync: refreshList,
     });
 
-    useRegistrationBatchSync({
+    const { syncBusy } = useRegistrationBatchSync({
         variant,
         companyClientId,
         onFinished: refreshList,
@@ -290,155 +179,74 @@ export function RegistrationsReviewBoard({
 
     const filtered = useMemo(() => {
         return [...(rows ?? [])].sort((a, b) =>
-            compareRows(a, b, sortField, sortDir),
+            compareRegistrationRows(a, b, sortField, sortDir),
         );
     }, [rows, sortField, sortDir]);
 
-    const toggleSort = useCallback((field: SortField) => {
-        if (sortField === field) {
-            setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-            return;
-        }
-        setSortField(field);
-        setSortDir(field === "submittedAt" ? "desc" : "asc");
-    }, [sortField]);
+    const activeIndex = activeRow
+        ? filtered.findIndex((row) => row.id === activeRow.id)
+        : -1;
 
-    const handleSearchChange = useCallback((value: string) => {
-        setSearch(value);
+    const toggleSort = useCallback(
+        (field: RegistrationSortField) => {
+            if (sortField === field) {
+                setSortDir((dir) => (dir === "asc" ? "desc" : "asc"));
+                return;
+            }
+            setSortField(field);
+            setSortDir(field === "submittedAt" ? "desc" : "asc");
+        },
+        [sortField],
+    );
+
+    const resetPage = useCallback((setter: (value: string) => void, value: string) => {
+        setter(value);
         setPage(1);
     }, []);
 
-    const handleBlockChange = useCallback((value: string) => {
-        setBlock(value);
-        setPage(1);
-    }, []);
-
-    const handleUnitChange = useCallback((value: string) => {
-        setUnit(value);
-        setPage(1);
-    }, []);
-
-    const handleRoomChange = useCallback((value: string) => {
-        setRoom(value);
-        setPage(1);
-    }, []);
-
-    const handlePageSizeChange = useCallback((next: number) => {
-        setPageSize(next);
-        setPage(1);
-    }, []);
-
-    const locationType = resolvedClientType;
-    const showBlockUnit = locationType === "condominium";
-    const showRoom =
-        locationType === "office" || locationType === "clinic";
-
-    function handleTabChange(next: Tab) {
+    function openDetail(row: ClientRegistrationListRow) {
         setShowLinks(false);
-        setTab(next);
-        setPage(1);
-    }
-
-    async function openDetail(row: ClientRegistrationListRow) {
         setActiveRow(row);
-        setFaceUrl(null);
-        setRejectNotes("");
         setSheetOpen(true);
-        if (!row.hasFacePhoto) return;
-        if (variant === "client") {
-            const r = await getClientRegistrationFaceUrlAction(row.id);
-            if ("url" in r) setFaceUrl(r.url);
-            else toast.error(r.error);
-        } else if (companyClientId) {
-            const r = await getCompanyRegistrationFaceUrlAction(
-                companyClientId,
-                row.id,
-            );
-            if ("url" in r) setFaceUrl(r.url);
-            else toast.error(r.error);
-        }
     }
 
-    function doApprove() {
+    function commitDecision(
+        kind: "approve" | RegistrationDecision,
+        notes = "",
+    ) {
         if (!activeRow) return;
+        const current = activeRow;
+        const next =
+            filtered[filtered.findIndex((row) => row.id === current.id) + 1] ??
+            null;
         startTransition(async () => {
             const res =
-                variant === "client"
-                    ? await approveClientRegistrationAction(activeRow.id)
-                    : await approveCompanyRegistrationAction(
-                          companyClientId!,
-                          activeRow.id,
-                      );
+                kind === "approve"
+                    ? await review.approve(current.id)
+                    : kind === "reject"
+                      ? await review.reject(current.id, notes)
+                      : await review.block(current.id, notes);
             if ("error" in res) {
                 toast.error(res.error);
                 return;
             }
-            toast.success("Cadastro aprovado.");
-            setSheetOpen(false);
+            toast.success(DECISION_SUCCESS[kind]);
+            setDecision(null);
             refreshList();
-        });
-    }
-
-    function doReject() {
-        if (!activeRow) return;
-        startTransition(async () => {
-            const res =
-                variant === "client"
-                    ? await rejectClientRegistrationAction(
-                          activeRow.id,
-                          rejectNotes,
-                      )
-                    : await rejectCompanyRegistrationAction(
-                          companyClientId!,
-                          activeRow.id,
-                          rejectNotes,
-                      );
-            if ("error" in res) {
-                toast.error(res.error);
+            if (next) {
+                setActiveRow(next);
                 return;
             }
-            toast.success("Cadastro rejeitado.");
             setSheetOpen(false);
-            refreshList();
-        });
-    }
-
-    function doBlock() {
-        if (!activeRow) return;
-        const reason = rejectNotes.trim();
-        if (reason.length < 3) {
-            toast.error("Informe o motivo do bloqueio (mínimo 3 caracteres).");
-            return;
-        }
-        startTransition(async () => {
-            const res =
-                variant === "client"
-                    ? await blockClientRegistrationAction(activeRow.id, reason)
-                    : await blockCompanyRegistrationAction(
-                          companyClientId!,
-                          activeRow.id,
-                          reason,
-                      );
-            if ("error" in res) {
-                toast.error(res.error);
-                return;
-            }
-            toast.success("Cadastro bloqueado. A face será enviada ao leitor sem abrir a porta.");
-            setSheetOpen(false);
-            refreshList();
+            toast.message("Nenhum cadastro pendente restante.");
         });
     }
 
     function doUnblock() {
         if (!activeRow) return;
+        const current = activeRow;
         startTransition(async () => {
-            const res =
-                variant === "client"
-                    ? await unblockClientRegistrationAction(activeRow.id)
-                    : await unblockCompanyRegistrationAction(
-                          companyClientId!,
-                          activeRow.id,
-                      );
+            const res = await review.unblock(current.id);
             if ("error" in res) {
                 toast.error(res.error);
                 return;
@@ -477,8 +285,8 @@ export function RegistrationsReviewBoard({
                     if (!prev) return prev;
                     return {
                         ...prev,
-                        data: prev.data.map((r) =>
-                            r.id === row.id ? { ...r, ...patch } : r,
+                        data: prev.data.map((item) =>
+                            item.id === row.id ? { ...item, ...patch } : item,
                         ),
                     };
                 },
@@ -489,11 +297,6 @@ export function RegistrationsReviewBoard({
         } finally {
             setSyncingId(null);
         }
-    }
-
-    function doSyncActiveFace() {
-        if (!activeRow) return;
-        void runSyncFace(activeRow);
     }
 
     async function openRetake(row: ClientRegistrationListRow) {
@@ -549,583 +352,138 @@ export function RegistrationsReviewBoard({
         refreshList();
     }
 
+    const locationType = resolvedClientType;
+    const actions = {
+        isAdmin,
+        busy: pending,
+        syncingId,
+        retakeBusyId,
+        onView: openDetail,
+        onSync: (row: ClientRegistrationListRow) => void runSyncFace(row),
+        onForceSync: setForceRow,
+        onAllowSimilarFace: setSimilarRow,
+        onEdit: setEditRow,
+        onRetake: (row: ClientRegistrationListRow) => void openRetake(row),
+        onDelete: runDelete,
+        onRestore: runRestore,
+    };
+
     return (
         <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
-                {(Object.keys(TAB_LABELS) as Tab[]).map((k) => (
-                    <Button
-                        key={k}
-                        type="button"
-                        size="sm"
-                        variant={!showLinks && tab === k ? "default" : "outline"}
-                        onClick={() => handleTabChange(k)}
-                    >
-                        {TAB_LABELS[k]}
-                        <span className="ml-1.5 rounded-md bg-background/20 px-1.5 text-xs">
-                            {listQuery.data?.counts[k] ?? 0}
-                        </span>
-                    </Button>
-                ))}
-                {linksPanel ? (
-                    <Button
-                        type="button"
-                        size="sm"
-                        variant={showLinks ? "default" : "outline"}
-                        onClick={() => setShowLinks(true)}
-                    >
-                        Links de cadastro
-                        {linksCount != null ? (
-                            <span className="ml-1.5 rounded-md bg-background/20 px-1.5 text-xs">
-                                {linksCount}
-                            </span>
-                        ) : null}
-                    </Button>
-                ) : null}
-                <div className="ml-auto">
-                    <ExportRegistrationsExcelButton
-                        variant={variant}
-                        companyClientId={companyClientId}
-                        search={search}
-                        block={block}
-                        unit={unit}
-                        room={room}
-                    />
-                </div>
-            </div>
+            <RegistrationsToolbar
+                tab={tab}
+                counts={listQuery.data?.counts}
+                onTabChange={(next) => {
+                    setShowLinks(false);
+                    setTab(next);
+                    setPage(1);
+                }}
+                showLinks={showLinks}
+                linksCount={linksCount}
+                onShowLinks={
+                    linksPanel ? () => setShowLinks(true) : undefined
+                }
+                search={search}
+                onSearchChange={(value) => resetPage(setSearch, value)}
+                showBlockUnit={locationType === "condominium"}
+                block={block}
+                onBlockChange={(value) => resetPage(setBlock, value)}
+                unit={unit}
+                onUnitChange={(value) => resetPage(setUnit, value)}
+                showRoom={
+                    locationType === "office" || locationType === "clinic"
+                }
+                room={room}
+                onRoomChange={(value) => resetPage(setRoom, value)}
+                variant={variant}
+                companyClientId={companyClientId}
+                syncBusy={syncBusy}
+            />
 
             {showLinks && linksPanel ? (
                 linksPanel
             ) : (
-            <>
-            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-                <SearchInput
-                    id="search-registrations"
-                    value={search}
-                    onValueChange={handleSearchChange}
-                    placeholder="Buscar por nome ou CPF…"
-                    className="sm:max-w-sm"
-                />
-                {showBlockUnit ? (
-                    <>
-                        <SearchInput
-                            id="search-registrations-block"
-                            value={block}
-                            onValueChange={handleBlockChange}
-                            placeholder="Bloco"
-                            className="min-w-32 sm:max-w-40"
-                        />
-                        <SearchInput
-                            id="search-registrations-unit"
-                            value={unit}
-                            onValueChange={handleUnitChange}
-                            placeholder="Unidade"
-                            className="min-w-32 sm:max-w-40"
-                        />
-                    </>
-                ) : null}
-                {showRoom ? (
-                    <SearchInput
-                        id="search-registrations-room"
-                        value={room}
-                        onValueChange={handleRoomChange}
-                        placeholder="Sala"
-                        className="min-w-32 sm:max-w-40"
+                <>
+                    <RegistrationsMobileList
+                        rows={filtered}
+                        tab={tab}
+                        isFetching={listQuery.isFetching}
+                        actions={actions}
                     />
-                ) : null}
-                <div className="sm:ml-auto">
-                    <RegistrationsFaceSyncAllModal
-                        variant={variant}
-                        companyClientId={companyClientId}
+                    <RegistrationsTable
+                        rows={filtered}
+                        tab={tab}
+                        sortField={sortField}
+                        sortDir={sortDir}
+                        onToggleSort={toggleSort}
+                        isFetching={listQuery.isFetching}
+                        {...actions}
                     />
-                </div>
-            </div>
-
-            <div className="relative rounded-md border">
-                {listQuery.isFetching ? (
-                    <div className="bg-background/60 absolute inset-0 z-10 flex items-center justify-center rounded-md">
-                        <Loader2 className="text-muted-foreground size-6 animate-spin" />
-                    </div>
-                ) : null}
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="w-[52px]" aria-label="Foto" />
-                            <SortableHead
-                                label="Nome"
-                                active={sortField === "name"}
-                                dir={sortDir}
-                                onClick={() => toggleSort("name")}
-                            />
-                            <TableHead className="hidden sm:table-cell">
-                                CPF
-                            </TableHead>
-                            <TableHead className="hidden sm:table-cell">
-                                Nascimento
-                            </TableHead>
-                            <SortableHead
-                                label="Local"
-                                active={sortField === "local"}
-                                dir={sortDir}
-                                onClick={() => toggleSort("local")}
-                                className="hidden md:table-cell"
-                            />
-                            <TableHead className="hidden md:table-cell">
-                                Link
-                            </TableHead>
-                            <SortableHead
-                                label="Enviado"
-                                active={sortField === "submittedAt"}
-                                dir={sortDir}
-                                onClick={() => toggleSort("submittedAt")}
-                            />
-                            <TableHead className="w-[100px] text-right">
-                                Ações
-                            </TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {filtered.length === 0 ? (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={8}
-                                    className="py-10 text-center text-muted-foreground"
-                                >
-                                    Nenhum registro nesta lista.
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            filtered.map((row) => (
-                                <TableRow
-                                    key={row.id}
-                                    className={
-                                        tab === "deleted"
-                                            ? "text-muted-foreground"
-                                            : undefined
-                                    }
-                                >
-                                    <TableCell className="align-middle">
-                                        <div className="size-8 shrink-0 overflow-hidden rounded-full bg-teal-100 ring-2 ring-teal-100">
-                                            <FaceCirclePhoto
-                                                className="size-full"
-                                                photoUrl={row.faceUrl ?? null}
-                                                nameHint={row.name ?? null}
-                                            />
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="font-medium">
-                                        <div className="flex flex-col gap-1">
-                                            <span className="flex flex-wrap items-center gap-1.5">
-                                                {row.name ?? "—"}
-                                                {row.isMinor ? (
-                                                    <Badge
-                                                        variant="outline"
-                                                        className="border-orange-300 bg-orange-100 font-semibold text-orange-900 hover:bg-orange-100"
-                                                        title="Não é sincronizado em leitores com restrição de menor"
-                                                    >
-                                                        Menor
-                                                    </Badge>
-                                                ) : null}
-                                                {tab === "deleted" ? (
-                                                    <Badge variant="secondary">
-                                                        Excluído
-                                                    </Badge>
-                                                ) : null}
-                                            </span>
-                                            {(tab === "approved" ||
-                                                tab === "blocked") &&
-                                                row.faceId != null &&
-                                                row.hasFacialReaders ? (
-                                                <div className="flex flex-wrap items-center gap-1">
-                                                    <Badge
-                                                        variant="outline"
-                                                        className="text-[10px]"
-                                                    >
-                                                        ID leitor {row.faceId}
-                                                    </Badge>
-                                                    <DeviceSyncStatusBadge
-                                                        status={
-                                                            row.deviceSyncStatus
-                                                        }
-                                                        hasFace={
-                                                            row.faceId != null
-                                                        }
-                                                        hasReaders={
-                                                            row.hasFacialReaders
-                                                        }
-                                                        error={
-                                                            row.deviceSyncError
-                                                        }
-                                                        syncedCount={
-                                                            row.readerSyncSynced
-                                                        }
-                                                        totalCount={
-                                                            row.readerSyncTotal
-                                                        }
-                                                        isMinor={row.isMinor}
-                                                    />
-                                                </div>
-                                            ) : null}
-                                            {tab === "approved" &&
-                                                row.faceId == null &&
-                                                !row.hasFacePhoto ? (
-                                                <span className="text-muted-foreground text-[10px]">
-                                                    Sem foto (não há envio ao
-                                                    leitor)
-                                                </span>
-                                            ) : null}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="hidden font-mono text-xs sm:table-cell">
-                                        {row.document
-                                            ? formatCpfOrCnpj(row.document)
-                                            : "—"}
-                                    </TableCell>
-                                    <TableCell className="hidden text-xs sm:table-cell">
-                                        {formatBirthDate(row.birthDate)}
-                                    </TableCell>
-                                    <TableCell className="hidden text-xs md:table-cell">
-                                        {extraSummary(row)}
-                                    </TableCell>
-                                    <TableCell className="hidden font-mono text-xs md:table-cell">
-                                        {row.registrationLinkCode ?? "—"}
-                                    </TableCell>
-                                    <TableCell className="text-xs text-muted-foreground">
-                                        {formatWhen(row.submittedAt)}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <RegistrationRowActions
-                                            row={row}
-                                            tab={tab}
-                                            isAdmin={isAdmin}
-                                            busy={
-                                                pending ||
-                                                syncingId === row.id ||
-                                                retakeBusyId === row.id
-                                            }
-                                            onView={() => void openDetail(row)}
-                                            onSync={() => void runSyncFace(row)}
-                                            onForceSync={() => setForceRow(row)}
-                                            onAllowSimilarFace={() =>
-                                                setSimilarRow(row)
-                                            }
-                                            onEdit={() => setEditRow(row)}
-                                            onRetake={() => void openRetake(row)}
-                                            onDelete={() => runDelete(row)}
-                                            onRestore={() => runRestore(row)}
-                                        />
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
-
-            <DataTablePagination
-                page={page}
-                pageSize={pageSize}
-                total={total}
-                onPageChange={setPage}
-                onPageSizeChange={handlePageSizeChange}
-                pageSizeOptions={PAGE_SIZE_OPTIONS}
-                disabled={listQuery.isFetching || pending}
-            />
-            </>
+                    <DataTablePagination
+                        page={page}
+                        pageSize={pageSize}
+                        total={total}
+                        onPageChange={setPage}
+                        onPageSizeChange={(next) => {
+                            setPageSize(next);
+                            setPage(1);
+                        }}
+                        pageSizeOptions={PAGE_SIZE_OPTIONS}
+                        disabled={listQuery.isFetching || pending}
+                    />
+                </>
             )}
 
-            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-                <SheetContent
-                    side="right"
-                    className="max-h-dvh w-full overflow-hidden data-[side=right]:sm:max-w-xl"
-                >
-                    <SheetHeader className="shrink-0">
-                        <SheetTitle>
-                            {activeRow?.name ?? "Cadastro"}
-                        </SheetTitle>
-                        <SheetDescription>
-                            {activeRow ? (
-                                <>
-                                    Documento:{" "}
-                                    {activeRow.document
-                                        ? formatCpfOrCnpj(activeRow.document)
-                                        : "—"}{" "}
-                                    ·{" "}
-                                    {activeRow.phone ?? "—"}
-                                </>
-                            ) : null}
-                        </SheetDescription>
-                    </SheetHeader>
-                    <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4">
-                        {activeRow ? (
-                            <>
-                                <p className="text-xs text-muted-foreground">
-                                    Nascimento:{" "}
-                                    {formatBirthDate(activeRow.birthDate)}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                    E-mail: {activeRow.email ?? "—"}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                    Local: {extraSummary(activeRow)}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                    Declaração de veracidade:{" "}
-                                    {activeRow.truthDeclaredAt
-                                        ? `aceita em ${formatWhen(activeRow.truthDeclaredAt)}`
-                                        : "não registrada"}
-                                </p>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs text-muted-foreground">
-                                        Status:
-                                    </span>
-                                    <Badge>
-                                        {activeRow.status === "draft"
-                                            ? "Aguardando"
-                                            : activeRow.status === "approved"
-                                              ? "Aprovado"
-                                              : activeRow.status === "blocked"
-                                                ? "Bloqueado"
-                                                : "Rejeitado"}
-                                    </Badge>
-                                </div>
-                                {activeRow.status === "rejected" ? (
-                                    <div className="space-y-1">
-                                        <p className="text-sm font-medium text-destructive">
-                                            Motivo:{" "}
-                                            {activeRow.rejectionNotes?.trim() ||
-                                                "—"}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground">
-                                            Rejeitado em{" "}
-                                            {formatWhen(activeRow.approvedAt)}
-                                        </p>
-                                    </div>
-                                ) : null}
-                                {activeRow.status === "blocked" ? (
-                                    <div className="space-y-1">
-                                        <p className="text-sm font-medium text-destructive">
-                                            Motivo:{" "}
-                                            {activeRow.blockReason ?? "—"}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground">
-                                            Bloqueado em{" "}
-                                            {formatWhen(activeRow.blockedAt)}
-                                        </p>
-                                    </div>
-                                ) : null}
-                                {activeRow.status === "approved" ||
-                                activeRow.status === "blocked" ? (
-                                    <div className="flex flex-col gap-2">
-                                        <p className="text-xs text-muted-foreground">
-                                            Face ID no leitor:{" "}
-                                            {activeRow.faceId != null
-                                                ? String(activeRow.faceId)
-                                                : "—"}
-                                        </p>
-                                        {activeRow.faceId != null &&
-                                        activeRow.hasFacialReaders ? (
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <span className="text-xs text-muted-foreground">
-                                                    Sincronização:
-                                                </span>
-                                                <DeviceSyncStatusBadge
-                                                    status={
-                                                        activeRow.deviceSyncStatus
-                                                    }
-                                                    hasFace={
-                                                        activeRow.faceId != null
-                                                    }
-                                                    hasReaders={
-                                                        activeRow.hasFacialReaders
-                                                    }
-                                                    error={
-                                                        activeRow.deviceSyncError
-                                                    }
-                                                    syncedCount={
-                                                        activeRow.readerSyncSynced
-                                                    }
-                                                    totalCount={
-                                                        activeRow.readerSyncTotal
-                                                    }
-                                                    isMinor={activeRow.isMinor}
-                                                />
-                                            </div>
-                                        ) : null}
-                                        {activeRow.deviceSyncError ? (
-                                            <p className="text-destructive text-xs">
-                                                {activeRow.deviceSyncError}
-                                            </p>
-                                        ) : null}
-                                    </div>
-                                ) : null}
-                                {faceUrl ? (
-                                    // eslint-disable-next-line @next/next/no-img-element -- URL assinada temporária do R2
-                                    <img
-                                        src={faceUrl}
-                                        alt="Foto enviada"
-                                        className="max-h-64 w-full rounded-lg border object-contain"
-                                    />
-                                ) : activeRow.hasFacePhoto ? (
-                                    <p className="text-xs text-muted-foreground">
-                                        Carregando foto…
-                                    </p>
-                                ) : (
-                                    <p className="text-xs text-muted-foreground">
-                                        Sem foto.
-                                    </p>
-                                )}
-                                {activeRow.status === "draft" ||
-                                activeRow.status === "approved" ? (
-                                    <div className="space-y-2">
-                                        <Label htmlFor="reject-notes">
-                                            {activeRow.status === "approved"
-                                                ? "Motivo do bloqueio"
-                                                : "Motivo (rejeição opcional / bloqueio obrigatório)"}
-                                        </Label>
-                                        <textarea
-                                            id="reject-notes"
-                                            value={rejectNotes}
-                                            onChange={(e) =>
-                                                setRejectNotes(e.target.value)
-                                            }
-                                            className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 min-h-[72px] w-full rounded-lg border px-2.5 py-2 text-sm outline-none focus-visible:ring-3"
-                                            placeholder="Descreva o motivo…"
-                                        />
-                                    </div>
-                                ) : null}
-                            </>
-                        ) : null}
-                    </div>
-                    {activeRow?.status === "draft" ? (
-                        <SheetFooter className="shrink-0 flex-row flex-wrap gap-2 pb-[max(1rem,env(safe-area-inset-bottom))] sm:justify-end">
-                            {activeRow.isActive ? (
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    disabled={
-                                        pending ||
-                                        retakeBusyId === activeRow.id
-                                    }
-                                    onClick={() => void openRetake(activeRow)}
-                                >
-                                    Refazer foto
-                                </Button>
-                            ) : null}
-                            <Button
-                                type="button"
-                                variant="outline"
-                                disabled={pending}
-                                onClick={() => setEditRow(activeRow)}
-                            >
-                                Editar
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="destructive"
-                                disabled={pending}
-                                onClick={doReject}
-                            >
-                                Rejeitar
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                disabled={pending}
-                                onClick={doBlock}
-                            >
-                                Bloquear
-                            </Button>
-                            <Button
-                                type="button"
-                                disabled={pending}
-                                onClick={doApprove}
-                            >
-                                Aprovar
-                            </Button>
-                        </SheetFooter>
-                    ) : activeRow?.status === "approved" ? (
-                        <SheetFooter className="shrink-0 flex-row flex-wrap gap-2 pb-[max(1rem,env(safe-area-inset-bottom))] sm:justify-end">
-                            {activeRow.isActive ? (
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    disabled={
-                                        pending ||
-                                        retakeBusyId === activeRow.id
-                                    }
-                                    onClick={() => void openRetake(activeRow)}
-                                >
-                                    Refazer foto
-                                </Button>
-                            ) : null}
-                            <Button
-                                type="button"
-                                variant="outline"
-                                disabled={pending}
-                                onClick={doBlock}
-                            >
-                                Bloquear
-                            </Button>
-                            {activeRow.faceId != null &&
-                            activeRow.hasFacialReaders ? (
-                                <>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        className="gap-1.5"
-                                        disabled={pending}
-                                        onClick={() => setForceRow(activeRow)}
-                                    >
-                                        <RotateCcw className="size-4" />
-                                        Forçar sync
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        variant="secondary"
-                                        disabled={pending}
-                                        onClick={doSyncActiveFace}
-                                    >
-                                        Sincronizar leitor
-                                    </Button>
-                                </>
-                            ) : null}
-                        </SheetFooter>
-                    ) : activeRow?.status === "blocked" ? (
-                        <SheetFooter className="shrink-0 flex-row flex-wrap gap-2 pb-[max(1rem,env(safe-area-inset-bottom))] sm:justify-end">
-                            <Button
-                                type="button"
-                                disabled={pending}
-                                onClick={() => setUnblockOpen(true)}
-                            >
-                                Desbloquear
-                            </Button>
-                            {activeRow.faceId != null &&
-                            activeRow.hasFacialReaders ? (
-                                <>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        className="gap-1.5"
-                                        disabled={pending}
-                                        onClick={() => setForceRow(activeRow)}
-                                    >
-                                        <RotateCcw className="size-4" />
-                                        Forçar sync
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        variant="secondary"
-                                        disabled={pending}
-                                        onClick={doSyncActiveFace}
-                                    >
-                                        Sincronizar leitor
-                                    </Button>
-                                </>
-                            ) : null}
-                        </SheetFooter>
-                    ) : null}
-                </SheetContent>
-            </Sheet>
+            <RegistrationDetailSheet
+                open={sheetOpen}
+                onOpenChange={setSheetOpen}
+                row={activeRow}
+                index={activeIndex}
+                total={filtered.length}
+                variant={variant}
+                companyClientId={companyClientId}
+                pending={pending}
+                syncing={syncingId === activeRow?.id}
+                retakeBusy={retakeBusyId === activeRow?.id}
+                onPrev={() => {
+                    const prev = filtered[activeIndex - 1];
+                    if (prev) setActiveRow(prev);
+                }}
+                onNext={() => {
+                    const next = filtered[activeIndex + 1];
+                    if (next) setActiveRow(next);
+                }}
+                onApprove={() => commitDecision("approve")}
+                onReject={() => setDecision("reject")}
+                onBlock={() => setDecision("block")}
+                onUnblock={() => setUnblockOpen(true)}
+                onEdit={() => {
+                    if (activeRow) setEditRow(activeRow);
+                }}
+                onRetake={() => {
+                    if (activeRow) void openRetake(activeRow);
+                }}
+                onSync={() => {
+                    if (activeRow) void runSyncFace(activeRow);
+                }}
+                onForceSync={() => {
+                    if (activeRow) setForceRow(activeRow);
+                }}
+            />
+
+            <RegistrationDecisionDialog
+                key={decision ?? "closed"}
+                open={decision != null}
+                kind={decision}
+                personName={activeRow?.name ?? null}
+                pending={pending}
+                onOpenChange={(open) => {
+                    if (!open) setDecision(null);
+                }}
+                onConfirm={(notes) => {
+                    if (decision) commitDecision(decision, notes);
+                }}
+            />
 
             <FaceRetakeLinkDialog
                 open={retakeLink != null}
@@ -1148,9 +506,7 @@ export function RegistrationsReviewBoard({
                 clientType={resolvedClientType}
                 variant={variant}
                 companyClientId={companyClientId}
-                onSuccess={() => {
-                    refreshList();
-                }}
+                onSuccess={refreshList}
             />
 
             <UnblockPersonDialog
@@ -1183,8 +539,8 @@ export function RegistrationsReviewBoard({
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
                         <AlertDialogAction
                             disabled={pending}
-                            onClick={(e) => {
-                                e.preventDefault();
+                            onClick={(event) => {
+                                event.preventDefault();
                                 if (!forceRow) return;
                                 const row = forceRow;
                                 setForceRow(null);

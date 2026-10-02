@@ -36,7 +36,7 @@ export function DataTablePagination({
     if (total === 0) return null;
 
     return (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 pb-8 sm:flex-row sm:items-center sm:justify-between sm:pb-0">
             <p className="text-muted-foreground text-sm">
                 {pageRangeLabel(page, pageSize, total)}
             </p>

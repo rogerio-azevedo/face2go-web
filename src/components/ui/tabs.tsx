@@ -52,7 +52,9 @@ export function Tabs({
 
     return (
         <TabsContext.Provider value={{ value, setValue }}>
-            <div className={cn("flex flex-col gap-4", className)}>{children}</div>
+            <div className={cn("flex min-w-0 flex-col gap-4", className)}>
+                {children}
+            </div>
         </TabsContext.Provider>
     );
 }
@@ -65,7 +67,7 @@ export function TabsList({
         <div
             role="tablist"
             className={cn(
-                "bg-muted text-muted-foreground inline-flex h-9 w-fit flex-wrap items-center justify-center rounded-lg p-1",
+                "bg-muted text-muted-foreground inline-flex h-9 w-fit max-w-full flex-nowrap items-center justify-center overflow-x-auto rounded-lg p-1 scrollbar-none",
                 className,
             )}
             {...props}
@@ -96,7 +98,7 @@ export function TabsTrigger({
             aria-selected={isActive}
             disabled={disabled}
             className={cn(
-                "ring-offset-background focus-visible:ring-ring inline-flex h-[calc(100%-2px)] flex-1 items-center justify-center rounded-md px-3 py-1 text-sm font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
+                "ring-offset-background focus-visible:ring-ring inline-flex h-[calc(100%-2px)] shrink-0 items-center justify-center rounded-md px-3 py-1 text-sm font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
                 isActive
                     ? "bg-background text-foreground shadow-sm"
                     : "hover:text-foreground",

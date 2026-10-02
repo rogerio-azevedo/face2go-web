@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+import { toBrazilContactNumber } from "@/features/registrations/lib/registration-format";
 import { humanizeDeviceSyncError } from "@/lib/face-sync-result";
 import { isSimilarFaceSyncError } from "@/lib/similar-face-error";
 import type { ClientRegistrationListRow } from "@/types/domain";
@@ -37,20 +38,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 type ListTab = "draft" | "approved" | "rejected" | "blocked" | "deleted";
-
-/** Dígitos prontos para wa.me / tel:, com DDI 55. */
-function toBrazilContactNumber(phone: string | null): string | null {
-    if (!phone) return null;
-    const digits = phone.replace(/\D/g, "");
-    if (digits.length === 10 || digits.length === 11) return `55${digits}`;
-    if (
-        (digits.length === 12 || digits.length === 13) &&
-        digits.startsWith("55")
-    ) {
-        return digits;
-    }
-    return null;
-}
 
 export function RegistrationRowActions({
     row,
