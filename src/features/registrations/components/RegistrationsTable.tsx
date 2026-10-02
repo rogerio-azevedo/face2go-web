@@ -32,6 +32,7 @@ export type RegistrationListActionProps = {
     syncingId: string | null;
     retakeBusyId: string | null;
     onView: (row: ClientRegistrationListRow) => void;
+    onHistory: (row: ClientRegistrationListRow) => void;
     onSync: (row: ClientRegistrationListRow) => void;
     onForceSync: (row: ClientRegistrationListRow) => void;
     onAllowSimilarFace: (row: ClientRegistrationListRow) => void;
@@ -95,6 +96,7 @@ export function RegistrationsTable({
     syncingId,
     retakeBusyId,
     onView,
+    onHistory,
     onSync,
     onForceSync,
     onAllowSimilarFace,
@@ -253,6 +255,7 @@ export function RegistrationsTable({
                                             retakeBusyId === row.id
                                         }
                                         onView={() => onView(row)}
+                                        onHistory={() => onHistory(row)}
                                         onSync={() => onSync(row)}
                                         onForceSync={() => onForceSync(row)}
                                         onAllowSimilarFace={() =>

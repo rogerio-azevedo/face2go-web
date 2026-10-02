@@ -104,6 +104,7 @@ export function RegistrationMobileCard({
                     actions.retakeBusyId === row.id
                 }
                 onView={() => actions.onView(row)}
+                onHistory={() => actions.onHistory(row)}
                 onSync={() => actions.onSync(row)}
                 onForceSync={() => actions.onForceSync(row)}
                 onAllowSimilarFace={() => actions.onAllowSimilarFace(row)}

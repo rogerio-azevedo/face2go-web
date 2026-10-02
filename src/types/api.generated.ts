@@ -1912,6 +1912,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/client/registrations/{registrationId}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Timeline de ocorrências do cadastro */
+        get: operations["ClientRegistrationsController_listEvents"];
+        put?: never;
+        /** Registrar anotação na timeline do cadastro */
+        post: operations["ClientRegistrationsController_addEventNote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/client/registrations/{registrationId}/reject": {
         parameters: {
             query?: never;
@@ -2077,6 +2095,24 @@ export interface paths {
         put?: never;
         /** Desbloquear cadastro: restaura status aprovado e reenvia a face ao leitor com acesso normal */
         post: operations["CompanyRegistrationsController_unblock"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{clientId}/registrations/{registrationId}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Timeline de ocorrências do cadastro */
+        get: operations["CompanyRegistrationsController_listEvents"];
+        put?: never;
+        /** Registrar anotação na timeline do cadastro */
+        post: operations["CompanyRegistrationsController_addEventNote"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5107,6 +5143,21 @@ export interface components {
         BlockRegistrationDto: {
             reason: string;
         };
+        UnblockRegistrationDto: {
+            reason?: string;
+        };
+        RegistrationEventDto: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            type: "note" | "approved" | "rejected" | "blocked" | "unblocked" | "deleted" | "restored";
+            body: string | null;
+            authorName: string | null;
+            createdAt: string;
+        };
+        CreateRegistrationNoteDto: {
+            body: string;
+        };
         UpdateRegistrationDto: {
             name: string;
             document?: string;
@@ -7991,13 +8042,63 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UnblockRegistrationDto"];
+            };
+        };
         responses: {
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    ClientRegistrationsController_listEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                registrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegistrationEventDto"][];
+                };
+            };
+        };
+    };
+    ClientRegistrationsController_addEventNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                registrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateRegistrationNoteDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegistrationEventDto"];
+                };
             };
         };
     };
@@ -8226,13 +8327,65 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UnblockRegistrationDto"];
+            };
+        };
         responses: {
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    CompanyRegistrationsController_listEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                registrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegistrationEventDto"][];
+                };
+            };
+        };
+    };
+    CompanyRegistrationsController_addEventNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                registrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateRegistrationNoteDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegistrationEventDto"];
+                };
             };
         };
     };

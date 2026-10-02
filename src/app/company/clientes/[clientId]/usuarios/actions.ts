@@ -65,14 +65,26 @@ export async function blockCompanyRegistrationAction(
 export async function unblockCompanyRegistrationAction(
     clientId: string,
     registrationId: string,
+    reason?: string,
 ): Promise<{ success: true } | { error: string }> {
     const cid = z.string().uuid().safeParse(clientId);
     const rid = z.string().uuid().safeParse(registrationId);
+    const parsedReason = z.string().trim().max(2000).optional().safeParse(reason);
     if (!cid.success || !rid.success) return { error: 'ID inválido.' };
+    if (!parsedReason.success) {
+        return { error: 'O motivo do desbloqueio é longo demais.' };
+    }
     try {
         const res = await apiFetchAuthed(
             `/api/clients/${cid.data}/registrations/${rid.data}/unblock`,
-            { method: 'POST' },
+            {
+                method: 'POST',
+                body: JSON.stringify(
+                    parsedReason.data
+                        ? { reason: parsedReason.data }
+                        : {},
+                ),
+            },
         );
         const data = await parseResponseJson(res);
         if (!res.ok) return { error: nestErrorMessage(data) };

@@ -85,15 +85,19 @@ export function useRegistrationReviewActions({
     );
 
     const unblock = useCallback(
-        async (registrationId: string): Promise<ReviewResult> => {
+        async (
+            registrationId: string,
+            reason?: string,
+        ): Promise<ReviewResult> => {
             const invalid = missingClient();
             if (invalid) return invalid;
             if (variant === "client") {
-                return unblockClientRegistrationAction(registrationId);
+                return unblockClientRegistrationAction(registrationId, reason);
             }
             return unblockCompanyRegistrationAction(
                 companyClientId!,
                 registrationId,
+                reason,
             );
         },
         [companyClientId, missingClient, variant],

@@ -20,7 +20,6 @@ import {
     restoreCompanyRegistrationAction,
 } from "@/app/company/clientes/[clientId]/usuarios/actions";
 import { AllowSimilarFaceDialog } from "@/features/faces/components/AllowSimilarFaceDialog";
-import { UnblockPersonDialog } from "@/components/company/clientes/escola/UnblockPersonDialog";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import {
     AlertDialog,
@@ -37,6 +36,7 @@ import { FaceRetakeLinkDialog } from "@/features/registrations/components/FaceRe
 import { RegistrationDecisionDialog } from "@/features/registrations/components/RegistrationDecisionDialog";
 import type { RegistrationDecision } from "@/features/registrations/components/RegistrationDecisionDialog";
 import { RegistrationDetailSheet } from "@/features/registrations/components/RegistrationDetailSheet";
+import { RegistrationTimelineSheet } from "@/features/registrations/components/RegistrationTimelineSheet";
 import { RegistrationEditSheet } from "@/features/registrations/components/RegistrationEditSheet";
 import { RegistrationsMobileList } from "@/features/registrations/components/RegistrationsMobileList";
 import { RegistrationsTable } from "@/features/registrations/components/RegistrationsTable";
@@ -71,6 +71,8 @@ const DECISION_SUCCESS = {
     approve: "Cadastro aprovado.",
     reject: "Cadastro rejeitado.",
     block: "Cadastro bloqueado. A face será enviada ao leitor sem abrir a porta.",
+    unblock:
+        "Cadastro desbloqueado. A face volta ao leitor com acesso normal.",
 } as const;
 
 export function RegistrationsReviewBoard({
@@ -114,7 +116,8 @@ export function RegistrationsReviewBoard({
     );
     const [similarRow, setSimilarRow] =
         useState<ClientRegistrationListRow | null>(null);
-    const [unblockOpen, setUnblockOpen] = useState(false);
+    const [historyRow, setHistoryRow] =
+        useState<ClientRegistrationListRow | null>(null);
     const [editRow, setEditRow] = useState<ClientRegistrationListRow | null>(
         null,
     );
@@ -229,7 +232,9 @@ export function RegistrationsReviewBoard({
                     ? await review.approve(current.id)
                     : kind === "reject"
                       ? await review.reject(current.id, notes)
-                      : await review.block(current.id, notes);
+                      : kind === "block"
+                        ? await review.block(current.id, notes)
+                        : await review.unblock(current.id, notes);
             if ("error" in res) {
                 toast.error(res.error);
                 return;
@@ -237,32 +242,21 @@ export function RegistrationsReviewBoard({
             toast.success(DECISION_SUCCESS[kind]);
             setDecision(null);
             refreshList();
+            void queryClient.invalidateQueries({
+                queryKey: ["registration-events"],
+            });
+            if (kind === "unblock") {
+                setSheetOpen(false);
+                setPage(1);
+                setTab("approved");
+                return;
+            }
             if (next) {
                 setActiveRow(next);
                 return;
             }
             setSheetOpen(false);
             toast.message("Nenhum cadastro pendente restante.");
-        });
-    }
-
-    function doUnblock() {
-        if (!activeRow) return;
-        const current = activeRow;
-        startTransition(async () => {
-            const res = await review.unblock(current.id);
-            if ("error" in res) {
-                toast.error(res.error);
-                return;
-            }
-            toast.success(
-                "Cadastro desbloqueado. A face volta ao leitor com acesso normal.",
-            );
-            setUnblockOpen(false);
-            setSheetOpen(false);
-            setPage(1);
-            setTab("approved");
-            refreshList();
         });
     }
 
@@ -338,6 +332,9 @@ export function RegistrationsReviewBoard({
         }
         toast.success("Cadastro excluído.");
         refreshList();
+        void queryClient.invalidateQueries({
+            queryKey: ["registration-events"],
+        });
     }
 
     async function runRestore(row: ClientRegistrationListRow) {
@@ -354,6 +351,9 @@ export function RegistrationsReviewBoard({
         }
         toast.success("Cadastro restaurado. A face será reenviada aos leitores.");
         refreshList();
+        void queryClient.invalidateQueries({
+            queryKey: ["registration-events"],
+        });
     }
 
     const locationType = resolvedClientType;
@@ -363,6 +363,7 @@ export function RegistrationsReviewBoard({
         syncingId,
         retakeBusyId,
         onView: openDetail,
+        onHistory: setHistoryRow,
         onSync: (row: ClientRegistrationListRow) => void runSyncFace(row),
         onForceSync: setForceRow,
         onAllowSimilarFace: setSimilarRow,
@@ -460,7 +461,10 @@ export function RegistrationsReviewBoard({
                 onApprove={() => commitDecision("approve")}
                 onReject={() => setDecision("reject")}
                 onBlock={() => setDecision("block")}
-                onUnblock={() => setUnblockOpen(true)}
+                onUnblock={() => setDecision("unblock")}
+                onHistory={() => {
+                    if (activeRow) setHistoryRow(activeRow);
+                }}
                 onEdit={() => {
                     if (activeRow) setEditRow(activeRow);
                 }}
@@ -513,14 +517,14 @@ export function RegistrationsReviewBoard({
                 onSuccess={refreshList}
             />
 
-            <UnblockPersonDialog
-                open={unblockOpen}
-                onOpenChange={setUnblockOpen}
-                personName={activeRow?.name ?? "cadastro"}
-                busy={pending}
-                onConfirm={async () => {
-                    doUnblock();
+            <RegistrationTimelineSheet
+                open={historyRow != null}
+                onOpenChange={(open) => {
+                    if (!open) setHistoryRow(null);
                 }}
+                row={historyRow}
+                variant={variant}
+                companyClientId={companyClientId}
             />
 
             <AlertDialog

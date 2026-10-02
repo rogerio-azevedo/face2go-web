@@ -14,7 +14,54 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export type RegistrationDecision = "reject" | "block";
+export type RegistrationDecision = "reject" | "block" | "unblock";
+
+const DECISION_COPY: Record<
+    RegistrationDecision,
+    {
+        title: string;
+        description: (name: string) => string;
+        placeholder: string;
+        label: string;
+        action: string;
+        pending: string;
+        variant: "destructive" | "outline" | "default";
+        min: number;
+    }
+> = {
+    reject: {
+        title: "Rejeitar cadastro?",
+        description: (name) => `Recusa ${name}. O motivo é opcional.`,
+        placeholder: "Descreva o motivo, se quiser…",
+        label: "Motivo da rejeição",
+        action: "Rejeitar",
+        pending: "Rejeitando…",
+        variant: "destructive",
+        min: 0,
+    },
+    block: {
+        title: "Bloquear cadastro?",
+        description: (name) =>
+            `${name} continua no leitor, mas a porta não abre. O motivo é obrigatório.`,
+        placeholder: "Descreva o motivo do bloqueio…",
+        label: "Motivo do bloqueio",
+        action: "Bloquear",
+        pending: "Bloqueando…",
+        variant: "outline",
+        min: 3,
+    },
+    unblock: {
+        title: "Desbloquear cadastro?",
+        description: (name) =>
+            `${name} volta ao leitor com acesso normal e a porta volta a abrir. O motivo é opcional.`,
+        placeholder: "Descreva o motivo, se quiser…",
+        label: "Motivo do desbloqueio",
+        action: "Desbloquear",
+        pending: "Desbloqueando…",
+        variant: "default",
+        min: 0,
+    },
+};
 
 type RegistrationDecisionDialogProps = {
     open: boolean;
@@ -34,11 +81,12 @@ export function RegistrationDecisionDialog({
     onConfirm,
 }: RegistrationDecisionDialogProps) {
     const [notes, setNotes] = useState("");
-    const isBlock = kind === "block";
+    const copy = DECISION_COPY[kind ?? "reject"];
+    const name = personName ?? "Este cadastro";
 
     function confirm() {
         const value = notes.trim();
-        if (isBlock && value.length < 3) {
+        if (value.length < copy.min) {
             toast.error("Informe o motivo do bloqueio (mínimo 3 caracteres).");
             return;
         }
@@ -55,45 +103,33 @@ export function RegistrationDecisionDialog({
         >
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>
-                        {isBlock ? "Bloquear cadastro?" : "Rejeitar cadastro?"}
-                    </AlertDialogTitle>
+                    <AlertDialogTitle>{copy.title}</AlertDialogTitle>
                     <AlertDialogDescription>
-                        {isBlock
-                            ? `${personName ?? "Este cadastro"} continua no leitor, mas a porta não abre. O motivo é obrigatório.`
-                            : `Recusa ${personName ?? "este cadastro"}. O motivo é opcional.`}
+                        {copy.description(name)}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <textarea
                     value={notes}
                     onChange={(event) => setNotes(event.target.value)}
                     className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 min-h-[72px] w-full rounded-lg border px-2.5 py-2 text-sm outline-none focus-visible:ring-3"
-                    placeholder={
-                        isBlock
-                            ? "Descreva o motivo do bloqueio…"
-                            : "Descreva o motivo, se quiser…"
-                    }
-                    aria-label={isBlock ? "Motivo do bloqueio" : "Motivo da rejeição"}
+                    placeholder={copy.placeholder}
+                    aria-label={copy.label}
                 />
                 <AlertDialogFooter>
                     <AlertDialogCancel disabled={pending}>
                         Cancelar
                     </AlertDialogCancel>
                     <AlertDialogAction
-                        disabled={pending || (isBlock && notes.trim().length < 3)}
-                        variant={isBlock ? "outline" : "destructive"}
+                        disabled={
+                            pending || notes.trim().length < copy.min
+                        }
+                        variant={copy.variant}
                         onClick={(event) => {
                             event.preventDefault();
                             confirm();
                         }}
                     >
-                        {pending
-                            ? isBlock
-                                ? "Bloqueando…"
-                                : "Rejeitando…"
-                            : isBlock
-                              ? "Bloquear"
-                              : "Rejeitar"}
+                        {pending ? copy.pending : copy.action}
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>

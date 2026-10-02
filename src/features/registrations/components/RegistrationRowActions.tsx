@@ -3,6 +3,7 @@
 import {
     Camera,
     Eye,
+    History,
     MessageCircle,
     MoreHorizontal,
     Pencil,
@@ -45,6 +46,7 @@ export function RegistrationRowActions({
     isAdmin,
     busy,
     onView,
+    onHistory,
     onSync,
     onForceSync,
     onAllowSimilarFace,
@@ -58,6 +60,7 @@ export function RegistrationRowActions({
     isAdmin: boolean;
     busy: boolean;
     onView: () => void;
+    onHistory: () => void;
     onSync: () => void;
     onForceSync: () => void;
     onAllowSimilarFace: () => void;
@@ -168,6 +171,10 @@ export function RegistrationRowActions({
                             Editar
                         </DropdownMenuItem>
                     ) : null}
+                    <DropdownMenuItem onClick={onHistory}>
+                        <History />
+                        Histórico
+                    </DropdownMenuItem>
                     {canDelete || canRestore ? <DropdownMenuSeparator /> : null}
                     {canDelete ? (
                         <DropdownMenuItem

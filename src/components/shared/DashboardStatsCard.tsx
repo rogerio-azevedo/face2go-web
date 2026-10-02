@@ -62,7 +62,7 @@ export function DashboardStatsCard(props: DashboardStatsCardProps) {
         return (
             <Link
                 href={props.href}
-                className="block rounded-xl outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
+                className="block h-full rounded-xl outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
             >
                 <CardInner {...props} />
             </Link>

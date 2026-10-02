@@ -37,6 +37,8 @@ import {
     SheetHeader,
     SheetTitle,
 } from "@/components/ui/sheet";
+import { useRegistrationEvents } from "@/features/registrations/hooks/use-registration-events";
+import { REGISTRATION_EVENT_META } from "@/features/registrations/lib/registration-event-meta";
 import {
     extraSummary,
     formatBirthDate,
@@ -68,6 +70,7 @@ type RegistrationDetailSheetProps = {
     onRetake: () => void;
     onSync: () => void;
     onForceSync: () => void;
+    onHistory: () => void;
 };
 
 function Field({
@@ -106,12 +109,21 @@ export function RegistrationDetailSheet({
     onRetake,
     onSync,
     onForceSync,
+    onHistory,
 }: RegistrationDetailSheetProps) {
     const [fetchedFace, setFetchedFace] = useState<{
         id: string;
         url: string;
     } | null>(null);
     const [photoOpen, setPhotoOpen] = useState(false);
+    const eventsQuery = useRegistrationEvents({
+        variant,
+        companyClientId,
+        registrationId: row?.id ?? null,
+        enabled: open && row != null,
+    });
+    const latest = eventsQuery.data?.[0];
+    const latestMeta = latest ? REGISTRATION_EVENT_META[latest.type] : null;
 
     useEffect(() => {
         const registrationId = row?.id;
@@ -329,6 +341,44 @@ export function RegistrationDetailSheet({
                                     </span>
                                 </p>
                             ) : null}
+                            <div className="space-y-2 text-sm">
+                                <p className="text-muted-foreground">
+                                    Última ocorrência
+                                </p>
+                                {eventsQuery.isLoading ? (
+                                    <p className="text-muted-foreground text-xs">
+                                        Carregando…
+                                    </p>
+                                ) : latest && latestMeta ? (
+                                    <div>
+                                        <p className="font-medium">
+                                            {latestMeta.label}
+                                        </p>
+                                        {latest.body ? (
+                                            <p className="whitespace-pre-wrap">
+                                                {latest.body}
+                                            </p>
+                                        ) : null}
+                                        <p className="text-muted-foreground text-xs">
+                                            {latest.authorName ?? "—"}
+                                            {" · "}
+                                            {formatWhen(latest.createdAt)}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <p className="text-muted-foreground text-xs">
+                                        Nenhuma ocorrência registrada.
+                                    </p>
+                                )}
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={onHistory}
+                                >
+                                    Ver histórico
+                                </Button>
+                            </div>
                             {row.status === "approved" || row.status === "blocked" ? (
                                 <div className="flex flex-col gap-2 text-sm">
                                     <p className="text-muted-foreground">
