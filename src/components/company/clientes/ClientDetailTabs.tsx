@@ -6,6 +6,7 @@ import { SchoolTab } from "@/components/company/clientes/escola/SchoolTab";
 import { RegistrationsReviewBoard } from "@/components/registrations/RegistrationsReviewBoard";
 import { DeviceSyncQueuePanel } from "@/features/device-sync/components/DeviceSyncQueuePanel";
 import { RegistrationFieldsConfigPanel } from "@/features/registrations/components/RegistrationFieldsConfigPanel";
+import { ClientBlocksPanel } from "@/features/client-blocks/components/ClientBlocksPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export type ClientDetailTabsProps = {
@@ -24,6 +25,7 @@ export function ClientDetailTabs({
     canEditAddresses = false,
 }: ClientDetailTabsProps) {
     const isSchool = clientType === "school";
+    const isCondominium = clientType === "condominium";
 
     if (isSchool) {
         return (
@@ -42,6 +44,9 @@ export function ClientDetailTabs({
                     Solicitações recebidas
                 </TabsTrigger>
                 <TabsTrigger value="links">Links de cadastro</TabsTrigger>
+                {isCondominium ? (
+                    <TabsTrigger value="blocks">Blocos e unidades</TabsTrigger>
+                ) : null}
                 <TabsTrigger value="registration-config">
                     Campos do cadastro
                 </TabsTrigger>
@@ -70,6 +75,12 @@ export function ClientDetailTabs({
                     clientName={clientName}
                 />
             </TabsContent>
+
+            {isCondominium ? (
+                <TabsContent value="blocks" className="space-y-4">
+                    <ClientBlocksPanel clientId={clientId} />
+                </TabsContent>
+            ) : null}
 
             <TabsContent value="registration-config" className="space-y-4">
                 <RegistrationFieldsConfigPanel

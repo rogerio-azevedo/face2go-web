@@ -4,6 +4,8 @@ import { Loader2, MoreHorizontal, SlidersHorizontal } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { ExportRegistrationsExcelButton } from "@/features/registrations/components/ExportRegistrationsExcelButton";
+import { BlockUnitSelects } from "@/features/client-blocks/components/BlockUnitSelects";
+import type { BlockUnitOption } from "@/features/client-blocks/components/BlockUnitSelects";
 import { RegistrationsFaceSyncAllModal } from "@/features/registrations/components/RegistrationsFaceSyncAllModal";
 import {
     REGISTRATION_TAB_LABELS,
@@ -26,10 +28,11 @@ type RegistrationsToolbarProps = {
     search: string;
     onSearchChange: (value: string) => void;
     showBlockUnit: boolean;
-    block: string;
-    onBlockChange: (value: string) => void;
-    unit: string;
-    onUnitChange: (value: string) => void;
+    blocks: BlockUnitOption[];
+    blockId: string;
+    onBlockIdChange: (value: string) => void;
+    unitId: string;
+    onUnitIdChange: (value: string) => void;
     showRoom: boolean;
     room: string;
     onRoomChange: (value: string) => void;
@@ -48,10 +51,11 @@ export function RegistrationsToolbar({
     search,
     onSearchChange,
     showBlockUnit,
-    block,
-    onBlockChange,
-    unit,
-    onUnitChange,
+    blocks,
+    blockId,
+    onBlockIdChange,
+    unitId,
+    onUnitIdChange,
     showRoom,
     room,
     onRoomChange,
@@ -67,8 +71,8 @@ export function RegistrationsToolbar({
 
     const hasLocationFilters = showBlockUnit || showRoom;
     const filterCount = [
-        showBlockUnit ? block.trim() : "",
-        showBlockUnit ? unit.trim() : "",
+        showBlockUnit ? blockId.trim() : "",
+        showBlockUnit ? unitId.trim() : "",
         showRoom ? room.trim() : "",
     ].filter(Boolean).length;
 
@@ -141,8 +145,8 @@ export function RegistrationsToolbar({
                         variant={variant}
                         companyClientId={companyClientId}
                         search={search}
-                        block={block}
-                        unit={unit}
+                        blockId={blockId}
+                        unitId={unitId}
                         room={room}
                     />
                 </div>
@@ -202,22 +206,16 @@ export function RegistrationsToolbar({
                     )}
                 >
                     {showBlockUnit ? (
-                        <>
-                            <SearchInput
-                                id="search-registrations-block"
-                                value={block}
-                                onValueChange={onBlockChange}
-                                placeholder="Bloco"
-                                className="w-full md:max-w-40 md:min-w-32"
-                            />
-                            <SearchInput
-                                id="search-registrations-unit"
-                                value={unit}
-                                onValueChange={onUnitChange}
-                                placeholder="Unidade"
-                                className="w-full md:max-w-40 md:min-w-32"
-                            />
-                        </>
+                        <BlockUnitSelects
+                            idPrefix="search-registrations"
+                            blocks={blocks}
+                            blockId={blockId}
+                            unitId={unitId}
+                            onBlockIdChange={onBlockIdChange}
+                            onUnitIdChange={onUnitIdChange}
+                            plainLabels
+                            emptyHint="Cadastre blocos e unidades para filtrar."
+                        />
                     ) : null}
                     {showRoom ? (
                         <SearchInput
@@ -240,8 +238,8 @@ export function RegistrationsToolbar({
                             variant={variant}
                             companyClientId={companyClientId}
                             search={search}
-                            block={block}
-                            unit={unit}
+                            blockId={blockId}
+                            unitId={unitId}
                             room={room}
                         />
                     </div>

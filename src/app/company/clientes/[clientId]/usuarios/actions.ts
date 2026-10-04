@@ -357,6 +357,7 @@ export async function updateCompanyRegistrationAction(
         email?: string;
         birthDate?: string | null;
         additionalData?: Record<string, unknown>;
+        unitId?: string | null;
     },
 ): Promise<{ success: true } | { error: string }> {
     const cid = z.string().uuid().safeParse(clientId);

@@ -320,6 +320,7 @@ export async function updateClientRegistrationAction(
         email?: string;
         birthDate?: string | null;
         additionalData?: Record<string, unknown>;
+        unitId?: string | null;
     },
 ): Promise<{ success: true } | { error: string }> {
     const id = z.string().uuid().safeParse(registrationId);

@@ -21,8 +21,8 @@ export const updateRegistrationFormSchema = z.object({
         .refine((value) => !value || /^\d{4}-\d{2}-\d{2}$/.test(value), {
             message: "Data inválida.",
         }),
-    block: z.string().optional(),
-    unit: z.string().optional(),
+    blockId: z.string().optional(),
+    unitId: z.string().optional(),
     room: z.string().optional(),
 });
 

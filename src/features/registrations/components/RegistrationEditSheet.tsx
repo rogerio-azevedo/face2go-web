@@ -19,10 +19,12 @@ import {
     SheetHeader,
     SheetTitle,
 } from "@/components/ui/sheet";
-import {
-    updateRegistrationFormSchema,
+import { updateRegistrationFormSchema,
     type UpdateRegistrationFormValues,
 } from "@/features/registrations/validations/update";
+import { BlockUnitSelects } from "@/features/client-blocks/components/BlockUnitSelects";
+import { listClientBlocksAction } from "@/features/client-blocks/actions";
+import type { CatalogBlock } from "@/features/client-blocks/types";
 import {
     applyCpfCnpjMaskInput,
     CNPJ_FORMATTED_MAX_LENGTH,
@@ -73,8 +75,8 @@ export function RegistrationEditSheet({
                 phone: "",
                 email: "",
                 birthDate: "",
-                block: "",
-                unit: "",
+                blockId: "",
+                unitId: "",
                 room: "",
             };
         }
@@ -84,8 +86,8 @@ export function RegistrationEditSheet({
             phone: row.phone ?? "",
             email: row.email ?? "",
             birthDate: row.birthDate ?? "",
-            block: extraString(row.additionalData, "block"),
-            unit: extraString(row.additionalData, "unit"),
+            blockId: "",
+            unitId: row.unitId ?? "",
             room: extraString(row.additionalData, "room"),
         };
     }, [row]);
@@ -95,20 +97,46 @@ export function RegistrationEditSheet({
         defaultValues: defaults,
     });
 
+    const [catalog, setCatalog] = useState<CatalogBlock[]>([]);
+
     useEffect(() => {
         if (!open || !row) return;
         form.reset(defaults);
     }, [open, row, defaults, form]);
 
+    useEffect(() => {
+        if (!open || !showCondo || !row) return;
+        let cancel = false;
+        void listClientBlocksAction(row.clientId).then((result) => {
+            if (cancel || "error" in result) return;
+            setCatalog(result.items);
+        });
+        return () => {
+            cancel = true;
+        };
+    }, [open, showCondo, row]);
+
+    const locationBlocks = catalog
+        .filter((block) => block.isActive)
+        .map((block) => ({
+            id: block.id,
+            name: block.name,
+            units: block.units
+                .filter((unit) => unit.isActive || unit.id === row?.unitId)
+                .map((unit) => ({ id: unit.id, name: unit.name })),
+        }));
+    const selectedBlockId =
+        form.watch("blockId") ||
+        locationBlocks.find((block) =>
+            block.units.some((unit) => unit.id === form.watch("unitId")),
+        )?.id ||
+        "";
+
     async function onSubmit(values: UpdateRegistrationFormValues) {
         if (!row) return;
         const additionalData: Record<string, unknown> = {};
-        if (showCondo) {
-            additionalData.block = values.block?.trim() ?? "";
-            additionalData.unit = values.unit?.trim() ?? "";
-        }
-        if (showRoom) {
-            additionalData.room = values.room?.trim() ?? "";
+        if (showRoom && values.room?.trim()) {
+            additionalData.room = values.room.trim();
         }
 
         const body = {
@@ -121,6 +149,7 @@ export function RegistrationEditSheet({
                 Object.keys(additionalData).length > 0
                     ? additionalData
                     : undefined,
+            unitId: showCondo ? values.unitId || null : undefined,
         };
 
         setBusy(true);
@@ -226,22 +255,19 @@ export function RegistrationEditSheet({
                         />
                     </div>
                     {showCondo ? (
-                        <>
-                            <div className="space-y-2">
-                                <Label htmlFor="reg-block">Bloco</Label>
-                                <Input
-                                    id="reg-block"
-                                    {...form.register("block")}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="reg-unit">Unidade</Label>
-                                <Input
-                                    id="reg-unit"
-                                    {...form.register("unit")}
-                                />
-                            </div>
-                        </>
+                        <BlockUnitSelects
+                            idPrefix="reg"
+                            blocks={locationBlocks}
+                            blockId={selectedBlockId}
+                            unitId={form.watch("unitId") ?? ""}
+                            onBlockIdChange={(value) => {
+                                form.setValue("blockId", value);
+                                form.setValue("unitId", "");
+                            }}
+                            onUnitIdChange={(value) =>
+                                form.setValue("unitId", value)
+                            }
+                        />
                     ) : null}
                     {showRoom ? (
                         <div className="space-y-2">

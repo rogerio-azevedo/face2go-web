@@ -27,8 +27,8 @@ type ExportRegistrationsExcelButtonProps = {
   variant: 'client' | 'company';
   companyClientId?: string;
   search?: string;
-  block?: string;
-  unit?: string;
+  blockId?: string;
+  unitId?: string;
   room?: string;
 };
 
@@ -36,8 +36,8 @@ export function ExportRegistrationsExcelButton({
   variant,
   companyClientId,
   search,
-  block,
-  unit,
+  blockId,
+  unitId,
   room,
 }: ExportRegistrationsExcelButtonProps) {
   const [pending, setPending] = useState(false);
@@ -52,10 +52,10 @@ export function ExportRegistrationsExcelButton({
       sp.set('status', status);
       const trimmed = search?.trim();
       if (trimmed) sp.set('search', trimmed);
-      const blockTrimmed = block?.trim();
-      if (blockTrimmed) sp.set('block', blockTrimmed);
-      const unitTrimmed = unit?.trim();
-      if (unitTrimmed) sp.set('unit', unitTrimmed);
+      const blockTrimmed = blockId?.trim();
+      if (blockTrimmed) sp.set('blockId', blockTrimmed);
+      const unitTrimmed = unitId?.trim();
+      if (unitTrimmed) sp.set('unitId', unitTrimmed);
       const roomTrimmed = room?.trim();
       if (roomTrimmed) sp.set('room', roomTrimmed);
 

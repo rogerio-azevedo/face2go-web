@@ -6,6 +6,8 @@ import { AccessesTable } from "@/components/company/acessos/AccessesTable";
 import { LprAccessesTable } from "@/components/company/acessos/LprAccessesTable";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { apiFetchAuthed } from "@/lib/api-fetch";
+import type { CatalogBlock } from "@/features/client-blocks/types";
+import type { BlockUnitOption } from "@/features/client-blocks/components/BlockUnitSelects";
 import type {
     AccessesListResponse,
     LprAccessesListResponse,
@@ -17,8 +19,8 @@ type SearchParams = {
     page?: string;
     type?: string;
     name?: string;
-    block?: string;
-    unit?: string;
+    blockId?: string;
+    unitId?: string;
     readerId?: string;
     onlyDenied?: string;
 };
@@ -65,8 +67,8 @@ export default async function ClientAccessesPage({
     if (sp.page?.trim()) qs.set("page", sp.page.trim());
     if (!isLprTab) {
         if (sp.name?.trim()) qs.set("name", sp.name.trim());
-        if (sp.block?.trim()) qs.set("block", sp.block.trim());
-        if (sp.unit?.trim()) qs.set("unit", sp.unit.trim());
+        if (sp.blockId?.trim()) qs.set("blockId", sp.blockId.trim());
+        if (sp.unitId?.trim()) qs.set("unitId", sp.unitId.trim());
         if (sp.readerId?.trim()) qs.set("readerId", sp.readerId.trim());
         if (sp.onlyDenied === "true") qs.set("onlyDenied", "true");
     }
@@ -80,6 +82,7 @@ export default async function ClientAccessesPage({
     let facialData: AccessesListResponse = EMPTY_FACIAL;
     let lprData: LprAccessesListResponse = EMPTY_LPR;
     let readers: { id: string; name: string }[] = [];
+    let locationBlocks: BlockUnitOption[] | undefined;
 
     try {
         const [accessRes, readersRes] = await Promise.all([
@@ -105,6 +108,28 @@ export default async function ClientAccessesPage({
         readers = [];
     }
 
+    if (!isLprTab) {
+        try {
+            const blocksRes = await apiFetchAuthed(
+                `/api/clients/${clientId}/blocks`,
+            );
+            if (blocksRes.ok) {
+                const items = (await blocksRes.json()) as CatalogBlock[];
+                locationBlocks = items
+                    .filter((block) => block.isActive)
+                    .map((block) => ({
+                        id: block.id,
+                        name: block.name,
+                        units: block.units
+                            .filter((unit) => unit.isActive)
+                            .map((unit) => ({ id: unit.id, name: unit.name })),
+                    }));
+            }
+        } catch {
+            locationBlocks = undefined;
+        }
+    }
+
     const clientTimezoneOffsetMinutes = isLprTab
         ? (lprData.timezoneOffsetMinutes ?? 0)
         : (facialData.timezoneOffsetMinutes ?? 0);
@@ -114,8 +139,8 @@ export default async function ClientAccessesPage({
         startDate: sp.startDate?.trim() ?? "",
         endDate: sp.endDate?.trim() ?? "",
         name: sp.name?.trim() ?? "",
-        block: sp.block?.trim() ?? "",
-        unit: sp.unit?.trim() ?? "",
+        blockId: sp.blockId?.trim() ?? "",
+        unitId: sp.unitId?.trim() ?? "",
         readerId: sp.readerId?.trim() ?? "",
         onlyDenied: sp.onlyDenied === "true",
     };
@@ -147,6 +172,7 @@ export default async function ClientAccessesPage({
                     }))}
                     clientTimezoneOffsetMinutes={clientTimezoneOffsetMinutes}
                     filters={filterDefaults}
+                    locationBlocks={locationBlocks}
                     accessToken={session?.accessToken ?? ""}
                     basePath="/client/acessos"
                     photoApiPath="/api/client/accesses/:id/photo"

@@ -259,6 +259,7 @@ export type ClientRegistrationListRow = {
     birthDate: string | null;
     isMinor: boolean | null;
     additionalData: Record<string, unknown> | null;
+    unitId: string | null;
     status: "draft" | "approved" | "rejected" | "blocked";
     isActive: boolean;
     submittedAt: string | null;

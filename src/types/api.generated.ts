@@ -660,6 +660,109 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/clients/{clientId}/blocks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar blocos e unidades do condomínio */
+        get: operations["ClientBlocksController_list"];
+        put?: never;
+        /** Criar bloco */
+        post: operations["ClientBlocksController_createBlock"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{clientId}/blocks/{blockId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Atualizar bloco */
+        patch: operations["ClientBlocksController_updateBlock"];
+        trace?: never;
+    };
+    "/clients/{clientId}/blocks/{blockId}/units": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Criar unidade */
+        post: operations["ClientBlocksController_createUnit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{clientId}/blocks/{blockId}/units/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Gerar unidades em intervalo numérico */
+        post: operations["ClientBlocksController_generateUnits"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clients/{clientId}/units/{unitId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Atualizar unidade */
+        patch: operations["ClientBlocksController_updateUnit"];
+        trace?: never;
+    };
+    "/clients/{clientId}/units/{unitId}/merge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Unir unidade na de destino e desativar a origem */
+        post: operations["ClientBlocksController_mergeUnit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/client-invite-links/{code}": {
         parameters: {
             query?: never;
@@ -5087,6 +5190,28 @@ export interface components {
             geocodingPrecision?: "rooftop" | "street" | "approximate";
             hereLocationId?: string;
         };
+        CreateClientBlockDto: {
+            name: string;
+        };
+        UpdateClientBlockDto: {
+            name?: string;
+            isActive?: boolean;
+        };
+        CreateClientUnitDto: {
+            name: string;
+        };
+        GenerateClientUnitsDto: {
+            start: number;
+            end: number;
+        };
+        UpdateClientUnitDto: {
+            name?: string;
+            isActive?: boolean;
+        };
+        MergeClientUnitDto: {
+            /** Format: uuid */
+            targetUnitId: string;
+        };
         PatchClientUserProfileDto: {
             name?: string;
             /** Format: email */
@@ -5167,6 +5292,8 @@ export interface components {
             additionalData?: {
                 [key: string]: unknown;
             };
+            /** Format: uuid */
+            unitId?: string | null;
         };
         BlockPersonDto: {
             reason: string;
@@ -6324,6 +6451,168 @@ export interface operations {
             };
         };
     };
+    ClientBlocksController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientBlocksController_createBlock: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateClientBlockDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientBlocksController_updateBlock: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                blockId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateClientBlockDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientBlocksController_createUnit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                blockId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateClientUnitDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientBlocksController_generateUnits: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                blockId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerateClientUnitsDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientBlocksController_updateUnit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                unitId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateClientUnitDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientBlocksController_mergeUnit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                unitId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MergeClientUnitDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ClientInviteLinksController_preview: {
         parameters: {
             query?: never;
@@ -7043,8 +7332,8 @@ export interface operations {
                 endDate?: string;
                 page?: number;
                 name?: string;
-                block?: string;
-                unit?: string;
+                blockId?: string;
+                unitId?: string;
                 readerId?: string;
                 onlyDenied?: "true" | "false";
                 clientId?: string;
@@ -7090,8 +7379,8 @@ export interface operations {
                 endDate?: string;
                 page?: number;
                 name?: string;
-                block?: string;
-                unit?: string;
+                blockId?: string;
+                unitId?: string;
                 readerId?: string;
                 onlyDenied?: "true" | "false";
             };
@@ -7522,8 +7811,8 @@ export interface operations {
                 endDate?: string;
                 page?: number;
                 name?: string;
-                block?: string;
-                unit?: string;
+                blockId?: string;
+                unitId?: string;
                 readerId?: string;
                 onlyDenied?: "true" | "false";
             };
@@ -7931,8 +8220,8 @@ export interface operations {
                 page?: string;
                 pageSize?: string;
                 search?: string;
-                block?: string;
-                unit?: string;
+                blockId?: string;
+                unitId?: string;
                 room?: string;
             };
             header?: never;
@@ -7954,8 +8243,8 @@ export interface operations {
             query: {
                 status: "draft" | "approved" | "rejected" | "blocked" | "deleted" | "all";
                 search?: string;
-                block?: string;
-                unit?: string;
+                blockId?: string;
+                unitId?: string;
                 room?: string;
             };
             header?: never;
@@ -8208,8 +8497,8 @@ export interface operations {
                 page?: string;
                 pageSize?: string;
                 search?: string;
-                block?: string;
-                unit?: string;
+                blockId?: string;
+                unitId?: string;
                 room?: string;
             };
             header?: never;
@@ -8233,8 +8522,8 @@ export interface operations {
             query: {
                 status: "draft" | "approved" | "rejected" | "blocked" | "deleted" | "all";
                 search?: string;
-                block?: string;
-                unit?: string;
+                blockId?: string;
+                unitId?: string;
                 room?: string;
             };
             header?: never;

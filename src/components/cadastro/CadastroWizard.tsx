@@ -35,12 +35,20 @@ import {
     isFieldVisible,
     type ResolvedRegistrationFieldsConfig,
 } from "@/features/registrations/validations/registration-config";
+import { BlockUnitSelects } from "@/features/client-blocks/components/BlockUnitSelects";
+
+type PreviewBlock = {
+    id: string;
+    name: string;
+    units: { id: string; name: string }[];
+};
 
 type Preview = {
     clientName: string;
     clientType: string;
     logoUrl: string | null;
     fields?: ResolvedRegistrationFieldsConfig;
+    blocks?: PreviewBlock[];
 };
 
 function optionalLabel(base: string, required: boolean) {
@@ -81,8 +89,8 @@ export function CadastroWizard({ code }: { code: string }) {
     const [phone, setPhone] = useState("");
     const [email, setEmail] = useState("");
     const [birthDate, setBirthDate] = useState("");
-    const [block, setBlock] = useState("");
-    const [unit, setUnit] = useState("");
+    const [blockId, setBlockId] = useState("");
+    const [unitId, setUnitId] = useState("");
     const [room, setRoom] = useState("");
 
     const [truthDeclared, setTruthDeclared] = useState(false);
@@ -194,11 +202,12 @@ export function CadastroWizard({ code }: { code: string }) {
     );
 
     const canStep2 = useMemo(() => {
-        if (isFieldRequired(fields.block) && !block.trim()) return false;
-        if (isFieldRequired(fields.unit) && !unit.trim()) return false;
+        const needsUnit =
+            isFieldRequired(fields.block) || isFieldRequired(fields.unit);
+        if (needsUnit && !unitId) return false;
         if (isFieldRequired(fields.room) && !room.trim()) return false;
         return true;
-    }, [fields, block, unit, room]);
+    }, [fields, unitId, room]);
 
     function goToPhoto() {
         setStep(3);
@@ -244,9 +253,9 @@ export function CadastroWizard({ code }: { code: string }) {
             return;
         }
         const additionalData: Record<string, string> = {};
-        if (isFieldVisible(fields.block)) additionalData.block = block.trim();
-        if (isFieldVisible(fields.unit)) additionalData.unit = unit.trim();
         if (isFieldVisible(fields.room)) additionalData.room = room.trim();
+        const sendsUnit =
+            isFieldVisible(fields.block) || isFieldVisible(fields.unit);
 
         setSubmitting(true);
         try {
@@ -275,6 +284,7 @@ export function CadastroWizard({ code }: { code: string }) {
                             Object.keys(additionalData).length > 0
                                 ? additionalData
                                 : undefined,
+                        unitId: sendsUnit ? unitId || null : undefined,
                         truthDeclared: true,
                     }),
                 },
@@ -573,35 +583,18 @@ export function CadastroWizard({ code }: { code: string }) {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                        {isFieldVisible(fields.block) ? (
-                            <div className="space-y-1.5">
-                                <Label htmlFor="bl">
-                                    {optionalLabel(
-                                        "Bloco",
-                                        isFieldRequired(fields.block),
-                                    )}
-                                </Label>
-                                <Input
-                                    id="bl"
-                                    value={block}
-                                    onChange={(e) => setBlock(e.target.value)}
-                                />
-                            </div>
-                        ) : null}
-                        {isFieldVisible(fields.unit) ? (
-                            <div className="space-y-1.5">
-                                <Label htmlFor="un">
-                                    {optionalLabel(
-                                        "Unidade",
-                                        isFieldRequired(fields.unit),
-                                    )}
-                                </Label>
-                                <Input
-                                    id="un"
-                                    value={unit}
-                                    onChange={(e) => setUnit(e.target.value)}
-                                />
-                            </div>
+                        {isFieldVisible(fields.block) ||
+                        isFieldVisible(fields.unit) ? (
+                            <BlockUnitSelects
+                                idPrefix="cadastro"
+                                blocks={preview?.blocks ?? []}
+                                blockId={blockId}
+                                unitId={unitId}
+                                onBlockIdChange={setBlockId}
+                                onUnitIdChange={setUnitId}
+                                blockRequired={isFieldRequired(fields.block)}
+                                unitRequired={isFieldRequired(fields.unit)}
+                            />
                         ) : null}
                         {isFieldVisible(fields.room) ? (
                             <div className="space-y-1.5">

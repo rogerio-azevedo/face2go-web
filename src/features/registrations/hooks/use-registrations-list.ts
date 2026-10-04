@@ -17,8 +17,8 @@ export type RegistrationsListFilters = {
     page: number;
     pageSize: number;
     search?: string;
-    block?: string;
-    unit?: string;
+    blockId?: string;
+    unitId?: string;
     room?: string;
     status: NonNullable<RegistrationListParams["status"]>;
 };
@@ -37,8 +37,8 @@ export function registrationsListQueryKey(filters: RegistrationsListFilters) {
         filters.pageSize,
         filters.search ?? "",
         filters.status,
-        filters.block ?? "",
-        filters.unit ?? "",
+        filters.blockId ?? "",
+        filters.unitId ?? "",
         filters.room ?? "",
     ] as const;
 }
@@ -62,8 +62,8 @@ export function useRegistrationsList(filters: RegistrationsListFilters) {
                 page: filters.page,
                 pageSize: filters.pageSize,
                 search: filters.search,
-                block: filters.block,
-                unit: filters.unit,
+                blockId: filters.blockId,
+                unitId: filters.unitId,
                 room: filters.room,
                 status: filters.status,
             });

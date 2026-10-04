@@ -1,6 +1,6 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
     useCallback,
     useEffect,
@@ -19,6 +19,7 @@ import {
     deleteCompanyRegistrationAction,
     restoreCompanyRegistrationAction,
 } from "@/app/company/clientes/[clientId]/usuarios/actions";
+import { listClientBlocksAction } from "@/features/client-blocks/actions";
 import { AllowSimilarFaceDialog } from "@/features/faces/components/AllowSimilarFaceDialog";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import {
@@ -78,6 +79,7 @@ const DECISION_SUCCESS = {
 export function RegistrationsReviewBoard({
     variant,
     companyClientId,
+    blocksClientId,
     isAdmin = false,
     clientType: clientTypeProp,
     linksPanel,
@@ -87,6 +89,7 @@ export function RegistrationsReviewBoard({
 }: {
     variant: "client" | "company";
     companyClientId?: string;
+    blocksClientId?: string;
     isAdmin?: boolean;
     clientType?: string | null;
     linksPanel?: ReactNode;
@@ -100,8 +103,8 @@ export function RegistrationsReviewBoard({
     const [pageSize, setPageSize] = useState<number>(DEFAULT_SCHOOL_PAGE_SIZE);
     const [tab, setTab] = useState<RegistrationListTab>(initialTab);
     const [search, setSearch] = useState("");
-    const [block, setBlock] = useState("");
-    const [unit, setUnit] = useState("");
+    const [blockId, setBlockId] = useState("");
+    const [unitId, setUnitId] = useState("");
     const [room, setRoom] = useState("");
     const [sortField, setSortField] = useState<RegistrationSortField>("submittedAt");
     const [sortDir, setSortDir] = useState<RegistrationSortDir>("desc");
@@ -138,8 +141,8 @@ export function RegistrationsReviewBoard({
         page,
         pageSize,
         search: search.trim() || undefined,
-        block: block.trim() || undefined,
-        unit: unit.trim() || undefined,
+        blockId: blockId.trim() || undefined,
+        unitId: unitId.trim() || undefined,
         room: room.trim() || undefined,
         status: tab,
     };
@@ -356,7 +359,29 @@ export function RegistrationsReviewBoard({
         });
     }
 
+    const catalogClientId =
+        variant === "company" ? companyClientId : blocksClientId;
+    const catalogQuery = useQuery({
+        queryKey: ["client-blocks", catalogClientId],
+        enabled:
+            Boolean(catalogClientId) && resolvedClientType === "condominium",
+        queryFn: async () => {
+            const result = await listClientBlocksAction(catalogClientId ?? "");
+            if ("error" in result) throw new Error(result.error);
+            return result.items;
+        },
+    });
+    const locationBlocks = (catalogQuery.data ?? [])
+        .filter((block) => block.isActive)
+        .map((block) => ({
+            id: block.id,
+            name: block.name,
+            units: block.units
+                .filter((unit) => unit.isActive)
+                .map((unit) => ({ id: unit.id, name: unit.name })),
+        }));
     const locationType = resolvedClientType;
+
     const actions = {
         isAdmin,
         busy: pending,
@@ -391,10 +416,15 @@ export function RegistrationsReviewBoard({
                 search={search}
                 onSearchChange={(value) => resetPage(setSearch, value)}
                 showBlockUnit={locationType === "condominium"}
-                block={block}
-                onBlockChange={(value) => resetPage(setBlock, value)}
-                unit={unit}
-                onUnitChange={(value) => resetPage(setUnit, value)}
+                blocks={locationBlocks}
+                blockId={blockId}
+                onBlockIdChange={(value) => {
+                    setBlockId(value);
+                    setUnitId("");
+                    setPage(1);
+                }}
+                unitId={unitId}
+                onUnitIdChange={(value) => resetPage(setUnitId, value)}
                 showRoom={
                     locationType === "office" || locationType === "clinic"
                 }

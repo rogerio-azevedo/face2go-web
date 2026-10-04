@@ -17,8 +17,8 @@ export async function GET(request: NextRequest) {
   const clientId = params.get('clientId');
   const status = params.get('status');
   const search = params.get('search');
-  const block = params.get('block');
-  const unit = params.get('unit');
+  const blockId = params.get('blockId');
+  const unitId = params.get('unitId');
   const room = params.get('room');
 
   if (
@@ -35,10 +35,10 @@ export async function GET(request: NextRequest) {
   nestParams.set('status', status);
   const trimmed = search?.trim();
   if (trimmed) nestParams.set('search', trimmed);
-  const blockTrimmed = block?.trim();
-  if (blockTrimmed) nestParams.set('block', blockTrimmed);
-  const unitTrimmed = unit?.trim();
-  if (unitTrimmed) nestParams.set('unit', unitTrimmed);
+  const blockTrimmed = blockId?.trim();
+  if (blockTrimmed) nestParams.set('blockId', blockTrimmed);
+  const unitTrimmed = unitId?.trim();
+  if (unitTrimmed) nestParams.set('unitId', unitTrimmed);
   const roomTrimmed = room?.trim();
   if (roomTrimmed) nestParams.set('room', roomTrimmed);
 

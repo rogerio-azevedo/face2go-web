@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 
 import type {
     AccessesListResponse,
@@ -31,6 +31,8 @@ import { READER_DIRECTION_LABELS } from "@/lib/validations/readers";
 
 import { FacePhotoSheet } from "./FacePhotoSheet";
 import { toDatetimeLocalInputValue } from "./datetime-filter";
+import { BlockUnitSelects } from "@/features/client-blocks/components/BlockUnitSelects";
+import type { BlockUnitOption } from "@/features/client-blocks/components/BlockUnitSelects";
 
 /** Exibe instante UTC no relógio civil com offset fixo (minutos desde UTC). */
 function formatDateTime(iso: string | null, offsetMinutes: number): string {
@@ -74,11 +76,12 @@ type Props = {
         startDate: string;
         endDate: string;
         name: string;
-        block: string;
-        unit: string;
+        blockId: string;
+        unitId: string;
         readerId: string;
         onlyDenied: boolean;
     };
+    locationBlocks?: BlockUnitOption[];
     /** Bearer JWT para `GET /api/accesses/:id/photo` no navegador. */
     accessToken: string;
     basePath?: string;
@@ -92,6 +95,7 @@ export function AccessesTable({
     readers = [],
     clientTimezoneOffsetMinutes,
     filters,
+    locationBlocks,
     accessToken,
     basePath = "/company/acessos",
     photoApiPath = "/api/accesses/:id/photo",
@@ -109,6 +113,13 @@ export function AccessesTable({
         null,
     );
     const [photoSubtitle, setPhotoSubtitle] = useState("");
+    const [blockId, setBlockId] = useState(filters.blockId);
+    const [unitId, setUnitId] = useState(filters.unitId);
+
+    useEffect(() => {
+        setBlockId(filters.blockId);
+        setUnitId(filters.unitId);
+    }, [filters.blockId, filters.unitId]);
 
     const openFacePhoto = useCallback(
         async (accessId: string, personLabel: string) => {
@@ -188,10 +199,12 @@ export function AccessesTable({
         const startDate = String(fd.get("startDate") ?? "").trim();
         const endDate = String(fd.get("endDate") ?? "").trim();
         const name = String(fd.get("name") ?? "").trim();
-        const block = String(fd.get("block") ?? "").trim();
-        const unit = String(fd.get("unit") ?? "").trim();
+        const blockId = String(fd.get("blockId") ?? "").trim();
+        const unitId = String(fd.get("unitId") ?? "").trim();
         const readerId = String(fd.get("readerId") ?? "").trim();
         const onlyDenied = fd.get("onlyDenied") === "true";
+        const clientChanged =
+            !hideClientFilter && (clientId || "") !== filters.clientId;
         startTransition(() => {
             router.push(
                 buildHref({
@@ -199,8 +212,8 @@ export function AccessesTable({
                     startDate: startDate || undefined,
                     endDate: endDate || undefined,
                     name: name || undefined,
-                    block: block || undefined,
-                    unit: unit || undefined,
+                    blockId: clientChanged ? undefined : blockId || undefined,
+                    unitId: clientChanged ? undefined : unitId || undefined,
                     readerId: readerId || undefined,
                     onlyDenied: onlyDenied ? "true" : undefined,
                     page: undefined,
@@ -326,24 +339,25 @@ export function AccessesTable({
                         defaultValue={filters.name}
                     />
                 </div>
-                <div className="grid gap-2 min-w-[120px]">
-                    <Label htmlFor="filter-block">Bloco</Label>
-                    <Input
-                        id="filter-block"
-                        name="block"
-                        placeholder="Bloco"
-                        defaultValue={filters.block}
-                    />
-                </div>
-                <div className="grid gap-2 min-w-[120px]">
-                    <Label htmlFor="filter-unit">Unidade</Label>
-                    <Input
-                        id="filter-unit"
-                        name="unit"
-                        placeholder="Unidade"
-                        defaultValue={filters.unit}
-                    />
-                </div>
+                {locationBlocks ? (
+                    <div className="min-w-70 flex-1">
+                        <BlockUnitSelects
+                            idPrefix="filter"
+                            blocks={locationBlocks}
+                            blockId={blockId}
+                            unitId={unitId}
+                            blockName="blockId"
+                            unitName="unitId"
+                            plainLabels
+                            emptyHint="Cadastre blocos e unidades para filtrar."
+                            onBlockIdChange={(value) => {
+                                setBlockId(value);
+                                setUnitId("");
+                            }}
+                            onUnitIdChange={setUnitId}
+                        />
+                    </div>
+                ) : null}
                 <div className="flex h-9 items-center gap-2">
                     <Checkbox
                         id="filter-only-denied"
