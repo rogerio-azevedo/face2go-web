@@ -41,6 +41,28 @@ function extraString(
     return typeof value === "string" ? value : "";
 }
 
+function textKey(value: string) {
+    return value.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+function findUnitByText(
+    catalog: CatalogBlock[],
+    blockText: string,
+    unitText: string,
+) {
+    const blockKey = textKey(blockText);
+    const unitKey = textKey(unitText);
+    if (!unitKey) return null;
+    const block = catalog.find(
+        (item) => item.isActive && textKey(item.name) === blockKey,
+    );
+    return (
+        block?.units.find(
+            (unit) => unit.isActive && textKey(unit.name) === unitKey,
+        ) ?? null
+    );
+}
+
 export function RegistrationEditSheet({
     open,
     onOpenChange,
@@ -110,11 +132,22 @@ export function RegistrationEditSheet({
         void listClientBlocksAction(row.clientId).then((result) => {
             if (cancel || "error" in result) return;
             setCatalog(result.items);
+            if (row.unitId || form.getValues("unitId")) return;
+            const match = findUnitByText(
+                result.items,
+                extraString(row.additionalData, "block"),
+                extraString(row.additionalData, "unit"),
+            );
+            if (match) form.setValue("unitId", match.id);
         });
         return () => {
             cancel = true;
         };
-    }, [open, showCondo, row]);
+    }, [open, showCondo, row, form]);
+
+    const legacyBlock = extraString(row?.additionalData ?? null, "block");
+    const legacyUnit = extraString(row?.additionalData ?? null, "unit");
+    const showLegacyText = !row?.unitId && Boolean(legacyBlock || legacyUnit);
 
     const locationBlocks = catalog
         .filter((block) => block.isActive)
@@ -149,7 +182,9 @@ export function RegistrationEditSheet({
                 Object.keys(additionalData).length > 0
                     ? additionalData
                     : undefined,
-            unitId: showCondo ? values.unitId || null : undefined,
+            unitId: !showCondo
+                ? undefined
+                : values.unitId || (row.unitId ? null : undefined),
         };
 
         setBusy(true);
@@ -254,6 +289,13 @@ export function RegistrationEditSheet({
                             {...form.register("birthDate")}
                         />
                     </div>
+                    {showCondo && showLegacyText ? (
+                        <p className="text-muted-foreground text-xs">
+                            Texto antigo: Bloco {legacyBlock || "—"} · Unidade{" "}
+                            {legacyUnit || "—"}. Escolha a unidade do catálogo
+                            para vincular.
+                        </p>
+                    ) : null}
                     {showCondo ? (
                         <BlockUnitSelects
                             idPrefix="reg"

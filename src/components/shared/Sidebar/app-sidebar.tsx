@@ -121,6 +121,11 @@ function navItemsForRole(
                     url: "/company/relatorios",
                     icon: FileBarChart,
                 },
+                {
+                    title: "Blocos e unidades",
+                    url: "/company/blocos-unidades",
+                    icon: Building2,
+                },
                 ...(companyFeatures?.monitoring
                     ? [
                           {

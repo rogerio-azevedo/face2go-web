@@ -678,6 +678,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/clients/{clientId}/blocks/generate-structure": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Gerar blocos e unidades por andar (cria só o que falta) */
+        post: operations["ClientBlocksController_generateStructure"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/clients/{clientId}/blocks/{blockId}": {
         parameters: {
             query?: never;
@@ -721,7 +738,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Gerar unidades em intervalo numérico */
+        /** Gerar unidades por andar no bloco */
         post: operations["ClientBlocksController_generateUnits"];
         delete?: never;
         options?: never;
@@ -746,7 +763,41 @@ export interface paths {
         patch: operations["ClientBlocksController_updateUnit"];
         trace?: never;
     };
-    "/clients/{clientId}/units/{unitId}/merge": {
+    "/condominiums/location-review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Resumo de bloco/unidade por condomínio da empresa */
+        get: operations["LocationReviewController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/condominiums/location-review/clients/{clientId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Grupos de texto bloco/unidade sem vínculo no catálogo */
+        get: operations["LocationReviewController_getClientReview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/condominiums/location-review/clients/{clientId}/ensure-unit": {
         parameters: {
             query?: never;
             header?: never;
@@ -755,8 +806,25 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Unir unidade na de destino e desativar a origem */
-        post: operations["ClientBlocksController_mergeUnit"];
+        /** Usar ou criar bloco e unidade pelo nome */
+        post: operations["LocationReviewController_ensureUnit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/condominiums/location-review/clients/{clientId}/bind": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Vincular grupos de texto a unidades do catálogo */
+        post: operations["LocationReviewController_bind"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5193,6 +5261,15 @@ export interface components {
         CreateClientBlockDto: {
             name: string;
         };
+        GenerateStructureDto: {
+            blockStart: number;
+            blockEnd: number;
+            /** @default 2 */
+            blockDigits: number;
+            floorStart: number;
+            floorEnd: number;
+            unitsPerFloor: number;
+        };
         UpdateClientBlockDto: {
             name?: string;
             isActive?: boolean;
@@ -5201,16 +5278,25 @@ export interface components {
             name: string;
         };
         GenerateClientUnitsDto: {
-            start: number;
-            end: number;
+            floorStart: number;
+            floorEnd: number;
+            unitsPerFloor: number;
         };
         UpdateClientUnitDto: {
             name?: string;
             isActive?: boolean;
         };
-        MergeClientUnitDto: {
-            /** Format: uuid */
-            targetUnitId: string;
+        EnsureLocationUnitDto: {
+            blockName: string;
+            unitName: string;
+        };
+        BindLocationGroupsDto: {
+            items: {
+                blockText: string;
+                unitText: string;
+                /** Format: uuid */
+                unitId: string;
+            }[];
         };
         PatchClientUserProfileDto: {
             name?: string;
@@ -6493,6 +6579,29 @@ export interface operations {
             };
         };
     };
+    ClientBlocksController_generateStructure: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerateStructureDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ClientBlocksController_updateBlock: {
         parameters: {
             query?: never;
@@ -6589,19 +6698,77 @@ export interface operations {
             };
         };
     };
-    ClientBlocksController_mergeUnit: {
+    LocationReviewController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    LocationReviewController_getClientReview: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 clientId: string;
-                unitId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    LocationReviewController_ensureUnit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["MergeClientUnitDto"];
+                "application/json": components["schemas"]["EnsureLocationUnitDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    LocationReviewController_bind: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BindLocationGroupsDto"];
             };
         };
         responses: {
