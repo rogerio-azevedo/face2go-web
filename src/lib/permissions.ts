@@ -1,3 +1,5 @@
+import { cache } from 'react';
+
 import { auth } from '@/auth';
 
 import { apiFetchAuthed, parseResponseJson } from '@/lib/api-fetch';
@@ -52,6 +54,26 @@ export async function getCompanyFeatureFlags(): Promise<
         return { monitoring: false, presence: false };
     }
 }
+
+export const getClientType = cache(async (): Promise<string | null> => {
+    const session = await auth();
+    const token = session?.accessToken;
+
+    if (!session?.user?.clientId || !token) return null;
+
+    try {
+        const res = await apiFetchAuthed(
+            '/api/client/registrations?page=1&pageSize=1',
+        );
+
+        if (!res.ok) return null;
+
+        const data = (await parseResponseJson(res)) as { clientType?: unknown };
+        return typeof data.clientType === 'string' ? data.clientType : null;
+    } catch {
+        return null;
+    }
+});
 
 export async function getSidebarNavAccess(): Promise<{
     mainPaths: string[] | null;

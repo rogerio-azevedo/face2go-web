@@ -13,7 +13,13 @@ import type { CatalogBlock } from "../types";
 import { BlockCard } from "./BlockCard";
 import { GenerateStructureForm } from "./GenerateStructureForm";
 
-export function ClientBlocksPanel({ clientId }: { clientId: string }) {
+export function ClientBlocksPanel({
+    clientId,
+    showHeading = true,
+}: {
+    clientId: string;
+    showHeading?: boolean;
+}) {
     const [blocks, setBlocks] = useState<CatalogBlock[]>([]);
     const [loading, setLoading] = useState(true);
     const [blockName, setBlockName] = useState("");
@@ -56,13 +62,16 @@ export function ClientBlocksPanel({ clientId }: { clientId: string }) {
 
     return (
         <section className="space-y-4">
-            <div>
-                <h2 className="text-lg font-semibold">Blocos e unidades</h2>
-                <p className="text-muted-foreground text-sm">
-                    Cadastre os blocos e as unidades antes de receber moradores.
-                    Pessoas do mesmo apartamento escolhem a mesma unidade.
-                </p>
-            </div>
+            {showHeading ? (
+                <div>
+                    <h2 className="text-lg font-semibold">Blocos e unidades</h2>
+                    <p className="text-muted-foreground text-sm">
+                        Cadastre os blocos e as unidades antes de receber
+                        moradores. Pessoas do mesmo apartamento escolhem a mesma
+                        unidade.
+                    </p>
+                </div>
+            ) : null}
             <GenerateStructureForm
                 clientId={clientId}
                 busy={busy}

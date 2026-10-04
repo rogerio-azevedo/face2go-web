@@ -47,6 +47,7 @@ function navItemsForRole(
     role: NonNullable<Session["user"]["role"]>,
     mainPaths?: string[] | null,
     companyFeatures?: CompanyFeatureFlags,
+    clientType?: string | null,
 ): NavMainItem[] {
     const pathSet =
         mainPaths && mainPaths.length > 0 ? new Set(mainPaths) : null;
@@ -240,6 +241,15 @@ function navItemsForRole(
                     url: "/client/cadastros",
                     icon: UserCheck,
                 },
+                ...(clientType === "condominium"
+                    ? [
+                          {
+                              title: "Blocos e unidades",
+                              url: "/client/blocos-unidades",
+                              icon: Building2,
+                          },
+                      ]
+                    : []),
                 {
                     title: "Acessos",
                     url: "/client/acessos",
@@ -325,6 +335,7 @@ export function AppSidebar({
     productName = "Face2go",
     mainPaths,
     companyFeatures,
+    clientType,
     ...props
 }: ComponentProps<typeof Sidebar> & {
     user: NonNullable<Session["user"]>;
@@ -333,10 +344,11 @@ export function AppSidebar({
     mainPaths?: string[] | null;
     /** Recursos premium habilitados para a empresa. */
     companyFeatures?: CompanyFeatureFlags;
+    clientType?: string | null;
 }) {
     const navItems = useMemo(
-        () => navItemsForRole(user.role, mainPaths, companyFeatures),
-        [user.role, mainPaths, companyFeatures],
+        () => navItemsForRole(user.role, mainPaths, companyFeatures, clientType),
+        [user.role, mainPaths, companyFeatures, clientType],
     );
     const productSubtitle = useMemo(
         () => subtitleForRole(user.role),

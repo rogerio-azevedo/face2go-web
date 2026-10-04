@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 
 import { ClientRegistrationLinksPanel } from "@/components/client/ClientRegistrationLinksPanel";
-import { ClientBlocksPanel } from "@/features/client-blocks/components/ClientBlocksPanel";
 import { RegistrationsReviewBoard } from "@/components/registrations/RegistrationsReviewBoard";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { auth } from "@/auth";
@@ -53,23 +52,6 @@ export default async function ClientCadastrosPage({
     }
 
     const clientId = session?.user?.clientId;
-    let clientType: string | null = null;
-    if (clientId && role === "client_admin") {
-        try {
-            const typeRes = await apiFetchAuthed(
-                "/api/client/registrations?page=1&pageSize=1",
-            );
-            if (typeRes.ok) {
-                const body = (await parseResponseJson(typeRes)) as {
-                    clientType?: unknown;
-                };
-                clientType =
-                    typeof body.clientType === "string" ? body.clientType : null;
-            }
-        } catch {
-            clientType = null;
-        }
-    }
 
     const clientName =
         session?.activeContext?.type === "client"
@@ -82,9 +64,6 @@ export default async function ClientCadastrosPage({
                 title="Cadastros"
                 description="Moradores, colaboradores e visitantes que acessam pelo leitor facial."
             />
-            {clientType === "condominium" && clientId && role === "client_admin" ? (
-                <ClientBlocksPanel clientId={clientId} />
-            ) : null}
             <RegistrationsReviewBoard
                 key={`${initialShowLinks ? "links" : "list"}-${initialTab}`}
                 variant="client"

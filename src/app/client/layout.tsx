@@ -6,6 +6,7 @@ import { Header } from "@/components/shared/Header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AccessBlockedAttemptListener } from "@/features/readers/components/AccessBlockedAttemptListener";
 import { ReaderOfflineAlertListener } from "@/features/readers/components/ReaderOfflineAlertListener";
+import { getClientType } from "@/lib/permissions";
 
 export default async function ClientLayout({
     children,
@@ -23,9 +24,11 @@ export default async function ClientLayout({
         redirect("/login?error=Sem permissão");
     }
 
+    const clientType = r === "client_admin" ? await getClientType() : null;
+
     return (
         <SidebarProvider>
-            <AppSidebar user={user} />
+            <AppSidebar user={user} clientType={clientType} />
             <SidebarInset>
                 <Header />
                 <div className="flex-1 overflow-y-auto overflow-x-hidden bg-muted/10 px-4 pb-6 pt-3 md:px-6 md:pb-8 md:pt-4">
