@@ -705,7 +705,8 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete?: never;
+        /** Excluir bloco inativo (e suas unidades) sem pessoas vinculadas */
+        delete: operations["ClientBlocksController_deleteBlock"];
         options?: never;
         head?: never;
         /** Atualizar bloco */
@@ -756,22 +757,23 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete?: never;
+        /** Excluir unidade inativa sem pessoas vinculadas */
+        delete: operations["ClientBlocksController_deleteUnit"];
         options?: never;
         head?: never;
         /** Atualizar unidade */
         patch: operations["ClientBlocksController_updateUnit"];
         trace?: never;
     };
-    "/condominiums/location-review": {
+    "/clients/{clientId}/units/{unitId}/people": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Resumo de bloco/unidade por condomínio da empresa */
-        get: operations["LocationReviewController_list"];
+        /** Pessoas vinculadas à unidade (inclusive inativas) */
+        get: operations["ClientBlocksController_listUnitPeople"];
         put?: never;
         post?: never;
         delete?: never;
@@ -787,7 +789,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Grupos de texto bloco/unidade sem vínculo no catálogo */
+        /** Pessoas agrupadas por texto (sem vínculo) e por unidade atual */
         get: operations["LocationReviewController_getClientReview"];
         put?: never;
         post?: never;
@@ -825,6 +827,23 @@ export interface paths {
         put?: never;
         /** Vincular grupos de texto a unidades do catálogo */
         post: operations["LocationReviewController_bind"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/condominiums/location-review/clients/{clientId}/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mover as pessoas de uma unidade para outra ou desvinculá-las */
+        post: operations["LocationReviewController_move"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5273,6 +5292,7 @@ export interface components {
         UpdateClientBlockDto: {
             name?: string;
             isActive?: boolean;
+            isAdministrative?: boolean;
         };
         CreateClientUnitDto: {
             name: string;
@@ -5296,6 +5316,14 @@ export interface components {
                 unitText: string;
                 /** Format: uuid */
                 unitId: string;
+            }[];
+        };
+        MoveLocationGroupsDto: {
+            items: {
+                /** Format: uuid */
+                sourceUnitId: string;
+                /** Format: uuid */
+                targetUnitId: string | null;
             }[];
         };
         PatchClientUserProfileDto: {
@@ -5497,6 +5525,7 @@ export interface components {
                 readerName: string;
                 /** @enum {string} */
                 status: "granted" | "denied";
+                eventDate: string | null;
                 createdAt: string;
                 /** @enum {string|null} */
                 readerDirection: "in" | "out" | null;
@@ -6602,6 +6631,26 @@ export interface operations {
             };
         };
     };
+    ClientBlocksController_deleteBlock: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                blockId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ClientBlocksController_updateBlock: {
         parameters: {
             query?: never;
@@ -6674,6 +6723,26 @@ export interface operations {
             };
         };
     };
+    ClientBlocksController_deleteUnit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                unitId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ClientBlocksController_updateUnit: {
         parameters: {
             query?: never;
@@ -6698,11 +6767,14 @@ export interface operations {
             };
         };
     };
-    LocationReviewController_list: {
+    ClientBlocksController_listUnitPeople: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                clientId: string;
+                unitId: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -6769,6 +6841,29 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["BindLocationGroupsDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    LocationReviewController_move: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MoveLocationGroupsDto"];
             };
         };
         responses: {

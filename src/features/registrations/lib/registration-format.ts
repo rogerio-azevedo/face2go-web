@@ -18,6 +18,14 @@ export const REGISTRATION_TAB_LABELS: Record<RegistrationListTab, string> = {
     deleted: "Excluídos",
 };
 
+export function parseRegistrationListTab(
+    value: string | undefined,
+): RegistrationListTab | undefined {
+    return value && value in REGISTRATION_TAB_LABELS
+        ? (value as RegistrationListTab)
+        : undefined;
+}
+
 export function formatWhen(iso: string | null) {
     if (!iso) return "—";
     try {

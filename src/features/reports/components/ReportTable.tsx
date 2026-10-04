@@ -1,6 +1,7 @@
 'use client';
 
 import { Car, ScanFace } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 import { DataTablePagination } from '@/components/ui/data-table-pagination';
 import { FaceCirclePhoto } from '@/components/ui/face-circle-photo';
@@ -28,6 +29,7 @@ type ReportTableProps = {
   pageSize: number;
   total: number;
   onPageChange: (page: number) => void;
+  renderActions: (row: EnrollmentListItem) => ReactNode;
 };
 
 function StatusIcon({
@@ -68,9 +70,10 @@ export function ReportTable({
   pageSize,
   total,
   onPageChange,
+  renderActions,
 }: ReportTableProps) {
   const colSpan =
-    3 +
+    4 +
     (showClass ? 1 : 0) +
     (showRole ? 1 : 0) +
     (showLogin ? 1 : 0) +
@@ -91,6 +94,7 @@ export function ReportTable({
               {showVehicle ? (
                 <TableHead className="w-20 text-center">Veículo</TableHead>
               ) : null}
+              <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -179,6 +183,9 @@ export function ReportTable({
                     />
                   </TableCell>
                 ) : null}
+                <TableCell className="py-1 text-right">
+                  {renderActions(row)}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

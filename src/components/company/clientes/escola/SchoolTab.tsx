@@ -10,6 +10,7 @@ import {
 import { InvitesSection } from "./InvitesSection";
 import { ClientAddressesPanel } from "@/components/company/clientes/enderecos/ClientAddressesPanel";
 import { DeviceSyncQueuePanel } from "@/features/device-sync/components/DeviceSyncQueuePanel";
+import type { SchoolSection } from "@/features/school/lib/school-section";
 import { MembersSection } from "./MembersSection";
 import { ParentsSection } from "./ParentsSection";
 import { PickupAuthorizationsSection } from "./PickupAuthorizationsSection";
@@ -22,14 +23,24 @@ export function SchoolTab({
     clientId,
     isAdmin = false,
     canEditAddresses = false,
+    initialSection,
+    initialSearch,
+    initialOpenId,
 }: {
     clientId: string;
     isAdmin?: boolean;
     canEditAddresses?: boolean;
+    initialSection?: SchoolSection;
+    initialSearch?: string;
+    initialOpenId?: string;
 }) {
+    const section = initialSection ?? "students";
+    const deepLink = (target: SchoolSection) =>
+        target === section ? { initialSearch, initialOpenId } : {};
+
     return (
         <div className="space-y-4">
-            <Tabs defaultValue="students">
+            <Tabs defaultValue={section}>
                 <TabsList className="h-auto w-full flex-wrap justify-start gap-1 md:w-fit">
                     <TabsTrigger value="students">Alunos</TabsTrigger>
                     <TabsTrigger value="parents">Responsáveis</TabsTrigger>
@@ -47,13 +58,25 @@ export function SchoolTab({
                     ) : null}
                 </TabsList>
                 <TabsContent value="students" className="pt-4">
-                    <StudentsSection clientId={clientId} isAdmin={isAdmin} />
+                    <StudentsSection
+                        clientId={clientId}
+                        isAdmin={isAdmin}
+                        {...deepLink("students")}
+                    />
                 </TabsContent>
                 <TabsContent value="parents" className="pt-4">
-                    <ParentsSection clientId={clientId} isAdmin={isAdmin} />
+                    <ParentsSection
+                        clientId={clientId}
+                        isAdmin={isAdmin}
+                        {...deepLink("parents")}
+                    />
                 </TabsContent>
                 <TabsContent value="members" className="pt-4">
-                    <MembersSection clientId={clientId} isAdmin={isAdmin} />
+                    <MembersSection
+                        clientId={clientId}
+                        isAdmin={isAdmin}
+                        {...deepLink("members")}
+                    />
                 </TabsContent>
                 <TabsContent value="shifts" className="pt-4">
                     <ShiftsSection clientId={clientId} />

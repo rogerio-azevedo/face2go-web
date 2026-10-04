@@ -3,12 +3,15 @@
 import { useMemo, useState } from 'react';
 
 import { ReportFiltersBar } from '@/features/reports/components/ReportFiltersBar';
+import { ReportRowActions } from '@/features/reports/components/ReportRowActions';
 import { ReportSummaryBar } from '@/features/reports/components/ReportSummaryBar';
 import { ReportTable } from '@/features/reports/components/ReportTable';
 import {
   useEnrollmentList,
   useEnrollmentSummary,
 } from '@/features/reports/hooks/use-enrollment-report';
+import { useReportFaceSync } from '@/features/reports/hooks/use-report-face-sync';
+import { reportPersonHref } from '@/features/reports/lib/person-href';
 import type {
   EnrollmentGroup,
   EnrollmentListItem,
@@ -22,6 +25,8 @@ type EnrollmentReportProps = {
   scope: EnrollmentReportScope;
   clients?: ClientListRow[];
   clientId?: string;
+  isAdmin?: boolean;
+  canOpenUsers?: boolean;
 };
 
 const PAGE_SIZE = 20;
@@ -39,6 +44,8 @@ export function EnrollmentReport({
   scope,
   clients = [],
   clientId: initialClientId,
+  isAdmin = false,
+  canOpenUsers = false,
 }: EnrollmentReportProps) {
   const [clientId, setClientId] = useState(initialClientId ?? '');
   const [group, setGroup] = useState<EnrollmentGroup>('students');
@@ -103,6 +110,12 @@ export function EnrollmentReport({
   );
 
   const hasSelection = scope === 'client' || Boolean(clientId);
+  const activeGroup = groups.includes(group) ? group : (groups[0] ?? 'members');
+  const faceSync = useReportFaceSync({
+    scope,
+    clientId: clientId || undefined,
+    group: activeGroup,
+  });
 
   return (
     <div className="space-y-4">
@@ -122,7 +135,7 @@ export function EnrollmentReport({
           }
         }}
         groups={groups}
-        group={groups.includes(group) ? group : (groups[0] ?? 'members')}
+        group={activeGroup}
         onGroupChange={(next) => {
           setGroup(next);
           setClassId('');
@@ -195,6 +208,29 @@ export function EnrollmentReport({
             pageSize={list.pageSize}
             total={list.total}
             onPageChange={setPage}
+            renderActions={(row) => (
+              <ReportRowActions
+                row={row}
+                href={
+                  canOpenUsers
+                    ? reportPersonHref({
+                        scope,
+                        clientId: clientId || undefined,
+                        group: activeGroup,
+                        id: row.id,
+                        name: row.name,
+                      })
+                    : null
+                }
+                isAdmin={isAdmin}
+                canSync={faceSync.canSync}
+                canForce={faceSync.canForce}
+                syncing={faceSync.syncingId === row.id}
+                onSync={(target, options) =>
+                  void faceSync.sync(target, options)
+                }
+              />
+            )}
           />
         </>
       )}

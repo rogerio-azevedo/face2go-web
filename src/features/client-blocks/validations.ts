@@ -75,3 +75,15 @@ export const bindLocationGroupsSchema = z.object({
         .min(1, "Nada para vincular.")
         .max(500),
 });
+
+export const moveLocationGroupsSchema = z.object({
+    items: z
+        .array(
+            z.object({
+                sourceUnitId: z.string().uuid(),
+                targetUnitId: z.string().uuid("Escolha a unidade.").nullable(),
+            }),
+        )
+        .min(1, "Nada para mover.")
+        .max(200),
+});

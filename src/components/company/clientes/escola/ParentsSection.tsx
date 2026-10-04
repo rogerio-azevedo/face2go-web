@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { listResponsiblesAction } from "@/app/company/clientes/[clientId]/usuarios/escola-actions";
 import { AllowSimilarFaceButton } from "@/features/faces/components/AllowSimilarFaceDialog";
 import { isSimilarFaceSyncError } from "@/lib/similar-face-error";
+import { useDeepLinkRow } from "@/hooks/use-deep-link-row";
 import { deferInEffect } from "@/lib/defer-in-effect";
 import { emptyPaginated } from "@/lib/pagination";
 import { useFaceSyncOffer } from "@/lib/use-face-sync-offer";
@@ -35,16 +36,21 @@ import { FaceSyncOfferModal } from "./FaceSyncOfferModal";
 export function ParentsSection({
     clientId,
     isAdmin = false,
+    initialSearch = "",
+    initialOpenId,
 }: {
     clientId: string;
     isAdmin?: boolean;
+    initialSearch?: string;
+    initialOpenId?: string;
 }) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [list, setList] = useState<PaginatedResponse<ResponsibleRow>>(
         emptyPaginated(),
     );
-    const [search, setSearch] = useState("");
+    const [search, setSearch] = useState(initialSearch);
+    const consumeDeepLink = useDeepLinkRow(initialOpenId);
     const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(true);
     const [createOpen, setCreateOpen] = useState(false);
@@ -72,11 +78,16 @@ export function ParentsSection({
                     return;
                 }
                 setList(r.result);
+                const target = consumeDeepLink(r.result.data);
+                if (target) {
+                    setEditRow(target);
+                    setEditOpen(true);
+                }
             } finally {
                 setLoading(false);
             }
         },
-        [clientId, list.pageSize],
+        [clientId, list.pageSize, consumeDeepLink],
     );
 
     useEffect(() => {

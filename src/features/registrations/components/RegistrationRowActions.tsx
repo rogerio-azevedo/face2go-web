@@ -76,7 +76,7 @@ export function RegistrationRowActions({
     const isDeleted = tab === "deleted" || row.isActive === false;
     const isApproved = row.status === "approved" && !isDeleted;
     const canSync = isApproved && row.faceId != null;
-    const canEdit = isApproved || (row.status === "draft" && !isDeleted);
+    const canEdit = !isDeleted;
     const canRetake =
         !isDeleted &&
         (row.status === "draft" || row.status === "approved");

@@ -17,10 +17,12 @@ import { cn } from "@/lib/utils";
 
 import {
     createClientUnitAction,
+    deleteClientBlockAction,
     generateClientUnitsAction,
     updateClientBlockAction,
 } from "../actions";
 import type { CatalogBlock } from "../types";
+import { ConfirmDeleteButton } from "./ConfirmDeleteButton";
 import { UnitEditor, type RunTask } from "./UnitEditor";
 
 export function BlockCard({
@@ -28,11 +30,15 @@ export function BlockCard({
     block,
     busy,
     run,
+    catalog,
+    canMovePeople = false,
 }: {
     clientId: string;
     block: CatalogBlock;
     busy: boolean;
     run: RunTask;
+    catalog: CatalogBlock[];
+    canMovePeople?: boolean;
 }) {
     const [open, setOpen] = useState(false);
     const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
@@ -54,6 +60,9 @@ export function BlockCard({
                 <Badge variant="outline">
                     {activeCount} unidade{activeCount === 1 ? "" : "s"}
                 </Badge>
+                {block.isAdministrative ? (
+                    <Badge variant="secondary">Administrativo</Badge>
+                ) : null}
                 {!block.isActive ? (
                     <Badge variant="secondary">Inativo</Badge>
                 ) : null}
@@ -114,6 +123,8 @@ export function BlockCard({
                         busy={busy}
                         run={run}
                         onClose={() => setSelectedUnitId(null)}
+                        catalog={catalog}
+                        canMovePeople={canMovePeople}
                     />
                 ) : null}
 
@@ -182,6 +193,34 @@ function BlockNameForm({
             >
                 {block.isActive ? "Desativar bloco" : "Reativar bloco"}
             </Button>
+            <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={busy || !block.isActive}
+                onClick={() =>
+                    void run(() =>
+                        updateClientBlockAction(clientId, block.id, {
+                            isAdministrative: !block.isAdministrative,
+                        }),
+                    )
+                }
+            >
+                {block.isAdministrative
+                    ? "Marcar como residencial"
+                    : "Marcar como administrativo"}
+            </Button>
+            {!block.isActive ? (
+                <ConfirmDeleteButton
+                    label="Excluir bloco"
+                    title={`Excluir o bloco ${block.name}?`}
+                    description="O bloco e todas as unidades dele serão apagados definitivamente. Só é possível se nenhuma pessoa (nem inativa) estiver vinculada a essas unidades."
+                    busy={busy}
+                    onConfirm={() =>
+                        void run(() => deleteClientBlockAction(clientId, block.id))
+                    }
+                />
+            ) : null}
         </div>
     );
 }

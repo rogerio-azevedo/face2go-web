@@ -9,6 +9,7 @@ import { listStudentsAction } from "@/app/company/clientes/[clientId]/usuarios/e
 import { AllowSimilarFaceButton } from "@/features/faces/components/AllowSimilarFaceDialog";
 import { isSimilarFaceSyncError } from "@/lib/similar-face-error";
 import { listSchoolClassesAction } from "@/features/school/actions/school-classes";
+import { useDeepLinkRow } from "@/hooks/use-deep-link-row";
 import { deferInEffect } from "@/lib/defer-in-effect";
 import { emptyPaginated } from "@/lib/pagination";
 import { useFaceSyncOffer } from "@/lib/use-face-sync-offer";
@@ -54,9 +55,13 @@ function classesLabel(
 export function StudentsSection({
     clientId,
     isAdmin = false,
+    initialSearch = "",
+    initialOpenId,
 }: {
     clientId: string;
     isAdmin?: boolean;
+    initialSearch?: string;
+    initialOpenId?: string;
 }) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
@@ -64,7 +69,8 @@ export function StudentsSection({
         emptyPaginated(),
     );
     const [classes, setClasses] = useState<SchoolClassRow[]>([]);
-    const [search, setSearch] = useState("");
+    const [search, setSearch] = useState(initialSearch);
+    const consumeDeepLink = useDeepLinkRow(initialOpenId);
     const [filterClassId, setFilterClassId] = useState("");
     const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(true);
@@ -94,11 +100,16 @@ export function StudentsSection({
                     return;
                 }
                 setList(r.result);
+                const target = consumeDeepLink(r.result.data);
+                if (target) {
+                    setEditRow(target);
+                    setEditOpen(true);
+                }
             } finally {
                 setLoading(false);
             }
         },
-        [clientId, list.pageSize],
+        [clientId, list.pageSize, consumeDeepLink],
     );
 
     useEffect(() => {

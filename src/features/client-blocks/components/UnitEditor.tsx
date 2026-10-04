@@ -6,8 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-import { updateClientUnitAction } from "../actions";
-import type { CatalogUnit } from "../types";
+import { deleteClientUnitAction, updateClientUnitAction } from "../actions";
+import type { CatalogBlock, CatalogUnit } from "../types";
+import { ConfirmDeleteButton } from "./ConfirmDeleteButton";
+import { UnitPeople } from "./UnitPeople";
 
 export type RunTask = (
     task: () => Promise<{ error: string } | { success: true }>,
@@ -21,6 +23,8 @@ export function UnitEditor({
     busy,
     run,
     onClose,
+    catalog,
+    canMovePeople = false,
 }: {
     clientId: string;
     blockName: string;
@@ -28,8 +32,11 @@ export function UnitEditor({
     busy: boolean;
     run: RunTask;
     onClose: () => void;
+    catalog: CatalogBlock[];
+    canMovePeople?: boolean;
 }) {
     const [name, setName] = useState(unit.name);
+    const [showPeople, setShowPeople] = useState(false);
 
     return (
         <div className="bg-muted/40 flex flex-wrap items-center gap-2 rounded-md border p-3">
@@ -74,6 +81,25 @@ export function UnitEditor({
             >
                 {unit.isActive ? "Desativar" : "Reativar"}
             </Button>
+            {!unit.isActive ? (
+                <ConfirmDeleteButton
+                    label="Excluir"
+                    title={`Excluir a unidade ${unit.name}?`}
+                    description="A unidade será apagada definitivamente. Só é possível se nenhuma pessoa (nem inativa) estiver vinculada a ela."
+                    busy={busy}
+                    onConfirm={() =>
+                        void run(() => deleteClientUnitAction(clientId, unit.id))
+                    }
+                />
+            ) : null}
+            <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPeople((value) => !value)}
+            >
+                {showPeople ? "Ocultar pessoas" : "Ver pessoas"}
+            </Button>
             <Button
                 type="button"
                 variant="ghost"
@@ -83,6 +109,16 @@ export function UnitEditor({
             >
                 Fechar
             </Button>
+            {showPeople ? (
+                <UnitPeople
+                    clientId={clientId}
+                    unit={unit}
+                    catalog={catalog}
+                    canMove={canMovePeople}
+                    busy={busy}
+                    run={run}
+                />
+            ) : null}
         </div>
     );
 }

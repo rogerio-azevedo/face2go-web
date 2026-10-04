@@ -5,7 +5,10 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { deferInEffect } from "@/lib/defer-in-effect";
 
 import { createClientBlockAction, listClientBlocksAction } from "../actions";
@@ -16,14 +19,36 @@ import { GenerateStructureForm } from "./GenerateStructureForm";
 export function ClientBlocksPanel({
     clientId,
     showHeading = true,
+    reloadKey = 0,
+    onChange,
+    canMovePeople = false,
 }: {
     clientId: string;
+    /** Mover/desvincular pessoas é só para admin da empresa. */
+    canMovePeople?: boolean;
     showHeading?: boolean;
+    reloadKey?: number;
+    onChange?: () => void;
 }) {
     const [blocks, setBlocks] = useState<CatalogBlock[]>([]);
     const [loading, setLoading] = useState(true);
     const [blockName, setBlockName] = useState("");
     const [busy, setBusy] = useState(false);
+    const [includeAdministrative, setIncludeAdministrative] = useState(false);
+
+    const residentialBlocks = blocks.filter((block) => !block.isAdministrative);
+    const administrativeBlocks = includeAdministrative
+        ? blocks.filter((block) => block.isAdministrative)
+        : [];
+    const countedBlocks = [...residentialBlocks, ...administrativeBlocks].filter(
+        (block) => block.isActive,
+    );
+    const countedUnits = countedBlocks.reduce(
+        (total, block) =>
+            total + block.units.filter((unit) => unit.isActive).length,
+        0,
+    );
+    const hasAdministrative = blocks.some((block) => block.isAdministrative);
 
     async function refresh() {
         const result = await listClientBlocksAction(clientId);
@@ -32,19 +57,19 @@ export function ClientBlocksPanel({
             return;
         }
         setBlocks(result.items);
+        onChange?.();
     }
 
     useEffect(() => {
         deferInEffect(() => {
             void (async () => {
-                setLoading(true);
                 const result = await listClientBlocksAction(clientId);
                 if ("error" in result) toast.error(result.error);
                 else setBlocks(result.items);
                 setLoading(false);
             })();
         });
-    }, [clientId]);
+    }, [clientId, reloadKey]);
 
     async function run(task: () => Promise<{ error: string } | { success: true }>) {
         setBusy(true);
@@ -112,15 +137,53 @@ export function ClientBlocksPanel({
                 </p>
             ) : (
                 <div className="space-y-2">
-                    {blocks.map((block) => (
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-muted-foreground text-sm">
+                            {countedUnits} unidade{countedUnits === 1 ? "" : "s"}{" "}
+                            em {countedBlocks.length} bloco
+                            {countedBlocks.length === 1 ? "" : "s"}
+                        </p>
+                        {hasAdministrative ? (
+                            <Label className="text-sm font-normal">
+                                <Checkbox
+                                    checked={includeAdministrative}
+                                    onCheckedChange={(value) =>
+                                        setIncludeAdministrative(value === true)
+                                    }
+                                />
+                                Incluir administrativos
+                            </Label>
+                        ) : null}
+                    </div>
+                    {residentialBlocks.map((block) => (
                         <BlockCard
                             key={block.id}
                             clientId={clientId}
                             block={block}
                             busy={busy}
                             run={run}
+                            catalog={blocks}
+                            canMovePeople={canMovePeople}
                         />
                     ))}
+                    {administrativeBlocks.length > 0 ? (
+                        <>
+                            {residentialBlocks.length > 0 ? (
+                                <Separator className="my-4" />
+                            ) : null}
+                            {administrativeBlocks.map((block) => (
+                                <BlockCard
+                                    key={block.id}
+                                    clientId={clientId}
+                                    block={block}
+                                    busy={busy}
+                                    run={run}
+                                    catalog={blocks}
+                                    canMovePeople={canMovePeople}
+                                />
+                            ))}
+                        </>
+                    ) : null}
                 </div>
             )}
         </section>

@@ -56,7 +56,7 @@ export function RecentAccessesList({
                                         {item.readerName}
                                         {" · "}
                                         {formatDateTime(
-                                            item.createdAt,
+                                            item.eventDate ?? item.createdAt,
                                             timezoneOffsetMinutes,
                                         )}
                                     </p>

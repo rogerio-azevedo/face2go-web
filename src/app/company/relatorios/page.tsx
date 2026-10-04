@@ -24,6 +24,9 @@ export default async function CompanyReportsPage() {
     redirect('/company/dashboard');
   }
 
+  const isAdmin = role === 'company_admin';
+  const canOpenUsers = isAdmin || (await can('clients', 'can_read'));
+
   let clients: ClientListRow[] = [];
   try {
     const res = await apiFetchAuthed('/api/clients');
@@ -40,7 +43,12 @@ export default async function CompanyReportsPage() {
         title="Relatórios"
         description="Acompanhe quem já cadastrou face e veículo em cada unidade."
       />
-      <EnrollmentReport scope="company" clients={clients} />
+      <EnrollmentReport
+        scope="company"
+        clients={clients}
+        isAdmin={isAdmin}
+        canOpenUsers={canOpenUsers}
+      />
     </div>
   );
 }

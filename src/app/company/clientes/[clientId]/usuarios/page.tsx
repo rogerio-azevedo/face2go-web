@@ -3,16 +3,26 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { ClientDetailTabs } from "@/components/company/clientes/ClientDetailTabs";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { parseRegistrationListTab } from "@/features/registrations/lib/registration-format";
+import { parseSchoolSection } from "@/features/school/lib/school-section";
 import { can } from "@/lib/permissions";
 import { apiFetchAuthed, parseResponseJson } from "@/lib/api-fetch";
 import type { ClientListRow } from "@/types/domain";
 
 export default async function CompanyClientUsuariosPage({
     params,
+    searchParams,
 }: {
     params: Promise<{ clientId: string }>;
+    searchParams: Promise<{
+        tab?: string;
+        section?: string;
+        q?: string;
+        open?: string;
+    }>;
 }) {
     const { clientId } = await params;
+    const sp = await searchParams;
     const session = await auth();
     const user = session?.user;
     const role = user?.role;
@@ -69,6 +79,10 @@ export default async function CompanyClientUsuariosPage({
                 clientName={clientName ?? "Cliente"}
                 isAdmin={role === "company_admin"}
                 canEditAddresses={canEditAddresses}
+                initialRegistrationTab={parseRegistrationListTab(sp.tab)}
+                initialSchoolSection={parseSchoolSection(sp.section)}
+                initialSearch={sp.q?.trim() || undefined}
+                initialOpenId={sp.open}
             />
         </div>
     );

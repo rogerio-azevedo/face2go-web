@@ -56,6 +56,7 @@ import {
     type RegistrationSortDir,
     type RegistrationSortField,
 } from "@/features/registrations/lib/registration-format";
+import { useDeepLinkRow } from "@/hooks/use-deep-link-row";
 import { deferInEffect } from "@/lib/defer-in-effect";
 import {
     DEFAULT_SCHOOL_PAGE_SIZE,
@@ -86,6 +87,8 @@ export function RegistrationsReviewBoard({
     linksCount,
     initialShowLinks = false,
     initialTab = "draft",
+    initialSearch = "",
+    initialOpenId,
 }: {
     variant: "client" | "company";
     companyClientId?: string;
@@ -96,13 +99,16 @@ export function RegistrationsReviewBoard({
     linksCount?: number;
     initialShowLinks?: boolean;
     initialTab?: RegistrationListTab;
+    initialSearch?: string;
+    initialOpenId?: string;
 }) {
     const queryClient = useQueryClient();
     const review = useRegistrationReviewActions({ variant, companyClientId });
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState<number>(DEFAULT_SCHOOL_PAGE_SIZE);
     const [tab, setTab] = useState<RegistrationListTab>(initialTab);
-    const [search, setSearch] = useState("");
+    const [search, setSearch] = useState(initialSearch);
+    const consumeDeepLink = useDeepLinkRow(initialOpenId);
     const [blockId, setBlockId] = useState("");
     const [unitId, setUnitId] = useState("");
     const [room, setRoom] = useState("");
@@ -176,16 +182,29 @@ export function RegistrationsReviewBoard({
         const data = listQuery.data;
         if (!data || listQuery.isPlaceholderData) return;
         deferInEffect(() => {
-            setActiveRow((prev) => {
-                if (!prev) return prev;
-                return data.data.find((row) => row.id === prev.id) ?? prev;
-            });
+            const target = consumeDeepLink(data.data);
+            if (target) {
+                setShowLinks(false);
+                setActiveRow(target);
+                setSheetOpen(true);
+            } else {
+                setActiveRow((prev) => {
+                    if (!prev) return prev;
+                    return data.data.find((row) => row.id === prev.id) ?? prev;
+                });
+            }
             const lastPage = totalPages(data.total, pageSize);
             if (data.data.length === 0 && page > lastPage) {
                 setPage(lastPage);
             }
         });
-    }, [listQuery.data, listQuery.isPlaceholderData, page, pageSize]);
+    }, [
+        listQuery.data,
+        listQuery.isPlaceholderData,
+        page,
+        pageSize,
+        consumeDeepLink,
+    ]);
 
     const filtered = useMemo(() => {
         return [...(rows ?? [])].sort((a, b) =>

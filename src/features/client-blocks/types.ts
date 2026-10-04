@@ -1,3 +1,9 @@
+import type { components } from "@/types/api.generated";
+
+export type UpdateClientBlockInput = components["schemas"]["UpdateClientBlockDto"];
+export type MoveLocationGroupsInput =
+    components["schemas"]["MoveLocationGroupsDto"];
+
 export type CatalogUnit = {
     id: string;
     name: string;
@@ -8,18 +14,8 @@ export type CatalogBlock = {
     id: string;
     name: string;
     isActive: boolean;
+    isAdministrative: boolean;
     units: CatalogUnit[];
-};
-
-export type LocationReviewSummaryRow = {
-    clientId: string;
-    name: string;
-    isActive: boolean;
-    activeUnits: number;
-    linked: number;
-    textOnly: number;
-    noLocation: number;
-    groups: number;
 };
 
 export type LocationReviewPerson = {
@@ -27,6 +23,8 @@ export type LocationReviewPerson = {
     id: string;
     name: string | null;
     faceId: number | null;
+    /** Só nos grupos vinculados; `false` = pessoa inativa. */
+    active?: boolean;
 };
 
 export type LocationReviewSuggestion = {
@@ -47,14 +45,34 @@ export type LocationReviewGroup = {
     suggestion: LocationReviewSuggestion | null;
 };
 
+export type LinkedLocationGroup = {
+    key: string;
+    unitId: string;
+    blockName: string;
+    unitName: string;
+    blockActive: boolean;
+    unitActive: boolean;
+    registrations: number;
+    members: number;
+    inactive: number;
+    people: LocationReviewPerson[];
+    suggestion: LocationReviewSuggestion | null;
+};
+
 export type ClientLocationReview = {
     client: { id: string; name: string };
     catalog: CatalogBlock[];
-    summary: { linked: number; textOnly: number; noLocation: number };
+    summary: {
+        linked: number;
+        linkedGroups: number;
+        textOnly: number;
+        noLocation: number;
+    };
     groups: LocationReviewGroup[];
     noLocation: {
         registrations: number;
         members: number;
         people: LocationReviewPerson[];
     };
+    linkedGroups: LinkedLocationGroup[];
 };

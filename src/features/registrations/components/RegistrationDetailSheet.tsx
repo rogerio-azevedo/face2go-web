@@ -155,10 +155,9 @@ export function RegistrationDetailSheet({
             : (row?.faceUrl ?? null);
     const contact = toBrazilContactNumber(row?.phone ?? null);
     const deleted = row?.isActive === false;
-    const canEdit =
-        !deleted &&
-        (row?.status === "draft" || row?.status === "approved");
-    const canRetake = canEdit;
+    const canEdit = !!row && !deleted;
+    const canRetake =
+        canEdit && (row.status === "draft" || row.status === "approved");
     const canSync =
         !!row &&
         !deleted &&

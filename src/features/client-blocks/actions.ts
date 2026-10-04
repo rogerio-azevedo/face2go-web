@@ -13,7 +13,9 @@ import {
 import type {
     CatalogBlock,
     ClientLocationReview,
-    LocationReviewSummaryRow,
+    LocationReviewPerson,
+    MoveLocationGroupsInput,
+    UpdateClientBlockInput,
 } from "./types";
 import {
     bindLocationGroupsSchema,
@@ -22,6 +24,7 @@ import {
     generateStructureSchema,
     generateUnitsSchema,
     type GenerateStructureInput,
+    moveLocationGroupsSchema,
     unitNameSchema,
 } from "./validations";
 
@@ -31,7 +34,6 @@ const idSchema = z.string().uuid();
 function revalidateBlocks(clientId: string) {
     revalidatePath("/client/cadastros");
     revalidatePath(`/company/clientes/${clientId}/usuarios`);
-    revalidatePath("/company/blocos-unidades");
 }
 
 async function readError(res: Response) {
@@ -85,7 +87,7 @@ export async function createClientBlockAction(
 export async function updateClientBlockAction(
     clientId: string,
     blockId: string,
-    input: { name?: string; isActive?: boolean },
+    input: UpdateClientBlockInput,
 ): Promise<{ success: true } | { error: string }> {
     try {
         if (!clientIdSchema.safeParse(clientId).success) {
@@ -104,6 +106,52 @@ export async function updateClientBlockAction(
         const res = await apiFetchAuthed(
             `/api/clients/${clientId}/blocks/${blockId}`,
             { method: "PATCH", body: JSON.stringify(input) },
+        );
+        if (!res.ok) return { error: await readError(res) };
+        revalidateBlocks(clientId);
+        return { success: true };
+    } catch {
+        return { error: "Sem permissão." };
+    }
+}
+
+export async function deleteClientBlockAction(
+    clientId: string,
+    blockId: string,
+): Promise<{ success: true } | { error: string }> {
+    try {
+        if (
+            !clientIdSchema.safeParse(clientId).success ||
+            !idSchema.safeParse(blockId).success
+        ) {
+            return { error: "Dados inválidos." };
+        }
+        const res = await apiFetchAuthed(
+            `/api/clients/${clientId}/blocks/${blockId}`,
+            { method: "DELETE" },
+        );
+        if (!res.ok) return { error: await readError(res) };
+        revalidateBlocks(clientId);
+        return { success: true };
+    } catch {
+        return { error: "Sem permissão." };
+    }
+}
+
+export async function deleteClientUnitAction(
+    clientId: string,
+    unitId: string,
+): Promise<{ success: true } | { error: string }> {
+    try {
+        if (
+            !clientIdSchema.safeParse(clientId).success ||
+            !idSchema.safeParse(unitId).success
+        ) {
+            return { error: "Dados inválidos." };
+        }
+        const res = await apiFetchAuthed(
+            `/api/clients/${clientId}/units/${unitId}`,
+            { method: "DELETE" },
         );
         if (!res.ok) return { error: await readError(res) };
         revalidateBlocks(clientId);
@@ -254,19 +302,6 @@ export async function updateClientUnitAction(
     }
 }
 
-export async function listLocationReviewAction(): Promise<
-    { success: true; items: LocationReviewSummaryRow[] } | { error: string }
-> {
-    try {
-        const res = await apiFetchAuthed("/api/condominiums/location-review");
-        if (!res.ok) return { error: await readError(res) };
-        const items = (await parseResponseJson(res)) as LocationReviewSummaryRow[];
-        return { success: true, items: Array.isArray(items) ? items : [] };
-    } catch {
-        return { error: "Sem permissão." };
-    }
-}
-
 export async function getClientLocationReviewAction(
     clientId: string,
 ): Promise<{ success: true; review: ClientLocationReview } | { error: string }> {
@@ -279,6 +314,28 @@ export async function getClientLocationReviewAction(
         if (!res.ok) return { error: await readError(res) };
         const review = (await parseResponseJson(res)) as ClientLocationReview;
         return { success: true, review };
+    } catch {
+        return { error: "Sem permissão." };
+    }
+}
+
+export async function getUnitPeopleAction(
+    clientId: string,
+    unitId: string,
+): Promise<{ success: true; people: LocationReviewPerson[] } | { error: string }> {
+    try {
+        if (
+            !clientIdSchema.safeParse(clientId).success ||
+            !idSchema.safeParse(unitId).success
+        ) {
+            return { error: "Unidade inválida." };
+        }
+        const res = await apiFetchAuthed(
+            `/api/clients/${clientId}/units/${unitId}/people`,
+        );
+        if (!res.ok) return { error: await readError(res) };
+        const people = (await parseResponseJson(res)) as LocationReviewPerson[];
+        return { success: true, people };
     } catch {
         return { error: "Sem permissão." };
     }
@@ -335,6 +392,38 @@ export async function bindLocationGroupsAction(
             success: true,
             registrations: body.registrations ?? 0,
             members: body.members ?? 0,
+        };
+    } catch {
+        return { error: "Sem permissão." };
+    }
+}
+
+export async function moveLocationGroupsAction(
+    clientId: string,
+    items: MoveLocationGroupsInput["items"],
+): Promise<
+    { success: true; moved: number; unlinked: number } | { error: string }
+> {
+    try {
+        if (!clientIdSchema.safeParse(clientId).success) {
+            return { error: "Cliente inválido." };
+        }
+        const parsed = moveLocationGroupsSchema.safeParse({ items });
+        if (!parsed.success) return { error: zodFirstMessage(parsed.error) };
+        const res = await apiFetchAuthed(
+            `/api/condominiums/location-review/clients/${clientId}/move`,
+            { method: "POST", body: JSON.stringify(parsed.data) },
+        );
+        if (!res.ok) return { error: await readError(res) };
+        const body = (await parseResponseJson(res)) as {
+            moved?: number;
+            unlinked?: number;
+        };
+        revalidateBlocks(clientId);
+        return {
+            success: true,
+            moved: body.moved ?? 0,
+            unlinked: body.unlinked ?? 0,
         };
     } catch {
         return { error: "Sem permissão." };

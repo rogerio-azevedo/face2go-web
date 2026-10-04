@@ -22,7 +22,12 @@ export default async function ClientReportsPage() {
         title="Relatórios"
         description="Acompanhe quem já cadastrou face e veículo na sua unidade."
       />
-      <EnrollmentReport scope="client" clientId={user.clientId} />
+      <EnrollmentReport
+        scope="client"
+        clientId={user.clientId}
+        isAdmin={role === 'client_admin'}
+        canOpenUsers
+      />
     </div>
   );
 }

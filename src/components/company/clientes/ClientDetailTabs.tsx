@@ -6,8 +6,10 @@ import { SchoolTab } from "@/components/company/clientes/escola/SchoolTab";
 import { RegistrationsReviewBoard } from "@/components/registrations/RegistrationsReviewBoard";
 import { DeviceSyncQueuePanel } from "@/features/device-sync/components/DeviceSyncQueuePanel";
 import { RegistrationFieldsConfigPanel } from "@/features/registrations/components/RegistrationFieldsConfigPanel";
-import { ClientBlocksPanel } from "@/features/client-blocks/components/ClientBlocksPanel";
+import { ClientBlocksTab } from "@/features/client-blocks/components/ClientBlocksTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { SchoolSection } from "@/features/school/lib/school-section";
+import type { RegistrationListTab } from "@/features/registrations/lib/registration-format";
 
 export type ClientDetailTabsProps = {
     clientId: string;
@@ -15,6 +17,10 @@ export type ClientDetailTabsProps = {
     clientName?: string;
     isAdmin?: boolean;
     canEditAddresses?: boolean;
+    initialRegistrationTab?: RegistrationListTab;
+    initialSchoolSection?: SchoolSection;
+    initialSearch?: string;
+    initialOpenId?: string;
 };
 
 export function ClientDetailTabs({
@@ -23,6 +29,10 @@ export function ClientDetailTabs({
     clientName = "Cliente",
     isAdmin = false,
     canEditAddresses = false,
+    initialRegistrationTab,
+    initialSchoolSection,
+    initialSearch,
+    initialOpenId,
 }: ClientDetailTabsProps) {
     const isSchool = clientType === "school";
     const isCondominium = clientType === "condominium";
@@ -33,6 +43,9 @@ export function ClientDetailTabs({
                 clientId={clientId}
                 isAdmin={isAdmin}
                 canEditAddresses={canEditAddresses}
+                initialSection={initialSchoolSection}
+                initialSearch={initialSearch}
+                initialOpenId={initialOpenId}
             />
         );
     }
@@ -62,6 +75,9 @@ export function ClientDetailTabs({
                     companyClientId={clientId}
                     isAdmin={isAdmin}
                     clientType={clientType}
+                    initialTab={initialRegistrationTab}
+                    initialSearch={initialSearch}
+                    initialOpenId={initialOpenId}
                 />
             </TabsContent>
 
@@ -78,7 +94,7 @@ export function ClientDetailTabs({
 
             {isCondominium ? (
                 <TabsContent value="blocks" className="space-y-4">
-                    <ClientBlocksPanel clientId={clientId} />
+                    <ClientBlocksTab clientId={clientId} isAdmin={isAdmin} />
                 </TabsContent>
             ) : null}
 

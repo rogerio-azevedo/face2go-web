@@ -15,6 +15,7 @@ import { listShiftsAction } from "@/app/company/clientes/[clientId]/usuarios/shi
 import { emptyPaginated } from "@/lib/pagination";
 import { useFaceSyncOffer } from "@/lib/use-face-sync-offer";
 import type { ClientRoleRow, MemberRow, PaginatedResponse, ShiftRow } from "@/types/domain";
+import { useDeepLinkRow } from "@/hooks/use-deep-link-row";
 import { deferInEffect } from "@/lib/defer-in-effect";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,9 +39,13 @@ import { MemberForm } from "./MemberForm";
 export function MembersSection({
     clientId,
     isAdmin = false,
+    initialSearch = "",
+    initialOpenId,
 }: {
     clientId: string;
     isAdmin?: boolean;
+    initialSearch?: string;
+    initialOpenId?: string;
 }) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
@@ -49,7 +54,8 @@ export function MembersSection({
     );
     const [roles, setRoles] = useState<ClientRoleRow[]>([]);
     const [shifts, setShifts] = useState<ShiftRow[]>([]);
-    const [search, setSearch] = useState("");
+    const [search, setSearch] = useState(initialSearch);
+    const consumeDeepLink = useDeepLinkRow(initialOpenId);
     const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(true);
     const [createOpen, setCreateOpen] = useState(false);
@@ -77,11 +83,16 @@ export function MembersSection({
                     return;
                 }
                 setList(r.result);
+                const target = consumeDeepLink(r.result.data);
+                if (target) {
+                    setEditRow(target);
+                    setEditOpen(true);
+                }
             } finally {
                 setLoading(false);
             }
         },
-        [clientId, list.pageSize],
+        [clientId, list.pageSize, consumeDeepLink],
     );
 
     useEffect(() => {
