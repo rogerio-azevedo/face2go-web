@@ -10,6 +10,7 @@ type FaceCameraStageProps = {
     showOval?: boolean;
     instruction?: string;
     message?: string | null;
+    messageActions?: ReactNode;
     actions: ReactNode;
 };
 
@@ -18,6 +19,7 @@ export function FaceCameraStage({
     showOval = false,
     instruction = DEFAULT_INSTRUCTION,
     message,
+    messageActions,
     actions,
 }: FaceCameraStageProps) {
     useEffect(() => {
@@ -49,9 +51,19 @@ export function FaceCameraStage({
             </p>
 
             {message ? (
-                <p className="px-6 pt-2 text-center text-sm text-red-300">
-                    {message}
-                </p>
+                <>
+                    <p
+                        role="alert"
+                        className="px-6 pt-2 text-center text-sm text-red-300"
+                    >
+                        {message}
+                    </p>
+                    {messageActions ? (
+                        <div className="mx-auto w-full max-w-[min(100%,420px)] px-4 pt-3">
+                            {messageActions}
+                        </div>
+                    ) : null}
+                </>
             ) : null}
 
             <div className="mx-auto grid w-full max-w-[min(100%,420px)] grid-cols-2 gap-3 px-4 pt-4 pb-[max(1.5rem,calc(env(safe-area-inset-bottom)+1rem))]">

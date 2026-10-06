@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { CircleCheckBig } from "lucide-react";
 import { toast } from "sonner";
 
 import { getApiBaseUrl, nestErrorMessage } from "@/lib/api-fetch";
@@ -36,6 +37,8 @@ import {
     type ResolvedRegistrationFieldsConfig,
 } from "@/features/registrations/validations/registration-config";
 import { BlockUnitSelects } from "@/features/client-blocks/components/BlockUnitSelects";
+import { RegistrationSupportActions } from "@/features/registrations/components/RegistrationSupportActions";
+import { toBrazilContactNumber } from "@/features/registrations/lib/registration-format";
 
 type PreviewBlock = {
     id: string;
@@ -47,6 +50,8 @@ type Preview = {
     clientName: string;
     clientType: string;
     logoUrl: string | null;
+    supportPhone?: string | null;
+    supportWhatsapp?: string | null;
     fields?: ResolvedRegistrationFieldsConfig;
     blocks?: PreviewBlock[];
 };
@@ -101,6 +106,7 @@ export function CadastroWizard({ code }: { code: string }) {
     const [documentConflict, setDocumentConflict] = useState<string | null>(
         null,
     );
+    const [submissionError, setSubmissionError] = useState<string | null>(null);
 
     const fields = useMemo(
         () =>
@@ -232,11 +238,12 @@ export function CadastroWizard({ code }: { code: string }) {
                         const data = await res.json();
                         const message = nestErrorMessage(data);
                         setDocumentConflict(message);
-                        toast.error(message);
                         return;
                     }
                 } catch {
-                    toast.error("Não foi possível verificar o CPF/CNPJ.");
+                    setDocumentConflict(
+                        "Não foi possível verificar o CPF/CNPJ.",
+                    );
                     return;
                 } finally {
                     setCheckingDocument(false);
@@ -257,6 +264,7 @@ export function CadastroWizard({ code }: { code: string }) {
         const sendsUnit =
             isFieldVisible(fields.block) || isFieldVisible(fields.unit);
 
+        setSubmissionError(null);
         setSubmitting(true);
         try {
             const res = await fetch(
@@ -301,10 +309,15 @@ export function CadastroWizard({ code }: { code: string }) {
                       : "Não foi possível enviar.";
                 throw new Error(m);
             }
-            toast.success("Cadastro enviado!");
+            toast.dismiss();
             setStep(4);
+            window.requestAnimationFrame(() => {
+                window.scrollTo({ top: 0, behavior: "auto" });
+            });
         } catch (e) {
-            toast.error(e instanceof Error ? e.message : "Erro ao enviar.");
+            setSubmissionError(
+                e instanceof Error ? e.message : "Erro ao enviar.",
+            );
         } finally {
             setSubmitting(false);
         }
@@ -339,24 +352,49 @@ export function CadastroWizard({ code }: { code: string }) {
         );
     }
 
+    const hasSupportContact = Boolean(
+        toBrazilContactNumber(preview.supportPhone ?? null) ||
+            toBrazilContactNumber(preview.supportWhatsapp ?? null),
+    );
+
     if (step === 4) {
         return (
-            <div className="mx-auto flex max-w-md flex-col gap-4 py-12">
-                <Card>
-                    <CardHeader>
+            <div className="grid min-h-svh place-items-center px-4 py-8">
+                <Card className="w-full max-w-md">
+                    <CardHeader className="items-center text-center">
+                        <CircleCheckBig
+                            className="size-12 text-brand-turquoise"
+                            aria-hidden
+                        />
                         <CardTitle>Tudo certo!</CardTitle>
-                        <CardDescription>
-                            Seu cadastro foi recebido. O administrador vai analisar e
-                            aprovar em breve.
+                        <CardDescription className="text-base leading-relaxed">
+                            Seu cadastro passará por análise e validação de um
+                            administrador. Esse processo pode levar algumas horas.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <Link
-                            href="/"
-                            className="inline-flex h-8 items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium hover:bg-muted"
+                    <CardContent className="space-y-4">
+                        {hasSupportContact ? (
+                            <div className="space-y-3">
+                                <p className="text-center text-sm text-muted-foreground">
+                                    Se precisar de urgência na liberação, fale
+                                    conosco.
+                                </p>
+                                <RegistrationSupportActions
+                                    clientName={preview.clientName}
+                                    supportPhone={preview.supportPhone}
+                                    supportWhatsapp={preview.supportWhatsapp}
+                                />
+                            </div>
+                        ) : null}
+                        <Button
+                            variant="outline"
+                            size="lg"
+                            nativeButton={false}
+                            className="h-11 w-full"
+                            render={<Link href="/" />}
                         >
                             Fechar
-                        </Link>
+                        </Button>
                     </CardContent>
                 </Card>
             </div>
@@ -443,6 +481,13 @@ export function CadastroWizard({ code }: { code: string }) {
                                     >
                                         {documentError}
                                     </p>
+                                ) : null}
+                                {documentConflict ? (
+                                    <RegistrationSupportActions
+                                        clientName={preview.clientName}
+                                        supportPhone={preview.supportPhone}
+                                        supportWhatsapp={preview.supportWhatsapp}
+                                    />
                                 ) : null}
                             </div>
                         ) : null}
@@ -647,7 +692,16 @@ export function CadastroWizard({ code }: { code: string }) {
                         <CadastroFaceStep
                             code={code.trim()}
                             registrationId={registrationId}
+                            successToast=""
+                            errorActions={
+                                <RegistrationSupportActions
+                                    clientName={preview.clientName}
+                                    supportPhone={preview.supportPhone}
+                                    supportWhatsapp={preview.supportWhatsapp}
+                                />
+                            }
                             onUploaded={(key) => {
+                                setSubmissionError(null);
                                 setFaceImageKey(key);
                                 window.requestAnimationFrame(() => {
                                     submitActionsRef.current?.scrollIntoView({
@@ -656,8 +710,26 @@ export function CadastroWizard({ code }: { code: string }) {
                                     });
                                 });
                             }}
-                            onUploadCleared={() => setFaceImageKey(null)}
+                            onUploadCleared={() => {
+                                setFaceImageKey(null);
+                                setSubmissionError(null);
+                            }}
                         />
+                        {submissionError ? (
+                            <div
+                                role="alert"
+                                className="space-y-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3"
+                            >
+                                <p className="text-sm text-destructive">
+                                    {submissionError}
+                                </p>
+                                <RegistrationSupportActions
+                                    clientName={preview.clientName}
+                                    supportPhone={preview.supportPhone}
+                                    supportWhatsapp={preview.supportWhatsapp}
+                                />
+                            </div>
+                        ) : null}
                         <div ref={submitActionsRef} className="flex gap-2 pt-2">
                             <Button
                                 type="button"

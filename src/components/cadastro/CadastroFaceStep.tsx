@@ -1,7 +1,13 @@
 "use client";
 
 import { Camera } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+    type ReactNode,
+} from "react";
 import { toast } from "sonner";
 
 import { FaceCameraStage } from "@/components/face-capture/FaceCameraStage";
@@ -42,6 +48,7 @@ type CadastroFaceStepProps = {
     successToast?: string;
     uploadedMessage?: string;
     allowAnotherPhoto?: boolean;
+    errorActions?: ReactNode;
 };
 
 const STAGE_BUTTON_CLASS = "h-14 w-full text-base";
@@ -56,6 +63,7 @@ export function CadastroFaceStep({
     successToast = "Foto enviada. Agora conclua o cadastro abaixo.",
     uploadedMessage = "Foto recebida com sucesso. Toque em “Enviar cadastro” para finalizar.",
     allowAnotherPhoto = true,
+    errorActions,
 }: CadastroFaceStepProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const streamRef = useRef<MediaStream | null>(null);
@@ -158,7 +166,7 @@ export function CadastroFaceStep({
         const file = e.target.files?.[0];
         e.target.value = "";
         if (!file || !file.type.startsWith("image/")) {
-            toast.error("Selecione uma imagem.");
+            setMessage("Selecione uma imagem.");
             return;
         }
         onUploadCleared?.();
@@ -171,7 +179,7 @@ export function CadastroFaceStep({
                     setStatus("preview_local");
                 })
                 .catch(() => {
-                    toast.error("Não foi possível processar a imagem.");
+                    setMessage("Não foi possível processar a imagem.");
                 });
         };
         reader.readAsDataURL(file);
@@ -231,7 +239,7 @@ export function CadastroFaceStep({
             const text =
                 err instanceof Error ? err.message : "Não foi possível enviar.";
             setMessage(text);
-            toast.error(text);
+            if (!errorActions) toast.error(text);
         }
     };
 
@@ -259,6 +267,7 @@ export function CadastroFaceStep({
                 <FaceCameraStage
                     showOval
                     message={message}
+                    messageActions={errorActions}
                     actions={
                         <>
                             <Button
@@ -299,6 +308,7 @@ export function CadastroFaceStep({
             (status === "preview_local" || status === "uploading") ? (
                 <FaceCameraStage
                     message={message}
+                    messageActions={errorActions}
                     actions={
                         <>
                             <Button
@@ -344,7 +354,15 @@ export function CadastroFaceStep({
                         {useNativeCapture ? "Abrir câmera" : "Usar câmera"}
                     </Button>
                     {message ? (
-                        <p className="text-center text-sm text-destructive">{message}</p>
+                        <div className="space-y-3">
+                            <p
+                                role="alert"
+                                className="text-center text-sm text-destructive"
+                            >
+                                {message}
+                            </p>
+                            {errorActions}
+                        </div>
                     ) : null}
                 </div>
             ) : null}
