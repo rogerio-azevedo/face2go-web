@@ -161,7 +161,7 @@ export function RegistrationTimelineSheet({
                                             {meta.label}
                                         </p>
                                         <p className="text-muted-foreground text-xs">
-                                            {event.authorName ?? "—"}
+                                            {event.authorName ?? "Sistema"}
                                             {" · "}
                                             {formatWhen(event.createdAt)}
                                         </p>

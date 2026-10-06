@@ -157,7 +157,10 @@ export function RegistrationDetailSheet({
     const deleted = row?.isActive === false;
     const canEdit = !!row && !deleted;
     const canRetake =
-        canEdit && (row.status === "draft" || row.status === "approved");
+        canEdit &&
+        (row.status === "draft" ||
+            row.status === "rejected" ||
+            row.status === "approved");
     const canSync =
         !!row &&
         !deleted &&
@@ -359,7 +362,7 @@ export function RegistrationDetailSheet({
                                             </p>
                                         ) : null}
                                         <p className="text-muted-foreground text-xs">
-                                            {latest.authorName ?? "—"}
+                                            {latest.authorName ?? "Sistema"}
                                             {" · "}
                                             {formatWhen(latest.createdAt)}
                                         </p>

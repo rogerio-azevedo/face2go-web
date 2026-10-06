@@ -79,7 +79,9 @@ export function RegistrationRowActions({
     const canEdit = !isDeleted;
     const canRetake =
         !isDeleted &&
-        (row.status === "draft" || row.status === "approved");
+        (row.status === "draft" ||
+            row.status === "rejected" ||
+            row.status === "approved");
     const canDelete = isAdmin && isApproved;
     const canRestore = isAdmin && isDeleted;
     const canAllowSimilar =

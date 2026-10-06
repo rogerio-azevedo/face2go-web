@@ -19,11 +19,17 @@ type Preview = {
     guidance: string;
 };
 
+type RetakeOutcome =
+    | "pending_review"
+    | "force_sync_queued"
+    | "force_sync_failed";
+
 export function FaceRetakePage({ code }: { code: string }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [preview, setPreview] = useState<Preview | null>(null);
     const [done, setDone] = useState(false);
+    const [outcome, setOutcome] = useState<RetakeOutcome | null>(null);
 
     useEffect(() => {
         let cancel = false;
@@ -105,8 +111,11 @@ export function FaceRetakePage({ code }: { code: string }) {
                     <CardHeader>
                         <CardTitle>Foto atualizada</CardTitle>
                         <CardDescription>
-                            Pode fechar esta página. A nova foto substitui a
-                            anterior no seu cadastro.
+                            {outcome === "pending_review"
+                                ? "A nova foto foi enviada para análise. Pode fechar esta página."
+                                : outcome === "force_sync_queued"
+                                  ? "A nova foto foi recebida e será atualizada nos leitores. Pode fechar esta página."
+                                  : "A nova foto foi recebida. A equipe responsável acompanhará a atualização dos leitores."}
                         </CardDescription>
                     </CardHeader>
                 </Card>
@@ -151,7 +160,10 @@ export function FaceRetakePage({ code }: { code: string }) {
                         successToast="Foto atualizada."
                         uploadedMessage="Foto atualizada."
                         allowAnotherPhoto={false}
-                        onUploaded={() => setDone(true)}
+                        onUploaded={(_key, result) => {
+                            setOutcome(result.outcome ?? "pending_review");
+                            setDone(true);
+                        }}
                     />
                 </CardContent>
             </Card>

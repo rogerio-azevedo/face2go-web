@@ -24,7 +24,15 @@ type FaceStepStatus =
 type CadastroFaceStepProps = {
     code: string;
     registrationId: string;
-    onUploaded: (faceImageKey: string) => void;
+    onUploaded: (
+        faceImageKey: string,
+        result: {
+            outcome?:
+                | "pending_review"
+                | "force_sync_queued"
+                | "force_sync_failed";
+        },
+    ) => void;
     /** Chamado ao tirar outra foto, para limpar a chave já enviada no wizard. */
     onUploadCleared?: () => void;
     /** Substitui o endpoint padrão do cadastro público. */
@@ -203,6 +211,10 @@ export function CadastroFaceStep({
             const data = (await res.json()) as {
                 faceImageKey?: string;
                 message?: string | string[];
+                outcome?:
+                    | "pending_review"
+                    | "force_sync_queued"
+                    | "force_sync_failed";
             };
             if (!res.ok) {
                 const m = Array.isArray(data.message)
@@ -213,7 +225,7 @@ export function CadastroFaceStep({
             if (!data.faceImageKey) throw new Error("Resposta inválida.");
             setStatus("uploaded");
             if (successToast) toast.success(successToast);
-            onUploaded(data.faceImageKey);
+            onUploaded(data.faceImageKey, { outcome: data.outcome });
         } catch (err) {
             setStatus("preview_local");
             const text =
