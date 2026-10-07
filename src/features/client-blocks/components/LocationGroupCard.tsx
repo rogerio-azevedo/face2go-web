@@ -199,7 +199,9 @@ export function PeopleList({
                 <li key={`${person.kind}-${person.id}`}>
                     {person.name ?? "Sem nome"}
                     {" · "}
-                    {person.kind === "registration" ? "Cadastro" : "Membro"}
+                    {person.kind === "registration"
+                        ? "Cadastro sem membro"
+                        : "Membro"}
                     {person.faceId != null ? ` · ID ${person.faceId}` : ""}
                     {person.active === false ? " · Inativo" : ""}
                 </li>
