@@ -85,7 +85,12 @@ const readerFields = z.object({
     username: z.string().max(120, "Usuário muito longo"),
     password: z.string(),
     isActive: z.boolean(),
-    restrictMinors: z.boolean(),
+    ageRestrictionEnabled: z.boolean(),
+    minimumAccessAge: z.coerce
+        .number({ message: "Idade mínima inválida." })
+        .int("Informe uma idade inteira.")
+        .min(1, "A idade mínima deve ser pelo menos 1 ano.")
+        .max(18, "A idade mínima deve ser no máximo 18 anos."),
     connectionMode: z.enum(READER_CONNECTION_MODES),
     autoRegisterDeviceId: z.string().max(64, "ID muito longo"),
 });
@@ -101,10 +106,23 @@ export const readerFormSchema = readerFields.refine((d) => passwordLengthOk(d.pa
     path: ["password"],
 });
 
+const minimumAccessAgeApiSchema = z
+    .number({ message: "Idade mínima inválida." })
+    .int("Informe uma idade inteira.")
+    .min(1, "A idade mínima deve ser pelo menos 1 ano.")
+    .max(18, "A idade mínima deve ser no máximo 18 anos.")
+    .nullable();
+
 const readerCreateApiFields = readerFields
-    .omit({ direction: true })
+    .omit({
+        direction: true,
+        ageRestrictionEnabled: true,
+        minimumAccessAge: true,
+    })
     .extend({
         direction: z.enum(READER_DIRECTIONS).optional(),
+        minimumAccessAge: minimumAccessAgeApiSchema,
+        restrictMinors: z.boolean().optional(),
     });
 
 /** POST na API — payload JSON (sentido omitido quando vazio). */
@@ -126,9 +144,12 @@ export const createReaderSchema = readerCreateApiFields
 
 /** PATCH enviado à API: sentido nulo limpa o campo no servidor. */
 export const updateReaderSchema = readerFields
+    .omit({ ageRestrictionEnabled: true, minimumAccessAge: true })
     .partial()
     .extend({
         direction: z.enum(READER_DIRECTIONS).nullable().optional(),
+        minimumAccessAge: minimumAccessAgeApiSchema.optional(),
+        restrictMinors: z.boolean().optional(),
     })
     .refine((d) => passwordLengthOk(d.password), {
         message: "Senha deve ter entre 4 e 256 caracteres",
@@ -153,7 +174,8 @@ export type ReaderFormPayload = {
     username: string;
     password: string;
     isActive: boolean;
-    restrictMinors: boolean;
+    ageRestrictionEnabled: boolean;
+    minimumAccessAge: number;
     connectionMode: "direct" | "auto_register";
     autoRegisterDeviceId: string;
 };

@@ -114,6 +114,7 @@ export async function updateReaderAction(
             d.location === undefined &&
             d.isActive === undefined &&
             d.restrictMinors === undefined &&
+            d.minimumAccessAge === undefined &&
             d.username === undefined &&
             d.password === undefined &&
             d.direction === undefined

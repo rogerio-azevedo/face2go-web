@@ -124,6 +124,7 @@ export function RegistrationsTable({
                         />
                         <TableHead>CPF</TableHead>
                         <TableHead>Nascimento</TableHead>
+                        <TableHead>Idade</TableHead>
                         <SortableHead
                             label="Local"
                             active={sortField === "local"}
@@ -146,7 +147,7 @@ export function RegistrationsTable({
                     {rows.length === 0 ? (
                         <TableRow>
                             <TableCell
-                                colSpan={8}
+                                colSpan={9}
                                 className="text-muted-foreground py-10 text-center"
                             >
                                 Nenhum registro nesta lista.
@@ -179,7 +180,7 @@ export function RegistrationsTable({
                                                 <Badge
                                                     variant="outline"
                                                     className="border-orange-300 bg-orange-100 font-semibold text-orange-900 hover:bg-orange-100"
-                                                    title="Não é sincronizado em leitores com restrição de menor"
+                                                    title="Menor de 18 anos"
                                                 >
                                                     Menor
                                                 </Badge>
@@ -234,6 +235,9 @@ export function RegistrationsTable({
                                 </TableCell>
                                 <TableCell className="text-xs">
                                     {formatBirthDate(row.birthDate)}
+                                </TableCell>
+                                <TableCell className="text-xs font-medium tabular-nums">
+                                    {row.age == null ? "—" : `${row.age} anos`}
                                 </TableCell>
                                 <TableCell className="text-xs">
                                     {extraSummary(row)}

@@ -1,6 +1,6 @@
 "use client";
 
-import { RefreshCw } from "lucide-react";
+import { AlertTriangle, Loader2, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -227,14 +227,35 @@ export function ReadersTable({
                                     <TableCell>
                                         <div className="flex items-center gap-2">
                                             <span>{row.name}</span>
-                                            {row.restrictMinors ? (
+                                            {row.minimumAccessAge != null ? (
                                                 <Badge
                                                     variant="outline"
                                                     className="border-orange-300 bg-orange-100 font-semibold text-orange-900 hover:bg-orange-100"
-                                                    title="Só sincroniza pessoas com data de nascimento e 18 anos ou mais"
+                                                    title={`Só sincroniza pessoas com data válida e ${row.minimumAccessAge} anos ou mais`}
                                                 >
-                                                    18+
+                                                    {row.minimumAccessAge}+
                                                 </Badge>
+                                            ) : null}
+                                            {row.agePolicyStatus === "pending" ? (
+                                                <span
+                                                    className="text-muted-foreground inline-flex items-center gap-1 text-xs"
+                                                    title="Aplicando a política no equipamento"
+                                                >
+                                                    <Loader2 className="size-3.5 animate-spin" />
+                                                    Aplicando
+                                                </span>
+                                            ) : null}
+                                            {row.agePolicyStatus === "failed" ? (
+                                                <span
+                                                    className="text-destructive inline-flex items-center gap-1 text-xs font-medium"
+                                                    title={
+                                                        row.agePolicyError ??
+                                                        "Falha ao aplicar a política no equipamento"
+                                                    }
+                                                >
+                                                    <AlertTriangle className="size-3.5" />
+                                                    Falha
+                                                </span>
                                             ) : null}
                                         </div>
                                     </TableCell>

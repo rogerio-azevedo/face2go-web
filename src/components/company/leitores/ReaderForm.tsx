@@ -62,7 +62,10 @@ function toCreateApiBody(data: ReaderFormPayload) {
         model: data.model,
         location: data.location,
         isActive: data.isActive,
-        restrictMinors: data.restrictMinors,
+        minimumAccessAge: data.ageRestrictionEnabled
+            ? data.minimumAccessAge
+            : null,
+        restrictMinors: data.ageRestrictionEnabled,
         connectionMode: data.connectionMode,
         autoRegisterDeviceId: "",
     };
@@ -92,7 +95,10 @@ function toUpdateApiBody(
         isActive: data.isActive,
         direction: data.direction === "" ? null : data.direction,
         username: data.username.trim() ? data.username.trim() : null,
-        restrictMinors: data.restrictMinors,
+        minimumAccessAge: data.ageRestrictionEnabled
+            ? data.minimumAccessAge
+            : null,
+        restrictMinors: data.ageRestrictionEnabled,
         connectionMode: data.connectionMode,
     };
     if (data.password.length > 0 && data.password !== revealedPassword) {
@@ -146,7 +152,8 @@ export function ReaderForm({
             username: "",
             password: "",
             isActive: true,
-            restrictMinors: false,
+            ageRestrictionEnabled: false,
+            minimumAccessAge: 18,
             connectionMode: "direct",
             autoRegisterDeviceId: "",
         }),
@@ -169,7 +176,8 @@ export function ReaderForm({
                 username: reader.username ?? "",
                 password: "",
                 isActive: reader.isActive,
-                restrictMinors: reader.restrictMinors === true,
+                ageRestrictionEnabled: reader.minimumAccessAge != null,
+                minimumAccessAge: reader.minimumAccessAge ?? 18,
                 connectionMode: reader.connectionMode ?? "direct",
                 autoRegisterDeviceId: reader.autoRegisterDeviceId ?? "",
             };
@@ -192,6 +200,10 @@ export function ReaderForm({
 
     const brand = useWatch({ control, name: "brand" });
     const connectionMode = useWatch({ control, name: "connectionMode" });
+    const ageRestrictionEnabled = useWatch({
+        control,
+        name: "ageRestrictionEnabled",
+    });
     const isIntelbras = brand === "intelbras";
     const isHikvision = brand === "hikvision";
     const showsConnectionMode = isIntelbras || isHikvision;
@@ -274,6 +286,21 @@ export function ReaderForm({
             } else {
                 if (!reader) {
                     toast.error("Leitor não informado.");
+                    return;
+                }
+                const nextMinimumAge = data.ageRestrictionEnabled
+                    ? data.minimumAccessAge
+                    : null;
+                const isStricter =
+                    nextMinimumAge != null &&
+                    (reader.minimumAccessAge == null ||
+                        nextMinimumAge > reader.minimumAccessAge);
+                if (
+                    isStricter &&
+                    !window.confirm(
+                        `Aplicar ${nextMinimumAge}+ neste leitor? Pessoas abaixo dessa idade ou sem data de nascimento serão removidas do equipamento.`,
+                    )
+                ) {
                     return;
                 }
                 const result = await updateReaderAction(
@@ -828,28 +855,26 @@ export function ReaderForm({
 
                         <div className="space-y-2">
                             <Controller
-                                name="restrictMinors"
+                                name="ageRestrictionEnabled"
                                 control={control}
                                 render={({ field }) => (
                                     <div className="bg-card rounded-xl border px-4 py-4 shadow-sm ring-1 ring-black/5">
                                         <div className="flex items-center justify-between gap-4">
                                             <div className="min-w-0 space-y-0.5">
                                                 <Label
-                                                    htmlFor="reader-restrict-minors"
+                                                    htmlFor="reader-age-restriction"
                                                     className="text-sm font-medium"
                                                 >
-                                                    Restrição de menor
+                                                    Restringir acesso por idade
                                                 </Label>
                                                 <p className="text-muted-foreground text-xs leading-relaxed">
-                                                    Só sincroniza pessoas com
-                                                    data de nascimento e 18 anos
-                                                    ou mais. Quem já estiver no
-                                                    leitor e não atender a regra
-                                                    será removido.
+                                                    Pessoas sem data válida ou
+                                                    abaixo da idade mínima não
+                                                    recebem acesso neste leitor.
                                                 </p>
                                             </div>
                                             <Switch
-                                                id="reader-restrict-minors"
+                                                id="reader-age-restriction"
                                                 className="shrink-0"
                                                 checked={field.value}
                                                 onCheckedChange={field.onChange}
@@ -858,10 +883,46 @@ export function ReaderForm({
                                     </div>
                                 )}
                             />
-                            {errors.restrictMinors ? (
-                                <p className="text-destructive text-xs">
-                                    {errors.restrictMinors.message}
-                                </p>
+                            {ageRestrictionEnabled ? (
+                                <div className="bg-card rounded-xl border px-4 py-4 shadow-sm ring-1 ring-black/5">
+                                    <Label
+                                        htmlFor="reader-minimum-access-age"
+                                        className="text-sm font-medium"
+                                    >
+                                        Idade mínima para acesso
+                                    </Label>
+                                    <div className="mt-2 flex items-center gap-3">
+                                        <Input
+                                            id="reader-minimum-access-age"
+                                            type="number"
+                                            min={1}
+                                            max={18}
+                                            step={1}
+                                            className="w-24"
+                                            aria-invalid={
+                                                errors.minimumAccessAge
+                                                    ? true
+                                                    : undefined
+                                            }
+                                            {...register("minimumAccessAge", {
+                                                valueAsNumber: true,
+                                            })}
+                                        />
+                                        <span className="text-sm font-semibold">
+                                            anos ou mais
+                                        </span>
+                                    </div>
+                                    <p className="text-muted-foreground mt-2 text-xs leading-relaxed">
+                                        A política será marcada como aplicada
+                                        somente após a reconciliação com o
+                                        equipamento.
+                                    </p>
+                                    {errors.minimumAccessAge ? (
+                                        <p className="text-destructive mt-1 text-xs">
+                                            {errors.minimumAccessAge.message}
+                                        </p>
+                                    ) : null}
+                                </div>
                             ) : null}
                         </div>
                     </div>

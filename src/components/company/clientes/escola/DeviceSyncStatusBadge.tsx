@@ -47,15 +47,12 @@ function syncStatusTitle(params: {
     incomplete: boolean;
     isMinor?: boolean | null;
 }): string | undefined {
-    const { status, error, fraction, incomplete, isMinor } = params;
+    const { status, error, fraction, incomplete } = params;
     const readable = humanizeDeviceSyncError(error);
     if (readable) return readable;
     if (status === "synced" && fraction) {
-        if (isMinor === true && incomplete) {
-            return `Sincronizado em ${fraction} leitores. Menor não entra em leitor 18+.`;
-        }
-        if (isMinor == null && incomplete) {
-            return `Sincronizado em ${fraction} leitores. Sem data de nascimento o leitor 18+ não recebe a face.`;
+        if (incomplete) {
+            return `Sincronizado em ${fraction} leitores. A pessoa pode não atender à política de idade dos demais leitores.`;
         }
         return `Sincronizado em ${fraction} leitores.`;
     }

@@ -145,7 +145,7 @@ export function RegistrationFieldsConfigPanel({
                                             {locked18 ? (
                                                 <p className="text-muted-foreground text-xs">
                                                     Obrigatória enquanto houver
-                                                    leitor 18+.
+                                                    leitor com idade mínima.
                                                 </p>
                                             ) : null}
                                         </div>

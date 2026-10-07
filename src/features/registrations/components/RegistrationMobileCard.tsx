@@ -58,7 +58,7 @@ export function RegistrationMobileCard({
                             <Badge
                                 variant="outline"
                                 className="border-orange-300 bg-orange-100 font-semibold text-orange-900 hover:bg-orange-100"
-                                title="Não é sincronizado em leitores com restrição de menor"
+                                title="Menor de 18 anos"
                             >
                                 Menor
                             </Badge>
@@ -84,10 +84,16 @@ export function RegistrationMobileCard({
                         </span>
                     ) : null}
                     <span className="text-muted-foreground mt-0.5 block truncate text-xs">
+                        {row.age != null ? `${row.age} anos` : null}
+                        {row.age != null && (local !== "—" || document)
+                            ? " · "
+                            : null}
                         {local !== "—" ? local : null}
                         {local !== "—" && document ? " · " : null}
                         {document}
-                        {local === "—" && !document ? "—" : null}
+                        {row.age == null && local === "—" && !document
+                            ? "—"
+                            : null}
                     </span>
                     <span className="text-muted-foreground block text-xs">
                         Enviado {formatRelativeWhen(row.submittedAt)}

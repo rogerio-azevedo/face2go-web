@@ -116,6 +116,11 @@ export type ReaderListRow = {
     hasCredentials: boolean;
     isActive: boolean;
     restrictMinors: boolean;
+    minimumAccessAge: number | null;
+    agePolicyVersion: number;
+    agePolicyStatus: 'applied' | 'pending' | 'failed';
+    agePolicyError: string | null;
+    agePolicyAppliedAt: string | null;
     connectionMode?: 'direct' | 'auto_register';
     autoRegisterDeviceId?: string | null;
     lastSeenAt: string | null;
@@ -257,6 +262,8 @@ export type ClientRegistrationListRow = {
     phone: string | null;
     email: string | null;
     birthDate: string | null;
+    age: number | null;
+    ageAsOf: string;
     isMinor: boolean | null;
     additionalData: Record<string, unknown> | null;
     unitId: string | null;

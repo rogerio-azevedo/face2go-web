@@ -221,7 +221,7 @@ export function RegistrationEditSheet({
                             <Badge
                                 variant="outline"
                                 className="border-orange-300 bg-orange-100 font-semibold text-orange-900 hover:bg-orange-100"
-                                title="Não é sincronizado em leitores com restrição de menor"
+                                title="Menor de 18 anos"
                             >
                                 Menor de idade
                             </Badge>

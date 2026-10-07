@@ -316,6 +316,9 @@ export function RegistrationDetailSheet({
                                 <Field label="Nascimento">
                                     {formatBirthDate(row.birthDate)}
                                 </Field>
+                                <Field label="Idade">
+                                    {row.age == null ? "—" : `${row.age} anos`}
+                                </Field>
                                 <Field label="E-mail">{row.email ?? "—"}</Field>
                                 <Field label="Local">{extraSummary(row)}</Field>
                                 <Field label="Veracidade">
