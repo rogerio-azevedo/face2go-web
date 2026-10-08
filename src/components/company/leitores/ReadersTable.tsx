@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/table";
 import { ConnectionBadge } from "@/features/readers/components/ConnectionBadge";
 import { ReaderEndpointDialog } from "@/features/readers/components/ReaderEndpointDialog";
+import { ReaderDetailsDialog } from "@/features/readers/components/ReaderDetailsDialog";
 import { ReaderOpenDoorButton } from "@/features/readers/components/ReaderOpenDoorButton";
 import {
     READER_BRAND_LABELS,
@@ -129,7 +130,7 @@ export function ReadersTable({
         });
     }
 
-    const colSpan = canManage ? 9 : 7;
+    const colSpan = canManage ? 10 : 8;
 
     return (
         <>
@@ -190,6 +191,7 @@ export function ReadersTable({
                             <TableHead>Cliente</TableHead>
                             <TableHead>Nome</TableHead>
                             <TableHead>Marca</TableHead>
+                            <TableHead>Detalhes</TableHead>
                             <TableHead>Endereço</TableHead>
                             <TableHead title="No modo direto, monitor de eventos. No registro automático (sem NAT), sessão do gateway.">
                                 Conexão
@@ -265,6 +267,17 @@ export function ReadersTable({
                                                 row.brand as ReaderBrandSlug
                                             ] ?? row.brand}
                                         </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        <ReaderDetailsDialog
+                                            readerId={row.id}
+                                            readerName={row.name}
+                                            model={row.model}
+                                            serialNumber={row.serialNumber}
+                                            firmwareVersion={row.firmwareVersion}
+                                            syncedAt={row.deviceInfoSyncedAt}
+                                            lastError={row.deviceInfoLastError}
+                                        />
                                     </TableCell>
                                     <TableCell>
                                         <ReaderEndpointDialog

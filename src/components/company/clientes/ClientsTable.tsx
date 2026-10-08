@@ -13,6 +13,7 @@ import { ClientTvDisplaySheet } from "@/components/company/clientes/ClientTvDisp
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { ClientsMobileList } from "@/features/clients/components/ClientsMobileList";
 import {
     Table,
     TableBody,
@@ -79,7 +80,17 @@ export function ClientsTable({
                 ) : null}
             </div>
 
-            <div className="rounded-md border">
+            <ClientsMobileList
+                clients={clients}
+                canManage={canManage}
+                showDisplayPanel={showDisplayPanel}
+                pending={pending}
+                onToggleActive={toggleActive}
+                onOpenDisplay={setTvClient}
+                onOpenEdit={openEdit}
+            />
+
+            <div className="hidden rounded-md border md:block">
                 <Table>
                     <TableHeader>
                         <TableRow>

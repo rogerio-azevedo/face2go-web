@@ -112,6 +112,9 @@ export type ReaderListRow = {
     port: number;
     serialNumber: string | null;
     model: string | null;
+    firmwareVersion: string | null;
+    deviceInfoSyncedAt: string | null;
+    deviceInfoLastError: string | null;
     location: string | null;
     username: string | null;
     hasCredentials: boolean;

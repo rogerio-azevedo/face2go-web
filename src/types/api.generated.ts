@@ -1158,6 +1158,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/readers/{readerId}/device-info/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Consultar e persistir modelo, firmware e serial do equipamento */
+        post: operations["ReadersController_refreshDeviceInfo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/readers/{readerId}/open": {
         parameters: {
             query?: never;
@@ -7282,6 +7299,33 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    ReadersController_refreshDeviceInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                readerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        model: string | null;
+                        serialNumber: string | null;
+                        firmwareVersion: string | null;
+                        /** Format: date-time */
+                        syncedAt: string;
+                    };
+                };
             };
         };
     };
