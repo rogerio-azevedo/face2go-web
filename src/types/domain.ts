@@ -43,6 +43,7 @@ export type ClientListRow = {
     timezoneOffsetMinutes: number;
     ienhFilialCode?: number | null;
     isActive: boolean;
+    autoApproveRegistrations: boolean;
     createdAt: string;
     updatedAt: string;
 };

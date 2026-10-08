@@ -12,6 +12,7 @@ import {
     updateClientAction,
 } from "@/app/company/clientes/actions";
 import { ClientBrandingPreview } from "@/components/company/clientes/ClientBrandingPreview";
+import { AutoApproveRegistrationsToggle } from "@/features/clients/components/AutoApproveRegistrationsToggle";
 import type { ClientListRow } from "@/types/domain";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,6 +53,7 @@ const emptyDefaults: ClientFormInput = {
     supportWhatsapp: undefined,
     timezoneOffsetMinutes: 0,
     isActive: true,
+    autoApproveRegistrations: false,
 };
 
 function SectionStep({
@@ -112,6 +114,8 @@ export function ClientForm({
                         ? client.timezoneOffsetMinutes
                         : 0,
                 isActive: client.isActive,
+                autoApproveRegistrations:
+                    client.autoApproveRegistrations === true,
             };
         }
         return emptyDefaults;
@@ -615,8 +619,27 @@ export function ClientForm({
                             </div>
                         </div>
 
+                        {mode === "edit" ? (
+                            <div className="space-y-4">
+                                <SectionStep step={5} title="Aprovação" />
+                                <Controller
+                                    name="autoApproveRegistrations"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <AutoApproveRegistrationsToggle
+                                            checked={field.value === true}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    )}
+                                />
+                            </div>
+                        ) : null}
+
                         <div className="space-y-4">
-                            <SectionStep step={5} title="Situação" />
+                            <SectionStep
+                                step={mode === "edit" ? 6 : 5}
+                                title="Situação"
+                            />
                             <Controller
                                 name="isActive"
                                 control={control}

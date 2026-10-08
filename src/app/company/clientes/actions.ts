@@ -74,7 +74,8 @@ export async function updateClientAction(
             d.privacyPolicyUrl === undefined &&
             d.privacyAlias === undefined &&
             d.timezoneOffsetMinutes === undefined &&
-            d.isActive === undefined
+            d.isActive === undefined &&
+            d.autoApproveRegistrations === undefined
         ) {
             return { error: 'Nada para atualizar.' };
         }

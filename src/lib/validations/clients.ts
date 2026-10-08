@@ -100,6 +100,7 @@ const baseClientShape = {
     supportPhone: optionalTrimmed,
     supportWhatsapp: optionalTrimmed,
     isActive: z.boolean(),
+    autoApproveRegistrations: z.boolean().default(false),
 };
 
 const timezoneOffsetCreate = z.preprocess((raw: unknown) => {
