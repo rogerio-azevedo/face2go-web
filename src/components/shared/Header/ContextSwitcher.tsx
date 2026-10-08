@@ -182,7 +182,7 @@ export function ContextSwitcher({
                                 </DropdownMenuLabel>
                             </DropdownMenuGroup>
                             <DropdownMenuSeparator />
-                            {contexts.map((context: UserContext) => {
+                            {[...contexts].sort((a, b) => a.label.localeCompare(b.label, "pt-BR")).map((context: UserContext) => {
                                 const key = contextStorageKey(context);
                                 const isActive = key === activeKey;
 

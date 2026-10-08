@@ -15,6 +15,7 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
     openClientReaderDoorAction,
     openReaderDoorAction,
@@ -27,11 +28,17 @@ export function ReaderOpenDoorButton({
     readerName,
     disabled,
     variant,
+    label = "Abrir",
+    size = "sm",
+    className,
 }: {
     readerId: string;
     readerName: string;
     disabled?: boolean;
     variant: "company" | "client";
+    label?: string;
+    size?: "sm" | "lg";
+    className?: string;
 }) {
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [coolingDown, setCoolingDown] = useState(false);
@@ -59,13 +66,14 @@ export function ReaderOpenDoorButton({
             <Button
                 type="button"
                 variant="outline"
-                size="sm"
-                className="gap-1.5"
+                size={size}
+                className={cn("gap-1.5", className)}
                 disabled={disabled || pending || coolingDown}
+                aria-label={`${label} no leitor ${readerName}`}
                 onClick={() => setConfirmOpen(true)}
             >
                 <DoorOpen className="size-3.5" />
-                Abrir
+                {label}
             </Button>
             <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
                 <AlertDialogContent>

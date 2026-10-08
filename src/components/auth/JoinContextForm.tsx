@@ -74,6 +74,40 @@ function inviteContextLabel(preview: InvitePreview): string {
     return `${clientName} (${companyName})`;
 }
 
+/**
+ * Tenta encontrar, dentro da lista de contextos retornada pelo backend,
+ * o contexto correspondente ao convite — usando clientName/companyName + role.
+ * Retorna o contexto apenas se houver exatamente uma correspondência.
+ */
+function findInviteContext(
+    contexts: UserContext[],
+    preview: InvitePreview,
+): UserContext | null {
+    if (!preview) return null;
+
+    if (preview.inviteType === "company") {
+        const matches = contexts.filter(
+            (c) =>
+                c.type === "company" &&
+                c.role === preview.role &&
+                c.companyName === preview.companyName,
+        );
+        return matches.length === 1 ? (matches[0] ?? null) : null;
+    }
+
+    if (preview.inviteType === "client") {
+        const matches = contexts.filter(
+            (c) =>
+                c.type === "client" &&
+                c.role === preview.role &&
+                c.clientName === preview.clientName,
+        );
+        return matches.length === 1 ? (matches[0] ?? null) : null;
+    }
+
+    return null;
+}
+
 type JoinStep = "credentials" | "context";
 
 export function JoinContextForm() {
@@ -164,11 +198,17 @@ export function JoinContextForm() {
 
             const payload = result.data;
 
-            if (payload.contexts.length === 1) {
-                await completeJoin(payload, payload.contexts[0]!);
+            // Tenta identificar o contexto do convite pelo clientName/companyName + role.
+            // Evita auto-selecionar pelo índice (ex: contexts[0]), o que poderia
+            // redirecionar o usuário para um cliente que ele já tinha acesso,
+            // em vez do cliente recém-vinculado pelo convite.
+            const inviteContext = findInviteContext(payload.contexts, preview);
+            if (inviteContext) {
+                await completeJoin(payload, inviteContext);
                 return;
             }
 
+            // Fallback: exibe seletor de contexto para o usuário escolher manualmente.
             setJoinPayload(payload);
             setStep("context");
         } catch (error) {

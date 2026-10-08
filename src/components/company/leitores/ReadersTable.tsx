@@ -29,6 +29,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { ConnectionBadge } from "@/features/readers/components/ConnectionBadge";
+import { CompanyReadersMobileList } from "@/features/readers/components/CompanyReadersMobileList";
 import { ReaderEndpointDialog } from "@/features/readers/components/ReaderEndpointDialog";
 import { ReaderDetailsDialog } from "@/features/readers/components/ReaderDetailsDialog";
 import { ReaderOpenDoorButton } from "@/features/readers/components/ReaderOpenDoorButton";
@@ -184,7 +185,18 @@ export function ReadersTable({
                 </div>
             </div>
 
-            <div className="rounded-md border">
+            <CompanyReadersMobileList
+                readers={filteredReaders}
+                hasUnfilteredReaders={readers.length > 0}
+                canManage={canManage}
+                pending={pending}
+                monitorLoading={monitorLoading}
+                monitorByReaderId={monitorByReaderId}
+                onToggleActive={toggleActive}
+                onOpenEdit={openEdit}
+            />
+
+            <div className="hidden rounded-md border md:block">
                 <Table>
                     <TableHeader>
                         <TableRow>

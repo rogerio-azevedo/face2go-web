@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
     Dialog,
     DialogContent,
@@ -25,6 +26,9 @@ type ReaderDetailsDialogProps = {
     firmwareVersion: string | null;
     syncedAt: string | null;
     lastError: string | null;
+    triggerLabel?: string;
+    triggerVariant?: "ghost" | "outline";
+    triggerClassName?: string;
 };
 
 function formatSyncedAt(value: string | null): string {
@@ -93,12 +97,16 @@ export function ReaderDetailsDialog(props: ReaderDetailsDialogProps) {
         <>
             <Button
                 type="button"
-                variant="ghost"
+                variant={props.triggerVariant ?? "ghost"}
                 size="sm"
-                className="h-8 px-2 text-xs font-medium uppercase"
+                className={cn(
+                    "h-8 px-2 text-xs font-medium uppercase",
+                    props.triggerClassName,
+                )}
+                aria-label={`${props.triggerLabel ?? "Ver detalhes"} do leitor ${props.readerName}`}
                 onClick={() => setOpen(true)}
             >
-                Ver
+                {props.triggerLabel ?? "Ver"}
             </Button>
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogContent className="sm:max-w-xl">

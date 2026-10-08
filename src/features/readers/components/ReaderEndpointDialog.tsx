@@ -12,13 +12,20 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 export function ReaderEndpointDialog({
     readerName,
     endpoint,
+    triggerLabel = "Ver",
+    triggerVariant = "ghost",
+    triggerClassName,
 }: {
     readerName: string;
     endpoint: string;
+    triggerLabel?: string;
+    triggerVariant?: "ghost" | "outline";
+    triggerClassName?: string;
 }) {
     const [open, setOpen] = useState(false);
 
@@ -35,12 +42,16 @@ export function ReaderEndpointDialog({
         <>
             <Button
                 type="button"
-                variant="ghost"
+                variant={triggerVariant}
                 size="sm"
-                className="h-8 px-2 text-xs font-medium uppercase"
+                className={cn(
+                    "h-8 px-2 text-xs font-medium uppercase",
+                    triggerClassName,
+                )}
+                aria-label={`${triggerLabel} do leitor ${readerName}`}
                 onClick={() => setOpen(true)}
             >
-                Ver
+                {triggerLabel}
             </Button>
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogContent>

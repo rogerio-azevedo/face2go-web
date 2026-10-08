@@ -1,6 +1,5 @@
 "use client";
 
-import { Label } from "@/components/ui/label";
 
 const SELECT_CLASS =
     "flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring";
@@ -52,9 +51,6 @@ export function BlockUnitSelects({
     return (
         <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
-                <Label htmlFor={`${idPrefix}-block`}>
-                    {plainLabels || blockRequired ? "Bloco" : "Bloco (opcional)"}
-                </Label>
                 <select
                     id={`${idPrefix}-block`}
                     name={blockName}
@@ -74,11 +70,6 @@ export function BlockUnitSelects({
                 </select>
             </div>
             <div className="space-y-1.5">
-                <Label htmlFor={`${idPrefix}-unit`}>
-                    {plainLabels || unitRequired
-                        ? "Unidade"
-                        : "Unidade (opcional)"}
-                </Label>
                 <select
                     id={`${idPrefix}-unit`}
                     name={unitName}
