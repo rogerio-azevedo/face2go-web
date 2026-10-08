@@ -51,6 +51,9 @@ export function ClientMobileCard({
                     </h2>
                     <p className="text-muted-foreground mt-0.5 text-sm">
                         {type}
+                        {client.segment === "condo_market"
+                            ? " · Mercado em condomínio"
+                            : ""}
                     </p>
                 </div>
 

@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 
 import {
@@ -41,6 +41,7 @@ type ClientFormInput = ClientFormPayload;
 const emptyDefaults: ClientFormInput = {
     name: "",
     type: "other",
+    segment: null,
     cnpj: undefined,
     phone: undefined,
     email: undefined,
@@ -99,6 +100,7 @@ export function ClientForm({
             return {
                 name: client.name,
                 type: client.type as ClientFormInput["type"],
+                segment: client.segment ?? null,
                 cnpj: client.cnpj ?? undefined,
                 phone: client.phone ?? undefined,
                 email: client.email ?? undefined,
@@ -126,11 +128,18 @@ export function ClientForm({
         defaultValues,
     });
 
-    const { register, handleSubmit, control, reset, watch, formState: { errors } } =
+    const { register, handleSubmit, control, reset, setValue, formState: { errors } } =
         form;
 
-    const watchedLogoUrl = watch("logoUrl");
-    const watchedPrimaryColor = watch("primaryColor");
+    const selectedType = useWatch({ control, name: "type" });
+    const watchedLogoUrl = useWatch({ control, name: "logoUrl" });
+    const watchedPrimaryColor = useWatch({ control, name: "primaryColor" });
+
+    useEffect(() => {
+        if (selectedType && selectedType !== "condominium") {
+            setValue("segment", null);
+        }
+    }, [selectedType, setValue]);
 
     useEffect(() => {
         if (open) {
@@ -239,6 +248,36 @@ export function ClientForm({
                                         </p>
                                     ) : null}
                                 </div>
+                                {selectedType === "condominium" ? (
+                                    <div className="min-w-0 space-y-2">
+                                        <Label htmlFor="client-segment" className={fieldLabel}>
+                                            Uso do condomínio
+                                        </Label>
+                                        <Controller
+                                            name="segment"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <select
+                                                    id="client-segment"
+                                                    className="border-input bg-card text-foreground flex h-10 w-full rounded-md border px-3 py-2 text-sm shadow-sm"
+                                                    value={field.value ?? ""}
+                                                    onBlur={field.onBlur}
+                                                    onChange={(event) =>
+                                                        field.onChange(event.target.value || null)
+                                                    }
+                                                >
+                                                    <option value="">Condomínio</option>
+                                                    <option value="condo_market">Mercado em condomínio</option>
+                                                </select>
+                                            )}
+                                        />
+                                        {errors.segment ? (
+                                            <p className="text-destructive text-xs">
+                                                {errors.segment.message}
+                                            </p>
+                                        ) : null}
+                                    </div>
+                                ) : null}
                             </div>
                         </div>
 

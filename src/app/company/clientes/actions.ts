@@ -66,6 +66,7 @@ export async function updateClientAction(
         if (
             d.name === undefined &&
             d.type === undefined &&
+            d.segment === undefined &&
             d.cnpj === undefined &&
             d.phone === undefined &&
             d.email === undefined &&

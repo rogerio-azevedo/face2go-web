@@ -30,6 +30,7 @@ export type ClientListRow = {
     name: string;
     slug: string | null;
     type: string;
+    segment: "condo_market" | null;
     cnpj: string | null;
     phone: string | null;
     email: string | null;

@@ -132,6 +132,11 @@ export function ClientsTable({
                                     <TableCell>
                                         {CLIENT_TYPE_LABELS[row.type as ClientType] ??
                                             row.type}
+                                        {row.segment === "condo_market" ? (
+                                            <span className="text-muted-foreground block text-xs">
+                                                Mercado em condomínio
+                                            </span>
+                                        ) : null}
                                     </TableCell>
                                     <TableCell>{row.cnpj ?? "—"}</TableCell>
                                     <TableCell>{row.phone ?? "—"}</TableCell>
