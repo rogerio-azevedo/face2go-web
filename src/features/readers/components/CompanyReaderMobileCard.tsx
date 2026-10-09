@@ -101,21 +101,14 @@ export function CompanyReaderMobileCard({
                 </div>
 
                 <div className="flex shrink-0 items-center gap-2">
-                    {canManage ? (
-                        <Switch
-                            checked={reader.isActive}
-                            disabled={pending}
-                            aria-label={`${reader.isActive ? "Desativar" : "Ativar"} leitor ${reader.name}`}
-                            onCheckedChange={(checked) =>
-                                onToggleActive(reader.id, checked === true)
-                            }
-                        />
-                    ) : null}
-                    {reader.isActive ? (
-                        <Badge>Ativo</Badge>
-                    ) : (
-                        <Badge variant="secondary">Inativo</Badge>
-                    )}
+                    <Switch
+                        checked={reader.isActive}
+                        disabled={pending || !canManage}
+                        aria-label={`Status do leitor ${reader.name}`}
+                        onCheckedChange={(checked) =>
+                            onToggleActive(reader.id, checked === true)
+                        }
+                    />
                 </div>
             </div>
 

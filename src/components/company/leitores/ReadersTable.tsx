@@ -18,7 +18,7 @@ import type {
 } from "@/types/domain";
 import { ReaderForm } from "@/components/company/leitores/ReaderForm";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import {
     Table,
@@ -131,7 +131,7 @@ export function ReadersTable({
         });
     }
 
-    const colSpan = canManage ? 10 : 8;
+    const colSpan = canManage ? 11 : 8;
 
     return (
         <>
@@ -212,6 +212,11 @@ export function ReadersTable({
                             <TableHead>Status</TableHead>
                             {canManage ? (
                                 <TableHead>Abrir</TableHead>
+                            ) : null}
+                            {canManage ? (
+                                <TableHead className="text-center">
+                                    Usuários
+                                </TableHead>
                             ) : null}
                             {canManage ? (
                                 <TableHead className="text-right">
@@ -323,27 +328,17 @@ export function ReadersTable({
                                         )}
                                     </TableCell>
                                     <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            {canManage ? (
-                                                <Switch
-                                                    checked={row.isActive}
-                                                    disabled={pending}
-                                                    onCheckedChange={(v) =>
-                                                        toggleActive(
-                                                            row.id,
-                                                            v === true,
-                                                        )
-                                                    }
-                                                />
-                                            ) : null}
-                                            {row.isActive ? (
-                                                <Badge>Ativo</Badge>
-                                            ) : (
-                                                <Badge variant="secondary">
-                                                    Inativo
-                                                </Badge>
-                                            )}
-                                        </div>
+                                        <Switch
+                                            checked={row.isActive}
+                                            disabled={pending || !canManage}
+                                            aria-label={`Status do leitor ${row.name}`}
+                                            onCheckedChange={(v) =>
+                                                toggleActive(
+                                                    row.id,
+                                                    v === true,
+                                                )
+                                            }
+                                        />
                                     </TableCell>
                                     {canManage ? (
                                         <TableCell>
@@ -356,27 +351,35 @@ export function ReadersTable({
                                         </TableCell>
                                     ) : null}
                                     {canManage ? (
-                                        <TableCell className="text-right">
-                                            <div className="flex items-center justify-end gap-2">
-                                                {(row.brand === "intelbras" ||
-                                                    row.brand === "hikvision") ? (
-                                                    <Link
-                                                        href={`/company/leitores/${row.id}/device-users`}
-                                                        className={buttonVariants({ variant: "outline", size: "sm" })}
-                                                    >
-                                                        Usuários
-                                                    </Link>
-                                                ) : null}
+                                        <TableCell className="text-center">
+                                            {(row.brand === "intelbras" ||
+                                                row.brand === "hikvision") ? (
                                                 <Button
-                                                    type="button"
+                                                    nativeButton={false}
+                                                    render={
+                                                        <Link
+                                                            href={`/company/leitores/${row.id}/device-users`}
+                                                        />
+                                                    }
                                                     variant="outline"
                                                     size="sm"
-                                                    disabled={pending}
-                                                    onClick={() => openEdit(row)}
                                                 >
-                                                    Editar
+                                                    Usuários
                                                 </Button>
-                                            </div>
+                                            ) : null}
+                                        </TableCell>
+                                    ) : null}
+                                    {canManage ? (
+                                        <TableCell className="text-right">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                disabled={pending}
+                                                onClick={() => openEdit(row)}
+                                            >
+                                                Editar
+                                            </Button>
                                         </TableCell>
                                     ) : null}
                                 </TableRow>
