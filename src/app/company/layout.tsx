@@ -34,9 +34,9 @@ export default async function CompanyLayout({
                 mainPaths={mainPaths}
                 companyFeatures={companyFeatures}
             />
-            <SidebarInset>
+            <SidebarInset className="min-w-0">
                 <Header />
-                <div className="flex-1 overflow-y-auto overflow-x-hidden bg-muted/10 px-4 pb-6 pt-3 md:px-6 md:pb-8 md:pt-4">
+                <div className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-muted/10 px-4 pb-6 pt-3 md:px-6 md:pb-8 md:pt-4">
                     {children}
                 </div>
             </SidebarInset>

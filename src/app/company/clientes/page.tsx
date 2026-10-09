@@ -37,7 +37,7 @@ export default async function CompanyClientsPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
             <PageHeader
                 title="Clientes"
                 description="Cadastro das unidades atendidas pela sua empresa."

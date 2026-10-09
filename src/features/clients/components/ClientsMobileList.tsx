@@ -24,14 +24,14 @@ export function ClientsMobileList({
 }: ClientsMobileListProps) {
     if (clients.length === 0) {
         return (
-            <div className="text-muted-foreground rounded-md border py-10 text-center text-sm md:hidden">
+            <div className="text-muted-foreground rounded-md border py-10 text-center text-sm min-[1440px]:hidden">
                 Nenhum cliente cadastrado.
             </div>
         );
     }
 
     return (
-        <div className="space-y-3 md:hidden">
+        <div className="grid gap-3 lg:grid-cols-2 min-[1440px]:hidden">
             {clients.map((client) => (
                 <ClientMobileCard
                     key={client.id}

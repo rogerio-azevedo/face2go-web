@@ -10,7 +10,6 @@ import { toggleClientActiveAction } from "@/app/company/clientes/actions";
 import type { ClientListRow } from "@/types/domain";
 import { ClientForm } from "@/components/company/clientes/ClientForm";
 import { ClientTvDisplaySheet } from "@/components/company/clientes/ClientTvDisplaySheet";
-import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { ClientsMobileList } from "@/features/clients/components/ClientsMobileList";
@@ -68,7 +67,7 @@ export function ClientsTable({
     }
 
     const emptyColSpan =
-        7 + (showDisplayPanel ? 1 : 0) + (canManage ? 1 : 0);
+        6 + (showDisplayPanel ? 1 : 0) + (canManage ? 1 : 0);
 
     return (
         <>
@@ -90,24 +89,23 @@ export function ClientsTable({
                 onOpenEdit={openEdit}
             />
 
-            <div className="hidden rounded-md border md:block">
-                <Table>
+            <div className="hidden min-w-0 max-w-full overflow-hidden rounded-md border min-[1440px]:block">
+                <Table className="table-fixed [&_td]:whitespace-normal">
                     <TableHeader>
                         <TableRow>
                             <TableHead>Nome</TableHead>
                             <TableHead>Tipo</TableHead>
-                            <TableHead>CNPJ</TableHead>
-                            <TableHead>Telefone</TableHead>
-                            <TableHead>E-mail</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Gerenciar</TableHead>
+                            <TableHead className="w-[176px]">CNPJ</TableHead>
+                            <TableHead className="w-[160px]">Telefone</TableHead>
+                            <TableHead className="w-[80px]">Status</TableHead>
+                            <TableHead className="w-[104px]">Gerenciar</TableHead>
                             {showDisplayPanel ? (
-                                <TableHead className="w-[1%] whitespace-nowrap text-center">
+                                <TableHead className="w-[120px] text-center">
                                     TV
                                 </TableHead>
                             ) : null}
                             {canManage ? (
-                                <TableHead className="text-right">
+                                <TableHead className="w-[104px] text-right">
                                     Ações
                                 </TableHead>
                             ) : null}
@@ -126,7 +124,7 @@ export function ClientsTable({
                         ) : (
                             clients.map((row) => (
                                 <TableRow key={row.id}>
-                                    <TableCell className="font-medium">
+                                    <TableCell className="break-words font-medium">
                                         {row.name}
                                     </TableCell>
                                     <TableCell>
@@ -138,31 +136,21 @@ export function ClientsTable({
                                             </span>
                                         ) : null}
                                     </TableCell>
-                                    <TableCell>{row.cnpj ?? "—"}</TableCell>
+                                    <TableCell className="break-all">{row.cnpj ?? "—"}</TableCell>
                                     <TableCell>{row.phone ?? "—"}</TableCell>
-                                    <TableCell>{row.email ?? "—"}</TableCell>
                                     <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            {canManage ? (
-                                                <Switch
-                                                    checked={row.isActive}
-                                                    disabled={pending}
-                                                    onCheckedChange={(v) =>
-                                                        toggleActive(
-                                                            row.id,
-                                                            v === true,
-                                                        )
-                                                    }
-                                                />
-                                            ) : null}
-                                            {row.isActive ? (
-                                                <Badge>Ativo</Badge>
-                                            ) : (
-                                                <Badge variant="secondary">
-                                                    Inativo
-                                                </Badge>
-                                            )}
-                                        </div>
+                                        <Switch
+                                            checked={row.isActive}
+                                            disabled={pending || !canManage}
+                                            aria-label={
+                                                canManage
+                                                    ? `${row.isActive ? "Desativar" : "Ativar"} cliente ${row.name}`
+                                                    : `Cliente ${row.name} ${row.isActive ? "ativo" : "inativo"}`
+                                            }
+                                            onCheckedChange={(v) =>
+                                                toggleActive(row.id, v === true)
+                                            }
+                                        />
                                     </TableCell>
                                     <TableCell>
                                         <Link
@@ -175,7 +163,7 @@ export function ClientsTable({
                                                     size: "sm",
                                                 }),
                                                 pending &&
-                                                    "pointer-events-none opacity-50",
+                                                "pointer-events-none opacity-50",
                                             )}
                                         >
                                             Abrir

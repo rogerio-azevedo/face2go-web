@@ -3,7 +3,6 @@
 import { MonitorPlay } from "lucide-react";
 import Link from "next/link";
 
-import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -58,21 +57,18 @@ export function ClientMobileCard({
                 </div>
 
                 <div className="flex shrink-0 items-center gap-2">
-                    {canManage ? (
-                        <Switch
-                            checked={client.isActive}
-                            disabled={pending}
-                            aria-label={`${client.isActive ? "Desativar" : "Ativar"} cliente ${client.name}`}
-                            onCheckedChange={(checked) =>
-                                onToggleActive(client.id, checked === true)
-                            }
-                        />
-                    ) : null}
-                    {client.isActive ? (
-                        <Badge>Ativo</Badge>
-                    ) : (
-                        <Badge variant="secondary">Inativo</Badge>
-                    )}
+                    <Switch
+                        checked={client.isActive}
+                        disabled={pending || !canManage}
+                        aria-label={
+                            canManage
+                                ? `${client.isActive ? "Desativar" : "Ativar"} cliente ${client.name}`
+                                : `Cliente ${client.name} ${client.isActive ? "ativo" : "inativo"}`
+                        }
+                        onCheckedChange={(checked) =>
+                            onToggleActive(client.id, checked === true)
+                        }
+                    />
                 </div>
             </div>
 
