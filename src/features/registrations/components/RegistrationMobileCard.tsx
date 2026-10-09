@@ -116,6 +116,7 @@ export function RegistrationMobileCard({
                 onAllowSimilarFace={() => actions.onAllowSimilarFace(row)}
                 onEdit={() => actions.onEdit(row)}
                 onRetake={() => actions.onRetake(row)}
+                onReject={() => actions.onReject(row)}
                 onDelete={() => actions.onDelete(row)}
                 onRestore={() => actions.onRestore(row)}
             />

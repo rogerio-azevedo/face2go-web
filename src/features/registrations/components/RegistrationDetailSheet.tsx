@@ -160,7 +160,8 @@ export function RegistrationDetailSheet({
         canEdit &&
         (row.status === "draft" ||
             row.status === "rejected" ||
-            row.status === "approved");
+            row.status === "approved" ||
+            row.status === "blocked");
     const canSync =
         !!row &&
         !deleted &&
@@ -465,13 +466,17 @@ export function RegistrationDetailSheet({
                     ) : null}
                     {row?.status === "approved" ? (
                         <SheetFooter className="shrink-0 border-t pb-[max(1rem,env(safe-area-inset-bottom))]">
-                            <div
-                                className={
-                                    canSync
-                                        ? "grid w-full grid-cols-2 gap-2"
-                                        : "grid w-full grid-cols-1 gap-2"
-                                }
-                            >
+                            <div className="grid w-full grid-cols-2 gap-2">
+                                <Button
+                                    type="button"
+                                    size="lg"
+                                    variant="destructive"
+                                    className="h-11"
+                                    disabled={pending}
+                                    onClick={onReject}
+                                >
+                                    Rejeitar
+                                </Button>
                                 <Button
                                     type="button"
                                     size="lg"
@@ -486,7 +491,7 @@ export function RegistrationDetailSheet({
                                     <Button
                                         type="button"
                                         size="lg"
-                                        className="h-11"
+                                        className="col-span-2 h-11"
                                         disabled={pending || syncing}
                                         onClick={onSync}
                                     >

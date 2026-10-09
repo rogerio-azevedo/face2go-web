@@ -261,7 +261,11 @@ export function RegistrationsReviewBoard({
                 toast.error(res.error);
                 return;
             }
-            toast.success(DECISION_SUCCESS[kind]);
+            toast.success(
+                kind === "reject" && current.status === "approved"
+                    ? "Cadastro rejeitado. O acesso foi removido dos leitores."
+                    : DECISION_SUCCESS[kind],
+            );
             setDecision(null);
             refreshList();
             void queryClient.invalidateQueries({
@@ -273,12 +277,12 @@ export function RegistrationsReviewBoard({
                 setTab("approved");
                 return;
             }
-            if (next) {
+            if (sheetOpen && next) {
                 setActiveRow(next);
                 return;
             }
             setSheetOpen(false);
-            toast.message("Nenhum cadastro pendente restante.");
+            if (tab === "draft") toast.message("Nenhum cadastro pendente restante.");
         });
     }
 
@@ -413,6 +417,10 @@ export function RegistrationsReviewBoard({
         onAllowSimilarFace: setSimilarRow,
         onEdit: setEditRow,
         onRetake: (row: ClientRegistrationListRow) => void openRetake(row),
+        onReject: (row: ClientRegistrationListRow) => {
+            setActiveRow(row);
+            setDecision("reject");
+        },
         onDelete: runDelete,
         onRestore: runRestore,
     };
@@ -533,6 +541,7 @@ export function RegistrationsReviewBoard({
                 open={decision != null}
                 kind={decision}
                 personName={activeRow?.name ?? null}
+                wasApproved={activeRow?.status === "approved"}
                 pending={pending}
                 onOpenChange={(open) => {
                     if (!open) setDecision(null);

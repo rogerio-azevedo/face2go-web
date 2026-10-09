@@ -38,6 +38,7 @@ export type RegistrationListActionProps = {
     onAllowSimilarFace: (row: ClientRegistrationListRow) => void;
     onEdit: (row: ClientRegistrationListRow) => void;
     onRetake: (row: ClientRegistrationListRow) => void;
+    onReject: (row: ClientRegistrationListRow) => void;
     onDelete: (row: ClientRegistrationListRow) => Promise<void>;
     onRestore: (row: ClientRegistrationListRow) => Promise<void>;
 };
@@ -102,6 +103,7 @@ export function RegistrationsTable({
     onAllowSimilarFace,
     onEdit,
     onRetake,
+    onReject,
     onDelete,
     onRestore,
 }: RegistrationsTableProps) {
@@ -267,6 +269,7 @@ export function RegistrationsTable({
                                         }
                                         onEdit={() => onEdit(row)}
                                         onRetake={() => onRetake(row)}
+                                        onReject={() => onReject(row)}
                                         onDelete={() => onDelete(row)}
                                         onRestore={() => onRestore(row)}
                                     />

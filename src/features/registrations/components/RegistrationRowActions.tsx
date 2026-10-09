@@ -11,6 +11,7 @@ import {
     RefreshCw,
     RotateCcw,
     ShieldAlert,
+    ShieldX,
     Trash2,
 } from "lucide-react";
 import { useState } from "react";
@@ -52,6 +53,7 @@ export function RegistrationRowActions({
     onAllowSimilarFace,
     onEdit,
     onRetake,
+    onReject,
     onDelete,
     onRestore,
 }: {
@@ -66,6 +68,7 @@ export function RegistrationRowActions({
     onAllowSimilarFace: () => void;
     onEdit: () => void;
     onRetake: () => void;
+    onReject: () => void;
     onDelete: () => Promise<void>;
     onRestore: () => Promise<void>;
 }) {
@@ -81,7 +84,8 @@ export function RegistrationRowActions({
         !isDeleted &&
         (row.status === "draft" ||
             row.status === "rejected" ||
-            row.status === "approved");
+            row.status === "approved" ||
+            row.status === "blocked");
     const canDelete = isAdmin && isApproved;
     const canRestore = isAdmin && isDeleted;
     const canAllowSimilar =
@@ -177,7 +181,13 @@ export function RegistrationRowActions({
                         <History />
                         Histórico
                     </DropdownMenuItem>
-                    {canDelete || canRestore ? <DropdownMenuSeparator /> : null}
+                    {isApproved || canRestore ? <DropdownMenuSeparator /> : null}
+                    {isApproved ? (
+                        <DropdownMenuItem onClick={onReject}>
+                            <ShieldX />
+                            Rejeitar
+                        </DropdownMenuItem>
+                    ) : null}
                     {canDelete ? (
                         <DropdownMenuItem
                             variant="destructive"

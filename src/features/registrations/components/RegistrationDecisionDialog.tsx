@@ -67,6 +67,7 @@ type RegistrationDecisionDialogProps = {
     open: boolean;
     kind: RegistrationDecision | null;
     personName: string | null;
+    wasApproved: boolean;
     pending: boolean;
     onOpenChange: (open: boolean) => void;
     onConfirm: (notes: string) => void;
@@ -76,6 +77,7 @@ export function RegistrationDecisionDialog({
     open,
     kind,
     personName,
+    wasApproved,
     pending,
     onOpenChange,
     onConfirm,
@@ -105,7 +107,9 @@ export function RegistrationDecisionDialog({
                 <AlertDialogHeader>
                     <AlertDialogTitle>{copy.title}</AlertDialogTitle>
                     <AlertDialogDescription>
-                        {copy.description(name)}
+                        {kind === "reject" && wasApproved
+                            ? `${name} irá para Rejeitados e a face será removida dos leitores. O motivo é opcional.`
+                            : copy.description(name)}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <textarea
