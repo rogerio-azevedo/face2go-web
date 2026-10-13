@@ -21,8 +21,8 @@ export function BlockUnitSelects({
     idPrefix = "location",
     blockName,
     unitName,
-    plainLabels = false,
     emptyHint,
+    disabled = false,
 }: {
     blocks: BlockUnitOption[];
     blockId: string;
@@ -36,6 +36,7 @@ export function BlockUnitSelects({
     unitName?: string;
     plainLabels?: boolean;
     emptyHint?: string;
+    disabled?: boolean;
 }) {
     const units = blocks.find((block) => block.id === blockId)?.units ?? [];
 
@@ -54,6 +55,9 @@ export function BlockUnitSelects({
                 <select
                     id={`${idPrefix}-block`}
                     name={blockName}
+                    aria-label="Bloco de destino"
+                    required={blockRequired}
+                    disabled={disabled}
                     className={SELECT_CLASS}
                     value={blockId}
                     onChange={(event) => {
@@ -73,9 +77,11 @@ export function BlockUnitSelects({
                 <select
                     id={`${idPrefix}-unit`}
                     name={unitName}
+                    aria-label="Unidade de destino"
+                    required={unitRequired}
                     className={SELECT_CLASS}
                     value={unitId}
-                    disabled={!blockId}
+                    disabled={disabled || !blockId}
                     onChange={(event) => onUnitIdChange(event.target.value)}
                 >
                     <option value="">

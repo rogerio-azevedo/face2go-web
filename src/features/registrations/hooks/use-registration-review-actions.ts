@@ -15,7 +15,7 @@ import {
     unblockCompanyRegistrationAction,
 } from "@/app/company/clientes/[clientId]/usuarios/actions";
 
-type ReviewResult = { success: true } | { error: string };
+type ReviewResult = { success: true; message?: string } | { error: string };
 
 export function useRegistrationReviewActions({
     variant,

@@ -5,6 +5,7 @@ import type {
 
 export const JOB_KIND_LABEL: Record<DeviceSyncJobKind, string> = {
     "face.person": "Face",
+    "face.remove": "Remoção de acesso de menor",
     "face.reader": "Leitor (todos)",
     "face.school": "Lote escolar",
     "lpr.vehicle": "Placa",

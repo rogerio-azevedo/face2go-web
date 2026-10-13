@@ -76,7 +76,8 @@ export async function updateClientAction(
             d.privacyAlias === undefined &&
             d.timezoneOffsetMinutes === undefined &&
             d.isActive === undefined &&
-            d.autoApproveRegistrations === undefined
+            d.autoApproveRegistrations === undefined &&
+            d.enableChildApprove === undefined
         ) {
             return { error: 'Nada para atualizar.' };
         }

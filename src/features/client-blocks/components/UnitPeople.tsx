@@ -11,6 +11,7 @@ import type { CatalogBlock, CatalogUnit, LocationReviewPerson } from "../types";
 import { BlockUnitSelects } from "./BlockUnitSelects";
 import { ConfirmDeleteButton } from "./ConfirmDeleteButton";
 import { PeopleList } from "./LocationGroupCard";
+import { PersonLocationList } from "./PersonLocationList";
 import type { RunTask } from "./UnitEditor";
 
 function moveTargets(catalog: CatalogBlock[], unitId: string) {
@@ -28,6 +29,7 @@ function moveTargets(catalog: CatalogBlock[], unitId: string) {
 export function UnitPeople({
     clientId,
     unit,
+    blockName,
     catalog,
     canMove,
     busy,
@@ -35,6 +37,7 @@ export function UnitPeople({
 }: {
     clientId: string;
     unit: CatalogUnit;
+    blockName: string;
     catalog: CatalogBlock[];
     canMove: boolean;
     busy: boolean;
@@ -46,14 +49,17 @@ export function UnitPeople({
     const [targetUnitId, setTargetUnitId] = useState("");
 
     useEffect(() => {
+        let cancelled = false;
         deferInEffect(() => {
             void (async () => {
                 const result = await getUnitPeopleAction(clientId, unit.id);
+                if (cancelled) return;
                 if ("error" in result) setError(result.error);
-                else setPeople(result.people);
+                else { setError(null); setPeople(result.people); }
             })();
         });
-    }, [clientId, unit.id]);
+        return () => { cancelled = true; };
+    }, [clientId, unit.id, catalog]);
 
     if (error) return <p className="text-destructive text-sm">{error}</p>;
     if (!people) {
@@ -87,7 +93,11 @@ export function UnitPeople({
 
     return (
         <div className="w-full space-y-3 rounded-md border bg-background p-3">
-            <PeopleList people={people} />
+            {canMove ? <PersonLocationList
+                clientId={clientId} sourceUnitId={unit.id} sourceBlockName={blockName}
+                sourceUnitName={unit.name} people={people} catalog={catalog} busy={busy} run={run}
+                onMoved={(person) => setPeople((current) => current?.filter((row) => row.kind !== person.kind || row.id !== person.id) ?? null)}
+            /> : <PeopleList people={people} />}
             {canMove ? (
                 <>
                     <BlockUnitSelects
@@ -106,10 +116,10 @@ export function UnitPeople({
                             disabled={busy || !targetUnitId}
                             onClick={() => move(targetUnitId)}
                         >
-                            Mover {people.length} para a unidade escolhida
+                            Mover todas as {people.length} pessoas para a unidade escolhida
                         </Button>
                         <ConfirmDeleteButton
-                            label="Desvincular"
+                            label="Desvincular todas"
                             title={`Desvincular ${people.length} pessoa(s)?`}
                             description="As pessoas ficam sem unidade (o texto de bloco e unidade é mantido) e esta unidade é desativada. Quem estiver ativo aparece em “Sem vínculo” para vincular depois."
                             confirmLabel="Desvincular"
@@ -119,7 +129,7 @@ export function UnitPeople({
                         />
                     </div>
                     <p className="text-muted-foreground text-xs">
-                        Depois de mover ou desvincular, esta unidade fica
+                        Ao mover ou desvincular todas as pessoas, esta unidade fica
                         inativa e pode ser excluída.
                     </p>
                 </>

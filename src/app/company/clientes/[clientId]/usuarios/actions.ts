@@ -15,7 +15,7 @@ import type { RegistrationLinkListRow } from '@/types/domain';
 export async function approveCompanyRegistrationAction(
     clientId: string,
     registrationId: string,
-): Promise<{ success: true } | { error: string }> {
+): Promise<{ success: true; message?: string } | { error: string }> {
     const cid = z.string().uuid().safeParse(clientId);
     const rid = z.string().uuid().safeParse(registrationId);
     if (!cid.success || !rid.success) return { error: 'ID inválido.' };
@@ -27,7 +27,7 @@ export async function approveCompanyRegistrationAction(
         const data = await parseResponseJson(res);
         if (!res.ok) return { error: nestErrorMessage(data) };
         revalidatePath(`/company/clientes/${cid.data}/usuarios`);
-        return { success: true };
+        return { success: true, message: (data as Partial<import("@/features/child-approvals/types").ChildApprovalSummary> | null)?.childApprovalStatus === "pending" ? "Aprovação solicitada. Aguardando o aceite de um adulto da mesma unidade." : "Cadastro aprovado." };
     } catch {
         return { error: 'Sem permissão.' };
     }
@@ -37,7 +37,7 @@ export async function blockCompanyRegistrationAction(
     clientId: string,
     registrationId: string,
     reason: string,
-): Promise<{ success: true } | { error: string }> {
+): Promise<{ success: true; message?: string } | { error: string }> {
     const cid = z.string().uuid().safeParse(clientId);
     const rid = z.string().uuid().safeParse(registrationId);
     const parsedReason = z.string().trim().min(3).max(2000).safeParse(reason);
@@ -56,7 +56,7 @@ export async function blockCompanyRegistrationAction(
         const data = await parseResponseJson(res);
         if (!res.ok) return { error: nestErrorMessage(data) };
         revalidatePath(`/company/clientes/${cid.data}/usuarios`);
-        return { success: true };
+        return { success: true, message: (data as Partial<import("@/features/child-approvals/types").ChildApprovalSummary> | null)?.childApprovalStatus === "pending" ? "Aprovação solicitada. Aguardando o aceite de um adulto da mesma unidade." : "Cadastro aprovado." };
     } catch {
         return { error: 'Sem permissão.' };
     }
@@ -66,7 +66,7 @@ export async function unblockCompanyRegistrationAction(
     clientId: string,
     registrationId: string,
     reason?: string,
-): Promise<{ success: true } | { error: string }> {
+): Promise<{ success: true; message?: string } | { error: string }> {
     const cid = z.string().uuid().safeParse(clientId);
     const rid = z.string().uuid().safeParse(registrationId);
     const parsedReason = z.string().trim().max(2000).optional().safeParse(reason);
@@ -89,7 +89,7 @@ export async function unblockCompanyRegistrationAction(
         const data = await parseResponseJson(res);
         if (!res.ok) return { error: nestErrorMessage(data) };
         revalidatePath(`/company/clientes/${cid.data}/usuarios`);
-        return { success: true };
+        return { success: true, message: (data as Partial<import("@/features/child-approvals/types").ChildApprovalSummary> | null)?.childApprovalStatus === "pending" ? "Aprovação solicitada. Aguardando o aceite de um adulto da mesma unidade." : "Cadastro aprovado." };
     } catch {
         return { error: 'Sem permissão.' };
     }

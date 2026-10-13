@@ -43,6 +43,7 @@ export function LocationGroupCard({
     onCreate,
     onToggleIgnored,
     extraActions,
+    peopleContent,
 }: {
     idPrefix: string;
     title: ReactNode;
@@ -59,6 +60,7 @@ export function LocationGroupCard({
     onCreate: (input: { blockName: string; unitName: string }) => void;
     onToggleIgnored: () => void;
     extraActions?: ReactNode;
+    peopleContent?: ReactNode;
 }) {
     const [pickedBlockId, setPickedBlockId] = useState("");
     const [creating, setCreating] = useState(false);
@@ -181,7 +183,7 @@ export function LocationGroupCard({
                 </Button>
             </div>
 
-            {showPeople ? <PeopleList people={group.people} total={total} /> : null}
+            {showPeople ? peopleContent ?? <PeopleList people={group.people} total={total} /> : null}
         </div>
     );
 }
@@ -189,14 +191,17 @@ export function LocationGroupCard({
 export function PeopleList({
     people,
     total,
+    renderAction,
 }: {
     people: LocationReviewPerson[];
     total?: number;
+    renderAction?: (person: LocationReviewPerson) => ReactNode;
 }) {
     return (
         <ul className="text-muted-foreground space-y-1 text-sm">
             {people.map((person) => (
-                <li key={`${person.kind}-${person.id}`}>
+                <li key={`${person.kind}-${person.id}`} className="flex flex-wrap items-center justify-between gap-2">
+                    <span>
                     {person.name ?? "Sem nome"}
                     {" · "}
                     {person.kind === "registration"
@@ -204,6 +209,8 @@ export function PeopleList({
                         : "Membro"}
                     {person.faceId != null ? ` · ID ${person.faceId}` : ""}
                     {person.active === false ? " · Inativo" : ""}
+                    </span>
+                    {renderAction?.(person)}
                 </li>
             ))}
             {total != null && total > people.length ? (

@@ -87,3 +87,15 @@ export const moveLocationGroupsSchema = z.object({
         .min(1, "Nada para mover.")
         .max(200),
 });
+
+/** Alinhado ao MoveLocationPersonDto do backend. */
+export const moveLocationPersonSchema = z.object({
+    kind: z.enum(["registration", "member"]),
+    personId: z.string().uuid(),
+    sourceUnitId: z.string().uuid(),
+    targetBlockId: z.string().uuid("Escolha o bloco."),
+    targetUnitId: z.string().uuid("Escolha a unidade."),
+}).refine((value) => value.sourceUnitId !== value.targetUnitId, {
+    message: "Escolha uma unidade diferente da atual.",
+    path: ["targetUnitId"],
+});

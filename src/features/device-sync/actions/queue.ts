@@ -9,6 +9,7 @@ import {
     parseResponseJson,
 } from "@/lib/api-fetch";
 import type {
+    DeviceSyncClearFailedResult,
     DeviceSyncJobList,
     DeviceSyncJobSummary,
     DeviceSyncStatusFilter,
@@ -82,4 +83,11 @@ export async function cancelQueuedDeviceSyncJobsAction(
 ): Promise<ActionResult<{ canceled: number }>> {
     const base = basePath(clientId);
     return request(base && `${base}/cancel-queued`, { method: "POST" });
+}
+
+export async function clearFailedDeviceSyncJobsAction(
+    clientId: string,
+): Promise<ActionResult<DeviceSyncClearFailedResult>> {
+    const base = basePath(clientId);
+    return request(base && `${base}/clear-failed`, { method: "POST" });
 }

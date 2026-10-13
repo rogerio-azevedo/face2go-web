@@ -1,5 +1,7 @@
 "use client";
 
+import { ChildApprovalBadge } from "@/features/child-approvals/components/ChildApprovalBadge";
+
 import { ArrowDown, ArrowUp, ArrowUpDown, Loader2 } from "lucide-react";
 
 import { RegistrationRowActions } from "@/features/registrations/components/RegistrationRowActions";
@@ -178,7 +180,8 @@ export function RegistrationsTable({
                                     <div className="flex flex-col gap-1">
                                         <span className="flex flex-wrap items-center gap-1.5">
                                             {row.name ?? "—"}
-                                            {row.isMinor ? (
+                                            <ChildApprovalBadge row={row} />
+                        {row.isMinor ? (
                                                 <Badge
                                                     variant="outline"
                                                     className="border-orange-300 bg-orange-100 font-semibold text-orange-900 hover:bg-orange-100"

@@ -1,5 +1,6 @@
 "use client";
 
+import { ChildApprovalPanel } from "@/features/child-approvals/components/ChildApprovalPanel";
 import {
     Camera,
     ChevronLeft,
@@ -50,6 +51,8 @@ import { formatCpfOrCnpj } from "@/lib/utils/document";
 import type { ClientRegistrationListRow } from "@/types/domain";
 
 type RegistrationDetailSheetProps = {
+    isAdmin: boolean;
+    onChanged: () => void;
     open: boolean;
     onOpenChange: (open: boolean) => void;
     row: ClientRegistrationListRow | null;
@@ -110,6 +113,8 @@ export function RegistrationDetailSheet({
     onSync,
     onForceSync,
     onHistory,
+    isAdmin,
+    onChanged,
 }: RegistrationDetailSheetProps) {
     const [fetchedFace, setFetchedFace] = useState<{
         id: string;
@@ -167,7 +172,7 @@ export function RegistrationDetailSheet({
         !deleted &&
         (row.status === "approved" || row.status === "blocked") &&
         row.faceId != null &&
-        row.hasFacialReaders;
+        row.hasFacialReaders && row.childApprovalStatus !== "pending";
     const position =
         index >= 0 && total > 0 ? `${index + 1} de ${total}` : null;
 
@@ -331,6 +336,14 @@ export function RegistrationDetailSheet({
                                     <Badge>{registrationStatusLabel(row.status)}</Badge>
                                 </Field>
                             </dl>
+                            {open && ((row.isMinor && row.enableChildApprove) || row.childApprovalRequired) && (
+                                <ChildApprovalPanel
+                                    target={{ variant, companyClientId, registrationId: row.id }}
+                                    row={row}
+                                    isAdmin={isAdmin}
+                                    onChanged={onChanged}
+                                />
+                            )}
                             {row.status === "rejected" ? (
                                 <p className="text-destructive text-sm">
                                     Motivo: {row.rejectionNotes?.trim() || "—"}

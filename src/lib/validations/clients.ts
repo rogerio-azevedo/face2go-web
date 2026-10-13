@@ -102,6 +102,7 @@ const baseClientShape = {
     supportWhatsapp: optionalTrimmed,
     isActive: z.boolean(),
     autoApproveRegistrations: z.boolean().default(false),
+    enableChildApprove: z.boolean().default(false),
 };
 
 const timezoneOffsetCreate = z.preprocess((raw: unknown) => {
@@ -158,6 +159,7 @@ export const createClientSchema = clientSchema;
 export const updateClientSchema = z
     .object({
         ...baseClientShape,
+        enableChildApprove: z.boolean().optional(),
         timezoneOffsetMinutes: timezoneOffsetUpdate,
     })
     .partial();

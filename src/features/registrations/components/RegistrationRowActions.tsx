@@ -78,7 +78,7 @@ export function RegistrationRowActions({
     const contactNumber = toBrazilContactNumber(row.phone);
     const isDeleted = tab === "deleted" || row.isActive === false;
     const isApproved = row.status === "approved" && !isDeleted;
-    const canSync = isApproved && row.faceId != null;
+    const canSync = isApproved && row.faceId != null && row.childApprovalStatus !== "pending";
     const canEdit = !isDeleted;
     const canRetake =
         !isDeleted &&

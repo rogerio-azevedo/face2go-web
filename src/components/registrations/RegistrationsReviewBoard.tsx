@@ -264,7 +264,7 @@ export function RegistrationsReviewBoard({
             toast.success(
                 kind === "reject" && current.status === "approved"
                     ? "Cadastro rejeitado. O acesso foi removido dos leitores."
-                    : DECISION_SUCCESS[kind],
+                    : kind === "approve" && "message" in res && typeof res.message === "string" ? res.message : DECISION_SUCCESS[kind],
             );
             setDecision(null);
             refreshList();
@@ -282,7 +282,7 @@ export function RegistrationsReviewBoard({
                 return;
             }
             setSheetOpen(false);
-            if (tab === "draft") toast.message("Nenhum cadastro pendente restante.");
+            if (tab === "draft" && !(kind === "approve" && current.childApprovalStatus === "pending")) toast.message("Nenhum cadastro pendente restante.");
         });
     }
 
@@ -504,6 +504,8 @@ export function RegistrationsReviewBoard({
                 total={filtered.length}
                 variant={variant}
                 companyClientId={companyClientId}
+                isAdmin={isAdmin}
+                onChanged={() => { setSheetOpen(false); refreshList(); }}
                 pending={pending}
                 syncing={syncingId === activeRow?.id}
                 retakeBusy={retakeBusyId === activeRow?.id}

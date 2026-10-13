@@ -54,8 +54,9 @@ export function ClientLocationReviewPanel({
                 </h2>
                 <p className="text-muted-foreground text-sm">
                     Vincule textos antigos ao catálogo ou mova quem está no
-                    bloco/unidade errado. A unidade de origem fica inativa e
-                    pode ser excluída depois.
+                    bloco/unidade errado. Use “Alterar bloco/unidade” ao lado da
+                    pessoa para uma correção individual. A origem só fica inativa
+                    nas ações de mover ou desvincular todas as pessoas.
                 </p>
             </div>
 

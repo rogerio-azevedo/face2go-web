@@ -11,6 +11,7 @@ import { PageHeader } from "@/components/shared/PageHeader";
 
 const EMPTY_DASHBOARD: ClientDashboard = {
     clientType: "other",
+    segment: null,
     timezoneOffsetMinutes: 0,
     registrations: { pending: 0, approved: 0 },
     activeRegistrationLinks: 0,

@@ -10,6 +10,7 @@ import {
 import {
     cancelDeviceSyncJobAction,
     cancelQueuedDeviceSyncJobsAction,
+    clearFailedDeviceSyncJobsAction,
     getDeviceSyncSummaryAction,
     listDeviceSyncJobsAction,
     retryDeviceSyncJobAction,
@@ -72,5 +73,11 @@ export function useDeviceSyncQueue(
         onSettled: invalidate,
     });
 
-    return { summary, list, cancel, retry, cancelQueued };
+    const clearFailed = useMutation({
+        mutationFn: async () =>
+            unwrap(await clearFailedDeviceSyncJobsAction(clientId)),
+        onSettled: invalidate,
+    });
+
+    return { summary, list, cancel, retry, cancelQueued, clearFailed };
 }

@@ -41,10 +41,8 @@ export function DeviceSyncQueuePanel({ clientId }: { clientId: string }) {
     const [status, setStatus] = useState<DeviceSyncStatusFilter>("active");
     const [page, setPage] = useState(1);
     const [confirmClear, setConfirmClear] = useState(false);
-    const { summary, list, cancel, retry, cancelQueued } = useDeviceSyncQueue(
-        clientId,
-        { status, page },
-    );
+    const { summary, list, cancel, retry, cancelQueued, clearFailed } =
+        useDeviceSyncQueue(clientId, { status, page });
 
     const pendingJobId = cancel.isPending
         ? (cancel.variables ?? null)
@@ -73,6 +71,18 @@ export function DeviceSyncQueuePanel({ clientId }: { clientId: string }) {
 
     const handleClear = () => {
         setConfirmClear(false);
+        if (status === "failed") {
+            clearFailed.mutate(undefined, {
+                onSuccess: (data) => {
+                    setPage(1);
+                    toast.success(
+                        `${data.removed} registro(s) de falha removido(s).`,
+                    );
+                },
+                onError: (err) => toast.error(err.message),
+            });
+            return;
+        }
         cancelQueued.mutate(undefined, {
             onSuccess: (data) =>
                 toast.success(`${data.canceled} job(s) removido(s) da fila.`),
@@ -81,6 +91,9 @@ export function DeviceSyncQueuePanel({ clientId }: { clientId: string }) {
     };
 
     const queued = summary.data?.queued ?? 0;
+    const clearingFailures = status === "failed";
+    const clearCount = clearingFailures ? (summary.data?.failed ?? 0) : queued;
+    const clearing = cancelQueued.isPending || clearFailed.isPending;
 
     return (
         <div className="space-y-4">
@@ -118,8 +131,11 @@ export function DeviceSyncQueuePanel({ clientId }: { clientId: string }) {
                         size="sm"
                         variant="ghost"
                         className="gap-1.5"
-                        disabled={list.isFetching}
-                        onClick={() => void list.refetch()}
+                        disabled={list.isFetching || summary.isFetching}
+                        onClick={() => {
+                            void list.refetch();
+                            void summary.refetch();
+                        }}
                     >
                         <RefreshCw
                             className={cn(
@@ -134,15 +150,15 @@ export function DeviceSyncQueuePanel({ clientId }: { clientId: string }) {
                         size="sm"
                         variant="outline"
                         className="gap-1.5"
-                        disabled={queued === 0 || cancelQueued.isPending}
+                        disabled={clearCount === 0 || clearing}
                         onClick={() => setConfirmClear(true)}
                     >
-                        {cancelQueued.isPending ? (
+                        {clearing ? (
                             <Loader2 className="size-3.5 animate-spin" />
                         ) : (
                             <Trash2 className="size-3.5" />
                         )}
-                        Limpar fila
+                        {clearingFailures ? "Limpar falhas" : "Limpar fila"}
                     </Button>
                 </div>
             </div>
@@ -174,18 +190,35 @@ export function DeviceSyncQueuePanel({ clientId }: { clientId: string }) {
             <AlertDialog open={confirmClear} onOpenChange={setConfirmClear}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Limpar a fila?</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            {clearingFailures
+                                ? "Limpar as falhas?"
+                                : "Limpar a fila?"}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            {queued} job(s) que ainda não começaram serão
-                            cancelados. Jobs em execução continuam. Cadastros
-                            afetados ficam como falha de sync e podem ser
-                            reprocessados.
+                            {clearingFailures ? (
+                                <>
+                                    Todos os {clearCount} registros de falha deste
+                                    cliente serão removidos do histórico, incluindo
+                                    os de outras páginas. Essa remoção é permanente.
+                                    Os cadastros e seus status de sincronização
+                                    permanecem iguais. Para tentar novamente,
+                                    sincronize pelo cadastro ou pelo leitor.
+                                </>
+                            ) : (
+                                <>
+                                    {queued} job(s) que ainda não começaram serão
+                                    cancelados. Jobs em execução continuam. Cadastros
+                                    afetados ficam como falha de sync e podem ser
+                                    reprocessados.
+                                </>
+                            )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Voltar</AlertDialogCancel>
                         <AlertDialogAction onClick={handleClear}>
-                            Limpar fila
+                            {clearingFailures ? "Limpar falhas" : "Limpar fila"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

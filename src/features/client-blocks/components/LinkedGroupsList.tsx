@@ -13,6 +13,8 @@ import type {
     LinkedLocationGroup,
 } from "../types";
 import { ConfirmDeleteButton } from "./ConfirmDeleteButton";
+import { PersonLocationList } from "./PersonLocationList";
+import type { RunTask } from "./UnitEditor";
 import { LocationGroupCard } from "./LocationGroupCard";
 import { LocationGroupListShell } from "./LocationGroupListShell";
 
@@ -46,6 +48,16 @@ export function LinkedGroupsList({
         searchText,
         defaultUnitId,
     });
+
+    const runPersonMove: RunTask = async (task) => {
+        setBusy(true);
+        try {
+            const result = await task();
+            if ("error" in result) { toast.error(result.error); return; }
+            await reload();
+            onCatalogChange?.();
+        } finally { setBusy(false); }
+    };
 
     async function move(
         items: { sourceUnitId: string; targetUnitId: string | null }[],
@@ -124,6 +136,11 @@ export function LinkedGroupsList({
                         </>
                     }
                     group={group}
+                    peopleContent={<PersonLocationList clientId={clientId}
+                        sourceUnitId={group.unitId} sourceBlockName={group.blockName}
+                        sourceUnitName={group.unitName} people={group.people}
+                        total={group.registrations + group.members} catalog={review.catalog}
+                        busy={busy} run={runPersonMove} />}
                     createDefaults={{
                         blockName: group.blockName,
                         unitName: group.unitName,
@@ -133,7 +150,7 @@ export function LinkedGroupsList({
                     onUnitIdChange={(unitId) => list.pick(group.key, unitId)}
                     ignored={list.isIgnored(group.key)}
                     busy={busy}
-                    actionLabel="Mover"
+                    actionLabel="Mover todas as pessoas:"
                     onAction={() =>
                         void move([
                             {

@@ -4,6 +4,8 @@ export type DeviceSyncJobList = components["schemas"]["DeviceSyncJobListDto"];
 export type DeviceSyncJobItem = DeviceSyncJobList["items"][number];
 export type DeviceSyncJobSummary =
     components["schemas"]["DeviceSyncJobSummaryDto"];
+export type DeviceSyncClearFailedResult =
+    components["schemas"]["DeviceSyncClearFailedResultDto"];
 export type DeviceSyncJobStatus = DeviceSyncJobItem["status"];
 export type DeviceSyncJobKind = DeviceSyncJobItem["kind"];
 

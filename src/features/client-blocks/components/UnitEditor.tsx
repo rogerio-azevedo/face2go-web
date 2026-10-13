@@ -113,6 +113,7 @@ export function UnitEditor({
                 <UnitPeople
                     clientId={clientId}
                     unit={unit}
+                    blockName={blockName}
                     catalog={catalog}
                     canMove={canMovePeople}
                     busy={busy}

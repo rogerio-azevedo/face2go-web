@@ -4,6 +4,8 @@ export type UpdateClientBlockInput = components["schemas"]["UpdateClientBlockDto
 export type MoveLocationGroupsInput =
     components["schemas"]["MoveLocationGroupsDto"];
 
+export type MoveLocationPersonInput = components["schemas"]["MoveLocationPersonDto"];
+
 export type CatalogUnit = {
     id: string;
     name: string;

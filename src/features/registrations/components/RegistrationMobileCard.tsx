@@ -1,5 +1,7 @@
 "use client";
 
+import { ChildApprovalBadge } from "@/features/child-approvals/components/ChildApprovalBadge";
+
 import { RegistrationRowActions } from "@/features/registrations/components/RegistrationRowActions";
 import type { RegistrationListActionProps } from "@/features/registrations/components/RegistrationsTable";
 import {
@@ -54,6 +56,7 @@ export function RegistrationMobileCard({
                 <span className="min-w-0 flex-1">
                     <span className="flex flex-wrap items-center gap-1.5">
                         <span className="font-medium">{row.name ?? "—"}</span>
+                        <ChildApprovalBadge row={row} />
                         {row.isMinor ? (
                             <Badge
                                 variant="outline"

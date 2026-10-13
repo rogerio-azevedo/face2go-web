@@ -127,7 +127,7 @@ export async function deleteClientRegistrationLinkAction(
 
 export async function approveClientRegistrationAction(
     registrationId: string,
-): Promise<{ success: true } | { error: string }> {
+): Promise<{ success: true; message?: string } | { error: string }> {
     const id = z.string().uuid().safeParse(registrationId);
     if (!id.success) return { error: 'ID inválido.' };
     try {
@@ -138,7 +138,7 @@ export async function approveClientRegistrationAction(
         const data = await parseResponseJson(res);
         if (!res.ok) return { error: nestErrorMessage(data) };
         revalidatePath('/client/cadastros');
-        return { success: true };
+        return { success: true, message: (data as Partial<import("@/features/child-approvals/types").ChildApprovalSummary> | null)?.childApprovalStatus === "pending" ? "Aprovação solicitada. Aguardando o aceite de um adulto da mesma unidade." : "Cadastro aprovado." };
     } catch {
         return { error: 'Sem permissão.' };
     }
@@ -164,7 +164,7 @@ export async function getClientRegistrationFaceUrlAction(
 export async function blockClientRegistrationAction(
     registrationId: string,
     reason: string,
-): Promise<{ success: true } | { error: string }> {
+): Promise<{ success: true; message?: string } | { error: string }> {
     const id = z.string().uuid().safeParse(registrationId);
     const parsedReason = z.string().trim().min(3).max(2000).safeParse(reason);
     if (!id.success) return { error: 'ID inválido.' };
@@ -182,7 +182,7 @@ export async function blockClientRegistrationAction(
         const data = await parseResponseJson(res);
         if (!res.ok) return { error: nestErrorMessage(data) };
         revalidatePath('/client/cadastros');
-        return { success: true };
+        return { success: true, message: (data as Partial<import("@/features/child-approvals/types").ChildApprovalSummary> | null)?.childApprovalStatus === "pending" ? "Aprovação solicitada. Aguardando o aceite de um adulto da mesma unidade." : "Cadastro aprovado." };
     } catch {
         return { error: 'Sem permissão.' };
     }
@@ -191,7 +191,7 @@ export async function blockClientRegistrationAction(
 export async function unblockClientRegistrationAction(
     registrationId: string,
     reason?: string,
-): Promise<{ success: true } | { error: string }> {
+): Promise<{ success: true; message?: string } | { error: string }> {
     const id = z.string().uuid().safeParse(registrationId);
     const parsedReason = z.string().trim().max(2000).optional().safeParse(reason);
     if (!id.success) return { error: 'ID inválido.' };
@@ -213,7 +213,7 @@ export async function unblockClientRegistrationAction(
         const data = await parseResponseJson(res);
         if (!res.ok) return { error: nestErrorMessage(data) };
         revalidatePath('/client/cadastros');
-        return { success: true };
+        return { success: true, message: (data as Partial<import("@/features/child-approvals/types").ChildApprovalSummary> | null)?.childApprovalStatus === "pending" ? "Aprovação solicitada. Aguardando o aceite de um adulto da mesma unidade." : "Cadastro aprovado." };
     } catch {
         return { error: 'Sem permissão.' };
     }
