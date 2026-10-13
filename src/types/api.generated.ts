@@ -5970,6 +5970,9 @@ export interface components {
         ResolveEmergencyEventDto: {
             note?: string;
         };
+        DeleteRegistrationDto: {
+            reason: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -9132,7 +9135,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeleteRegistrationDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -9421,7 +9428,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeleteRegistrationDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {

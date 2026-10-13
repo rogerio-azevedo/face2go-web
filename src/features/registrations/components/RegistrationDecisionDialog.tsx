@@ -14,7 +14,7 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export type RegistrationDecision = "reject" | "block" | "unblock";
+export type RegistrationDecision = "reject" | "block" | "unblock" | "delete";
 
 const DECISION_COPY: Record<
     RegistrationDecision,
@@ -29,6 +29,17 @@ const DECISION_COPY: Record<
         min: number;
     }
 > = {
+    delete: {
+        title: "Excluir cadastro?",
+        description: (name) =>
+            `${name} perderá o acesso nos leitores. O cadastro pode ser restaurado depois. O motivo é obrigatório.`,
+        placeholder: "Descreva o motivo da exclusão…",
+        label: "Motivo da exclusão",
+        action: "Excluir",
+        pending: "Excluindo…",
+        variant: "destructive",
+        min: 3,
+    },
     reject: {
         title: "Rejeitar cadastro?",
         description: (name) => `Recusa ${name}. O motivo é opcional.`,
@@ -89,7 +100,13 @@ export function RegistrationDecisionDialog({
     function confirm() {
         const value = notes.trim();
         if (value.length < copy.min) {
-            toast.error("Informe o motivo do bloqueio (mínimo 3 caracteres).");
+            toast.error(
+                `Informe o motivo ${kind === "delete" ? "da exclusão" : "do bloqueio"} (mínimo 3 caracteres).`,
+            );
+            return;
+        }
+        if (value.length > 2000) {
+            toast.error("O motivo deve ter no máximo 2.000 caracteres.");
             return;
         }
         onConfirm(value);
@@ -113,6 +130,8 @@ export function RegistrationDecisionDialog({
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <textarea
+                    maxLength={2000}
+                    disabled={pending}
                     value={notes}
                     onChange={(event) => setNotes(event.target.value)}
                     className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 min-h-[72px] w-full rounded-lg border px-2.5 py-2 text-sm outline-none focus-visible:ring-3"

@@ -69,10 +69,10 @@ export function RegistrationRowActions({
     onEdit: () => void;
     onRetake: () => void;
     onReject: () => void;
-    onDelete: () => Promise<void>;
+    onDelete: () => void;
     onRestore: () => Promise<void>;
 }) {
-    const [confirm, setConfirm] = useState<"delete" | "restore" | null>(null);
+    const [confirm, setConfirm] = useState<"restore" | null>(null);
     const [working, setWorking] = useState(false);
 
     const contactNumber = toBrazilContactNumber(row.phone);
@@ -91,11 +91,10 @@ export function RegistrationRowActions({
     const canAllowSimilar =
         isAdmin && canSync && isSimilarFaceSyncError(row.deviceSyncError);
 
-    async function run(kind: "delete" | "restore") {
+    async function run() {
         setWorking(true);
         try {
-            if (kind === "delete") await onDelete();
-            else await onRestore();
+            await onRestore();
             setConfirm(null);
         } finally {
             setWorking(false);
@@ -191,7 +190,7 @@ export function RegistrationRowActions({
                     {canDelete ? (
                         <DropdownMenuItem
                             variant="destructive"
-                            onClick={() => setConfirm("delete")}
+                            onClick={onDelete}
                         >
                             <Trash2 />
                             Excluir
@@ -222,15 +221,9 @@ export function RegistrationRowActions({
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>
-                            {confirm === "restore"
-                                ? "Restaurar cadastro?"
-                                : "Excluir cadastro?"}
-                        </AlertDialogTitle>
+                        <AlertDialogTitle>Restaurar cadastro?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            {confirm === "restore"
-                                ? "O cadastro volta a ficar ativo e a face é reenviada aos leitores."
-                                : "Remove o acesso nos leitores. O cadastro pode ser restaurado depois."}
+                            O cadastro volta a ficar ativo e a face é reenviada aos leitores.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -239,21 +232,13 @@ export function RegistrationRowActions({
                         </AlertDialogCancel>
                         <AlertDialogAction
                             disabled={working}
-                            variant={
-                                confirm === "delete" ? "destructive" : "default"
-                            }
+                            variant="default"
                             onClick={(e) => {
                                 e.preventDefault();
-                                if (confirm) void run(confirm);
+                                if (confirm) void run();
                             }}
                         >
-                            {working
-                                ? confirm === "restore"
-                                    ? "Restaurando…"
-                                    : "Excluindo…"
-                                : confirm === "restore"
-                                  ? "Restaurar"
-                                  : "Excluir"}
+                            {working ? "Restaurando…" : "Restaurar"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

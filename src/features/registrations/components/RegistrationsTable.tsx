@@ -41,7 +41,7 @@ export type RegistrationListActionProps = {
     onEdit: (row: ClientRegistrationListRow) => void;
     onRetake: (row: ClientRegistrationListRow) => void;
     onReject: (row: ClientRegistrationListRow) => void;
-    onDelete: (row: ClientRegistrationListRow) => Promise<void>;
+    onDelete: (row: ClientRegistrationListRow) => void;
     onRestore: (row: ClientRegistrationListRow) => Promise<void>;
 };
 

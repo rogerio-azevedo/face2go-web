@@ -71,6 +71,7 @@ import type {
 
 const DECISION_SUCCESS = {
     approve: "Cadastro aprovado.",
+    delete: "Cadastro excluído.",
     reject: "Cadastro rejeitado.",
     block: "Cadastro bloqueado. A face será enviada ao leitor sem abrir a porta.",
     unblock:
@@ -250,13 +251,15 @@ export function RegistrationsReviewBoard({
             null;
         startTransition(async () => {
             const res =
-                kind === "approve"
-                    ? await review.approve(current.id)
-                    : kind === "reject"
-                      ? await review.reject(current.id, notes)
-                      : kind === "block"
-                        ? await review.block(current.id, notes)
-                        : await review.unblock(current.id, notes);
+                kind === "delete"
+                    ? await runDelete(current, notes)
+                    : kind === "approve"
+                      ? await review.approve(current.id)
+                      : kind === "reject"
+                        ? await review.reject(current.id, notes)
+                        : kind === "block"
+                          ? await review.block(current.id, notes)
+                          : await review.unblock(current.id, notes);
             if ("error" in res) {
                 toast.error(res.error);
                 return;
@@ -344,23 +347,16 @@ export function RegistrationsReviewBoard({
         });
     }
 
-    async function runDelete(row: ClientRegistrationListRow) {
+    async function runDelete(row: ClientRegistrationListRow, reason: string) {
         const res =
             variant === "client"
-                ? await deleteClientRegistrationAction(row.id)
+                ? await deleteClientRegistrationAction(row.id, reason)
                 : await deleteCompanyRegistrationAction(
                       companyClientId ?? "",
                       row.id,
+                      reason,
                   );
-        if ("error" in res) {
-            toast.error(res.error);
-            return;
-        }
-        toast.success("Cadastro excluído.");
-        refreshList();
-        void queryClient.invalidateQueries({
-            queryKey: ["registration-events"],
-        });
+        return res;
     }
 
     async function runRestore(row: ClientRegistrationListRow) {
@@ -421,7 +417,10 @@ export function RegistrationsReviewBoard({
             setActiveRow(row);
             setDecision("reject");
         },
-        onDelete: runDelete,
+        onDelete: (row: ClientRegistrationListRow) => {
+            setActiveRow(row);
+            setDecision("delete");
+        },
         onRestore: runRestore,
     };
 

@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { deleteRegistrationSchema } from '@/features/registrations/validations/delete-registration';
+import { zodFirstMessage } from '@/lib/actions/zod-utils';
 
 import {
     apiFetchAuthed,
@@ -380,14 +382,17 @@ export async function updateCompanyRegistrationAction(
 export async function deleteCompanyRegistrationAction(
     clientId: string,
     registrationId: string,
+    reason: string,
 ): Promise<{ success: true } | { error: string }> {
     const cid = z.string().uuid().safeParse(clientId);
     const rid = z.string().uuid().safeParse(registrationId);
     if (!cid.success || !rid.success) return { error: 'ID inválido.' };
+    const parsed = deleteRegistrationSchema.safeParse({ reason });
+    if (!parsed.success) return { error: zodFirstMessage(parsed.error) };
     try {
         const res = await apiFetchAuthed(
             `/api/clients/${cid.data}/registrations/${rid.data}`,
-            { method: 'DELETE' },
+            { method: 'DELETE', body: JSON.stringify(parsed.data) },
         );
         const data = await parseResponseJson(res);
         if (!res.ok) return { error: nestErrorMessage(data) };
