@@ -45,6 +45,7 @@ export type ClientListRow = {
     ienhFilialCode?: number | null;
     isActive: boolean;
     autoApproveRegistrations: boolean;
+    enableVisitorApprove: import("@/types/api.generated").components["schemas"]["CreateClientDto"]["enableVisitorApprove"];
     enableChildApprove: import("@/types/api.generated").components["schemas"]["CreateClientDto"]["enableChildApprove"];
     createdAt: string;
     updatedAt: string;
@@ -258,7 +259,7 @@ export type RegistrationLinkListRow = {
 export type DeviceSyncStatus = "pending_sync" | "synced" | "sync_failed";
 
 /** Item de `GET /api/client/registrations` (datas ISO). */
-export type ClientRegistrationListRow = Partial<import("@/features/child-approvals/types").ChildApprovalSummary> & {
+export type ClientRegistrationListRow = Partial<import("@/features/visitor-approvals/types").VisitorApprovalSummary> & Partial<import("@/features/child-approvals/types").ChildApprovalSummary> & {
     id: string;
     clientId: string;
     registrationLinkId: string;

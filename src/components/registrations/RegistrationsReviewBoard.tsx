@@ -113,6 +113,8 @@ export function RegistrationsReviewBoard({
     const [blockId, setBlockId] = useState("");
     const [unitId, setUnitId] = useState("");
     const [room, setRoom] = useState("");
+    const [isVisitor, setIsVisitor] = useState<"true" | "false" | "">("");
+    const [visitorApprovalStatus, setVisitorApprovalStatus] = useState<"pending" | "authorized" | "not_applicable" | "">("");
     const [sortField, setSortField] = useState<RegistrationSortField>("submittedAt");
     const [sortDir, setSortDir] = useState<RegistrationSortDir>("desc");
     const [sheetOpen, setSheetOpen] = useState(false);
@@ -151,6 +153,8 @@ export function RegistrationsReviewBoard({
         blockId: blockId.trim() || undefined,
         unitId: unitId.trim() || undefined,
         room: room.trim() || undefined,
+        isVisitor: isVisitor || undefined,
+        visitorApprovalStatus: visitorApprovalStatus || undefined,
         status: tab,
     };
     const listQuery = useRegistrationsList(listFilters);
@@ -454,6 +458,10 @@ export function RegistrationsReviewBoard({
                 showRoom={
                     locationType === "office" || locationType === "clinic"
                 }
+                isVisitor={isVisitor}
+                onIsVisitorChange={(value) => { setIsVisitor(value); setPage(1); }}
+                visitorApprovalStatus={visitorApprovalStatus}
+                onVisitorApprovalStatusChange={(value) => { setVisitorApprovalStatus(value); setPage(1); }}
                 room={room}
                 onRoomChange={(value) => resetPage(setRoom, value)}
                 variant={variant}

@@ -17,7 +17,7 @@ export const authConfig = {
             const isLoggedIn = !!user;
             const role = user?.role;
 
-            if (path.startsWith("/autorizar-menor/")) return true;
+            if (path.startsWith("/autorizar-menor/") || path.startsWith("/autorizar-visitante/")) return true;
 
             if (path.startsWith("/api/auth")) {
                 return true;

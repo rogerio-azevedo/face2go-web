@@ -38,6 +38,10 @@ type RegistrationsToolbarProps = {
     onRoomChange: (value: string) => void;
     variant: "client" | "company";
     companyClientId?: string;
+    isVisitor: "true" | "false" | "";
+    onIsVisitorChange: (value: "true" | "false" | "") => void;
+    visitorApprovalStatus: "pending" | "authorized" | "not_applicable" | "";
+    onVisitorApprovalStatusChange: (value: "pending" | "authorized" | "not_applicable" | "") => void;
     syncBusy?: boolean;
 };
 
@@ -61,6 +65,7 @@ export function RegistrationsToolbar({
     onRoomChange,
     variant,
     companyClientId,
+    isVisitor, onIsVisitorChange, visitorApprovalStatus, onVisitorApprovalStatusChange,
     syncBusy = false,
 }: RegistrationsToolbarProps) {
     const [filtersOpen, setFiltersOpen] = useState(false);
@@ -147,6 +152,8 @@ export function RegistrationsToolbar({
                         search={search}
                         blockId={blockId}
                         unitId={unitId}
+                        isVisitor={isVisitor || undefined}
+                        visitorApprovalStatus={visitorApprovalStatus || undefined}
                         room={room}
                     />
                 </div>
@@ -205,6 +212,10 @@ export function RegistrationsToolbar({
                         !filtersOpen && "max-md:hidden",
                     )}
                 >
+                    {showBlockUnit && <>
+                        <select aria-label="Classificação de visitante" className="border-input bg-background rounded-md border p-2 text-sm" value={isVisitor} onChange={(e) => onIsVisitorChange(e.target.value as typeof isVisitor)}><option value="">Todos os cadastros</option><option value="true">Visitantes</option><option value="false">Não visitantes</option></select>
+                        <select aria-label="Autorização de visitante" className="border-input bg-background rounded-md border p-2 text-sm" value={visitorApprovalStatus} onChange={(e) => onVisitorApprovalStatusChange(e.target.value as typeof visitorApprovalStatus)}><option value="">Todas as autorizações</option><option value="pending">Visitante pendente</option><option value="authorized">Visitante autorizado</option><option value="not_applicable">Não aplicável</option></select>
+                    </>}
                     {showBlockUnit ? (
                         <BlockUnitSelects
                             idPrefix="search-registrations"
@@ -240,7 +251,9 @@ export function RegistrationsToolbar({
                             search={search}
                             blockId={blockId}
                             unitId={unitId}
-                            room={room}
+                            isVisitor={isVisitor || undefined}
+                        visitorApprovalStatus={visitorApprovalStatus || undefined}
+                        room={room}
                         />
                     </div>
                     <RegistrationsFaceSyncAllModal

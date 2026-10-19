@@ -19,6 +19,8 @@ export type RegistrationsListFilters = {
     search?: string;
     blockId?: string;
     unitId?: string;
+    isVisitor?: "true" | "false";
+    visitorApprovalStatus?: "pending" | "authorized" | "not_applicable";
     room?: string;
     status: NonNullable<RegistrationListParams["status"]>;
 };
@@ -40,6 +42,8 @@ export function registrationsListQueryKey(filters: RegistrationsListFilters) {
         filters.blockId ?? "",
         filters.unitId ?? "",
         filters.room ?? "",
+        filters.isVisitor ?? "",
+        filters.visitorApprovalStatus ?? "",
     ] as const;
 }
 
@@ -65,6 +69,8 @@ export function useRegistrationsList(filters: RegistrationsListFilters) {
                 blockId: filters.blockId,
                 unitId: filters.unitId,
                 room: filters.room,
+                isVisitor: filters.isVisitor,
+                visitorApprovalStatus: filters.visitorApprovalStatus,
                 status: filters.status,
             });
             if (!result.ok) {

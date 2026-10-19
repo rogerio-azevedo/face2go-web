@@ -1,5 +1,6 @@
 "use client";
 
+import { VisitorApprovalPanel } from "@/features/visitor-approvals/components/VisitorApprovalPanel";
 import { ChildApprovalPanel } from "@/features/child-approvals/components/ChildApprovalPanel";
 import {
     Camera,
@@ -344,6 +345,7 @@ export function RegistrationDetailSheet({
                                     onChanged={onChanged}
                                 />
                             )}
+                            {open && (row.isVisitor || row.visitorApprovalRequired || (row.enableVisitorApprove && isAdmin)) && <VisitorApprovalPanel target={{ variant, companyClientId, registrationId: row.id }} row={row} isAdmin={isAdmin} onChanged={onChanged} />}
                             {row.status === "rejected" ? (
                                 <p className="text-destructive text-sm">
                                     Motivo: {row.rejectionNotes?.trim() || "—"}

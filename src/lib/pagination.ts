@@ -30,6 +30,8 @@ export type RegistrationListParams = {
     search?: string;
     blockId?: string;
     unitId?: string;
+    isVisitor?: "true" | "false";
+    visitorApprovalStatus?: "pending" | "authorized" | "not_applicable";
     room?: string;
     status?: "draft" | "approved" | "rejected" | "blocked" | "deleted";
 };
@@ -48,6 +50,8 @@ export function buildRegistrationListQuery(
     if (unitId) sp.set("unitId", unitId);
     const room = params.room?.trim();
     if (room) sp.set("room", room);
+    if (params.isVisitor) sp.set("isVisitor", params.isVisitor);
+    if (params.visitorApprovalStatus) sp.set("visitorApprovalStatus", params.visitorApprovalStatus);
     if (params.status) sp.set("status", params.status);
     return sp.toString();
 }

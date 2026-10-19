@@ -2609,6 +2609,186 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/visitor-approvals/{token}/photo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ver miniatura do visitante pelo link individual válido */
+        get: operations["PublicVisitorApprovalsController_photo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/visitor-approvals/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Consultar termo individual de autorização de visitante */
+        get: operations["PublicVisitorApprovalsController_preview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/visitor-approvals/{token}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Aceitar termo com confirmação do CPF do destinatário */
+        post: operations["PublicVisitorApprovalsController_accept"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/visitor-approvals/{token}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revogar o próprio aceite com confirmação do CPF */
+        post: operations["PublicVisitorApprovalsController_revoke"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/registrations/{registrationId}/visitor-approval": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ClientVisitorApprovalsController_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/registrations/{registrationId}/visitor-approval/regularize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ClientVisitorApprovalsController_regularize"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/registrations/{registrationId}/visitor-approval/resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ClientVisitorApprovalsController_resend"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/registrations/{registrationId}/visitor-approval/consents/{consentId}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ClientVisitorApprovalsController_revoke"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/clients/{clientId}/registrations/{registrationId}/visitor-approval": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CompanyVisitorApprovalsController_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/clients/{clientId}/registrations/{registrationId}/visitor-approval/regularize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CompanyVisitorApprovalsController_regularize"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/clients/{clientId}/registrations/{registrationId}/visitor-approval/resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CompanyVisitorApprovalsController_resend"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/clients/{clientId}/roles": {
         parameters: {
             query?: never;
@@ -4631,6 +4811,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/client/alerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar tentativas de acesso bloqueadas da unidade atual */
+        get: operations["ClientAlertsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/me/navigation": {
         parameters: {
             query?: never;
@@ -4763,7 +4960,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Registrar token Expo Push do app (responsável ou membro) */
+        /** Registrar token Expo Push do app (responsável, membro ou admin da unidade) */
         patch: operations["NotificationsController_registerPushToken"];
         trace?: never;
     };
@@ -5483,6 +5680,8 @@ export interface components {
             /** @default false */
             autoApproveRegistrations: boolean;
             /** @default false */
+            enableVisitorApprove: boolean;
+            /** @default false */
             enableChildApprove: boolean;
             timezoneOffsetMinutes?: number;
         };
@@ -5505,6 +5704,7 @@ export interface components {
             isActive?: boolean;
             /** @default false */
             autoApproveRegistrations: boolean;
+            enableVisitorApprove?: boolean;
             enableChildApprove?: boolean;
             timezoneOffsetMinutes?: number;
             ienhFilialCode?: number | null;
@@ -5671,6 +5871,24 @@ export interface components {
         PublicCheckDocumentDto: {
             document: string;
         };
+        PublicSubmitRegistrationDto: {
+            /** @default false */
+            isVisitor: boolean;
+            /** Format: uuid */
+            registrationId: string;
+            name: string;
+            document?: string;
+            phone?: string;
+            email?: string;
+            birthDate?: string | null;
+            faceImageKey: string;
+            additionalData?: {
+                [key: string]: unknown;
+            };
+            /** Format: uuid */
+            unitId?: string | null;
+            truthDeclared: boolean;
+        };
         BlockRegistrationDto: {
             reason: string;
         };
@@ -5690,6 +5908,7 @@ export interface components {
             body: string;
         };
         UpdateRegistrationDto: {
+            isVisitor?: boolean;
             name: string;
             document?: string;
             phone?: string;
@@ -5700,6 +5919,9 @@ export interface components {
             };
             /** Format: uuid */
             unitId?: string | null;
+        };
+        DeleteRegistrationDto: {
+            reason: string;
         };
         ChildApprovalPreviewDto: {
             clientName: string;
@@ -5777,6 +5999,87 @@ export interface components {
             }[];
         };
         RevokeChildApprovalDto: {
+            reason: string;
+        };
+        VisitorApprovalPreviewDto: {
+            clientName: string;
+            visitorName: string;
+            hasPhoto: boolean;
+            adultName: string;
+            block: string | null;
+            unit: string | null;
+            termVersion: string;
+            termContent: string;
+            accepted: boolean;
+            revoked: boolean;
+            canAccept: boolean;
+        };
+        AcceptVisitorApprovalDto: {
+            cpf: string;
+            /** @enum {boolean} */
+            agreed: true;
+            termVersion: string;
+        };
+        VisitorApprovalResultDto: {
+            /** @enum {boolean} */
+            success: true;
+            message: string;
+        };
+        VisitorApprovalCpfDto: {
+            cpf: string;
+        };
+        VisitorApprovalHistoryDto: {
+            summary: {
+                /** @enum {string|null} */
+                visitorApprovalPendingReason: "no_eligible_adult" | "awaiting_consent" | null;
+                isVisitor: boolean;
+                enableVisitorApprove: boolean;
+                visitorApprovalRequired: boolean;
+                /** @enum {string} */
+                visitorApprovalStatus: "not_applicable" | "pending" | "authorized";
+                visitorApprovalValidCount: number;
+                visitorApprovalRequested: boolean;
+                visitorApprovalRemovalPending: boolean;
+            };
+            consents: {
+                /** Format: uuid */
+                id: string;
+                adultSnapshot: {
+                    name: string;
+                    /** Format: uuid */
+                    registrationId: string;
+                    birthDate: string | null;
+                    block: string | null;
+                    unit: string | null;
+                };
+                visitorSnapshot: {
+                    name: string;
+                    /** Format: uuid */
+                    registrationId: string;
+                    birthDate: string | null;
+                    block: string | null;
+                    unit: string | null;
+                };
+                termVersion: string;
+                termContent: string;
+                termHash: string;
+                acceptedAt: string;
+                revokedAt: string | null;
+                revokedBy: string | null;
+                revocationReason: string | null;
+            }[];
+            requests: {
+                /** Format: uuid */
+                id: string;
+                adultName: string;
+                emailSentAt: string | null;
+                emailError: string | null;
+                expiresAt: string;
+                accepted: boolean;
+                canceled: boolean;
+            }[];
+        };
+        RevokeVisitorApprovalDto: {
             reason: string;
         };
         BlockPersonDto: {
@@ -5863,6 +6166,23 @@ export interface components {
         UploadFaceDto: {
             /** @description Imagem JPEG em base64 (opcional prefixo data:image/jpeg;base64,) */
             imageBase64: string;
+        };
+        ClientAlertsListDto: {
+            items: {
+                id: string;
+                personName: string | null;
+                blockReason: string | null;
+                readerName: string;
+                /** @enum {string|null} */
+                readerDirection: "in" | "out" | null;
+                eventDate: string | null;
+                createdAt: string;
+                clientName: string;
+                snapUrl: string | null;
+            }[];
+            page: number;
+            pageSize: number;
+            total: number;
         };
         ClientDashboardDto: {
             /** @enum {string} */
@@ -5969,9 +6289,6 @@ export interface components {
         };
         ResolveEmergencyEventDto: {
             note?: string;
-        };
-        DeleteRegistrationDto: {
-            reason: string;
         };
     };
     responses: never;
@@ -8874,7 +9191,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublicSubmitRegistrationDto"];
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -8932,6 +9253,8 @@ export interface operations {
     ClientRegistrationsController_list: {
         parameters: {
             query?: {
+                isVisitor?: "true" | "false";
+                visitorApprovalStatus?: "pending" | "authorized" | "not_applicable";
                 status?: "draft" | "approved" | "rejected" | "blocked" | "deleted";
                 page?: string;
                 pageSize?: string;
@@ -8957,6 +9280,8 @@ export interface operations {
     ClientRegistrationsController_exportXlsx: {
         parameters: {
             query: {
+                isVisitor?: "true" | "false";
+                visitorApprovalStatus?: "pending" | "authorized" | "not_applicable";
                 status: "draft" | "approved" | "rejected" | "blocked" | "deleted" | "all";
                 search?: string;
                 blockId?: string;
@@ -9213,6 +9538,8 @@ export interface operations {
     CompanyRegistrationsController_list: {
         parameters: {
             query?: {
+                isVisitor?: "true" | "false";
+                visitorApprovalStatus?: "pending" | "authorized" | "not_applicable";
                 status?: "draft" | "approved" | "rejected" | "blocked" | "deleted";
                 page?: string;
                 pageSize?: string;
@@ -9240,6 +9567,8 @@ export interface operations {
     CompanyRegistrationsController_exportXlsx: {
         parameters: {
             query: {
+                isVisitor?: "true" | "false";
+                visitorApprovalStatus?: "pending" | "authorized" | "not_applicable";
                 status: "draft" | "approved" | "rejected" | "blocked" | "deleted" | "all";
                 search?: string;
                 blockId?: string;
@@ -9749,6 +10078,253 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ChildApprovalResultDto"];
+                };
+            };
+        };
+    };
+    PublicVisitorApprovalsController_photo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/jpeg": string;
+                };
+            };
+        };
+    };
+    PublicVisitorApprovalsController_preview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisitorApprovalPreviewDto"];
+                };
+            };
+        };
+    };
+    PublicVisitorApprovalsController_accept: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcceptVisitorApprovalDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisitorApprovalResultDto"];
+                };
+            };
+        };
+    };
+    PublicVisitorApprovalsController_revoke: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VisitorApprovalCpfDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisitorApprovalResultDto"];
+                };
+            };
+        };
+    };
+    ClientVisitorApprovalsController_history: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                registrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisitorApprovalHistoryDto"];
+                };
+            };
+        };
+    };
+    ClientVisitorApprovalsController_regularize: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                registrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisitorApprovalResultDto"];
+                };
+            };
+        };
+    };
+    ClientVisitorApprovalsController_resend: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                registrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisitorApprovalResultDto"];
+                };
+            };
+        };
+    };
+    ClientVisitorApprovalsController_revoke: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                registrationId: string;
+                consentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevokeVisitorApprovalDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisitorApprovalResultDto"];
+                };
+            };
+        };
+    };
+    CompanyVisitorApprovalsController_history: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                registrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisitorApprovalHistoryDto"];
+                };
+            };
+        };
+    };
+    CompanyVisitorApprovalsController_regularize: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                registrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisitorApprovalResultDto"];
+                };
+            };
+        };
+    };
+    CompanyVisitorApprovalsController_resend: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clientId: string;
+                registrationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisitorApprovalResultDto"];
                 };
             };
         };
@@ -12779,6 +13355,27 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    ClientAlertsController_list: {
+        parameters: {
+            query?: {
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientAlertsListDto"];
+                };
             };
         };
     };

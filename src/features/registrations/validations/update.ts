@@ -3,6 +3,7 @@ import { z } from "zod";
 import { isValidCpfOrCnpj } from "@/lib/utils/document";
 
 export const updateRegistrationFormSchema = z.object({
+    isVisitor: z.boolean().optional(),
     name: z.string().trim().min(2, "Informe o nome.").max(255),
     document: z
         .string()

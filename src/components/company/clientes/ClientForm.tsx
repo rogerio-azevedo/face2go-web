@@ -55,6 +55,7 @@ const emptyDefaults: ClientFormInput = {
     timezoneOffsetMinutes: 0,
     isActive: true,
     autoApproveRegistrations: false,
+    enableVisitorApprove: false,
     enableChildApprove: false,
 };
 
@@ -119,6 +120,7 @@ export function ClientForm({
                 isActive: client.isActive,
                 autoApproveRegistrations:
                     client.autoApproveRegistrations === true,
+                enableVisitorApprove: client.enableVisitorApprove === true,
                 enableChildApprove: client.enableChildApprove === true,
             };
         }
@@ -140,6 +142,7 @@ export function ClientForm({
     useEffect(() => {
         if (selectedType && selectedType !== "condominium") {
             setValue("segment", null);
+            setValue("enableVisitorApprove", false);
             setValue("enableChildApprove", false);
         }
     }, [selectedType, setValue]);
@@ -662,6 +665,7 @@ export function ClientForm({
                         </div>
 
                         {selectedType === "condominium" && <Controller name="enableChildApprove" control={control} render={({ field }) => <div className="bg-card rounded-xl border p-4"><div className="flex items-center justify-between gap-4"><div className="space-y-1"><Label htmlFor="client-child-approval">Exigir autorização de adulto para menores de 18 anos</Label><p className="text-muted-foreground text-xs">Novos cadastros de menores dependem do aceite de outro adulto aprovado da mesma unidade. Cadastros antigos podem ser selecionados para regularização.</p></div><Switch id="client-child-approval" checked={field.value === true} onCheckedChange={field.onChange} /></div></div>} />}
+                        {selectedType === "condominium" && <Controller name="enableVisitorApprove" control={control} render={({ field }) => <div className="bg-card rounded-xl border p-4"><div className="flex items-center justify-between gap-4"><div className="space-y-1"><Label htmlFor="client-visitor-approval">Exigir autorização de adulto para visitantes</Label><p className="text-muted-foreground text-xs">Novos cadastros de visitantes dependem do aceite de outro adulto aprovado da mesma unidade. Cadastros antigos podem ser selecionados para regularização.</p></div><Switch id="client-visitor-approval" checked={field.value === true} onCheckedChange={field.onChange} /></div></div>} />}
 
                         {mode === "edit" ? (
                             <div className="space-y-4">

@@ -20,6 +20,8 @@ export async function GET(request: NextRequest) {
   const blockId = params.get('blockId');
   const unitId = params.get('unitId');
   const room = params.get('room');
+  const isVisitor = params.get('isVisitor');
+  const visitorApprovalStatus = params.get('visitorApprovalStatus');
 
   if (
     !status ||
@@ -33,6 +35,8 @@ export async function GET(request: NextRequest) {
 
   const nestParams = new URLSearchParams();
   nestParams.set('status', status);
+  if (isVisitor) nestParams.set('isVisitor', isVisitor);
+  if (visitorApprovalStatus) nestParams.set('visitorApprovalStatus', visitorApprovalStatus);
   const trimmed = search?.trim();
   if (trimmed) nestParams.set('search', trimmed);
   const blockTrimmed = blockId?.trim();

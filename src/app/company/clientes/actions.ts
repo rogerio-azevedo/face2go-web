@@ -77,6 +77,7 @@ export async function updateClientAction(
             d.timezoneOffsetMinutes === undefined &&
             d.isActive === undefined &&
             d.autoApproveRegistrations === undefined &&
+            d.enableVisitorApprove === undefined &&
             d.enableChildApprove === undefined
         ) {
             return { error: 'Nada para atualizar.' };

@@ -49,6 +49,7 @@ type PreviewBlock = {
 type Preview = {
     clientName: string;
     clientType: string;
+    enableVisitorApprove?: boolean;
     logoUrl: string | null;
     supportPhone?: string | null;
     supportWhatsapp?: string | null;
@@ -89,6 +90,7 @@ export function CadastroWizard({ code }: { code: string }) {
     const [preview, setPreview] = useState<Preview | null>(null);
     const [error, setError] = useState<string | null>(null);
 
+    const [isVisitor, setIsVisitor] = useState(false);
     const [name, setName] = useState("");
     const [document, setDocument] = useState("");
     const [phone, setPhone] = useState("");
@@ -106,13 +108,16 @@ export function CadastroWizard({ code }: { code: string }) {
     const [documentConflict, setDocumentConflict] = useState<string | null>(
         null,
     );
+    const [submissionMessage, setSubmissionMessage] = useState("");
     const [submissionError, setSubmissionError] = useState<string | null>(null);
 
     const fields = useMemo(
-        () =>
-            preview?.fields ??
-            defaultConfigForClientType(preview?.clientType ?? "other"),
-        [preview],
+        () => {
+            const base = { ...(preview?.fields ?? defaultConfigForClientType(preview?.clientType ?? "other")) };
+            if (isVisitor) { base.block = 'required'; base.unit = 'required'; }
+            return base;
+        },
+        [preview, isVisitor],
     );
     const showLocalStep =
         isFieldVisible(fields.block) ||
@@ -274,6 +279,7 @@ export function CadastroWizard({ code }: { code: string }) {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         registrationId,
+                        isVisitor,
                         name: name.trim(),
                         document: isFieldVisible(fields.document)
                             ? onlyDigits(document) || undefined
@@ -310,6 +316,7 @@ export function CadastroWizard({ code }: { code: string }) {
                 throw new Error(m);
             }
             toast.dismiss();
+            setSubmissionMessage(typeof data.message === "string" ? data.message : "Cadastro recebido. Aguarde a aprovação.");
             setStep(4);
             window.requestAnimationFrame(() => {
                 window.scrollTo({ top: 0, behavior: "auto" });
@@ -368,8 +375,7 @@ export function CadastroWizard({ code }: { code: string }) {
                         />
                         <CardTitle>Tudo certo!</CardTitle>
                         <CardDescription className="text-base leading-relaxed">
-                            Seu cadastro passará por análise e validação de um
-                            administrador. Esse processo pode levar algumas horas.
+                            {submissionMessage}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -438,6 +444,8 @@ export function CadastroWizard({ code }: { code: string }) {
                         <CardTitle className="text-base">Seus dados</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
+                        {preview?.clientType === 'condominium' && <div className="space-y-2 rounded-lg border p-3"><div className="flex items-center gap-3"><Checkbox id="is-visitor" checked={isVisitor} onCheckedChange={(value) => setIsVisitor(value === true)} /><Label htmlFor="is-visitor">Sou visitante desta unidade</Label></div>{isVisitor && <p className="text-muted-foreground text-sm">Selecione a unidade que você está visitando.{preview.enableVisitorApprove ? ' Após o envio, solicitaremos autorização aos adultos aprovados dessa unidade. O acesso depende da autorização e da aprovação do cadastro.' : ''}</p>}</div>}
+
                         <div className="space-y-1.5">
                             <Label htmlFor="nm">Nome completo</Label>
                             <Input

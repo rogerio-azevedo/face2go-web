@@ -1,5 +1,6 @@
 "use client";
 
+import { VisitorApprovalBadge } from "@/features/visitor-approvals/components/VisitorApprovalBadge";
 import { ChildApprovalBadge } from "@/features/child-approvals/components/ChildApprovalBadge";
 
 import { ArrowDown, ArrowUp, ArrowUpDown, Loader2 } from "lucide-react";
@@ -181,6 +182,8 @@ export function RegistrationsTable({
                                         <span className="flex flex-wrap items-center gap-1.5">
                                             {row.name ?? "—"}
                                             <ChildApprovalBadge row={row} />
+                        {row.isVisitor && <Badge variant="outline">Visitante</Badge>}
+                        <VisitorApprovalBadge row={row} />
                         {row.isMinor ? (
                                                 <Badge
                                                     variant="outline"

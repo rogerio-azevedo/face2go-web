@@ -92,6 +92,7 @@ export function RegistrationEditSheet({
     const defaults = useMemo((): UpdateRegistrationFormValues => {
         if (!row) {
             return {
+                isVisitor: false,
                 name: "",
                 document: "",
                 phone: "",
@@ -103,6 +104,7 @@ export function RegistrationEditSheet({
             };
         }
         return {
+            isVisitor: row.isVisitor ?? false,
             name: row.name ?? "",
             document: row.document ? formatCpfOrCnpj(row.document) : "",
             phone: row.phone ?? "",
@@ -173,6 +175,7 @@ export function RegistrationEditSheet({
         }
 
         const body = {
+            isVisitor: values.isVisitor,
             name: values.name,
             document: onlyDigits(values.document ?? "") || undefined,
             phone: values.phone,
@@ -217,6 +220,7 @@ export function RegistrationEditSheet({
                 <SheetHeader className="px-6 pt-6">
                     <SheetTitle className="flex flex-wrap items-center gap-2">
                         Editar cadastro
+                        {showCondo && <label className="flex items-center gap-2 text-sm"><input type="checkbox" {...form.register('isVisitor')} />Visitante (alteração exige administrador)</label>}
                         {row.isMinor ? (
                             <Badge
                                 variant="outline"
