@@ -311,6 +311,7 @@ export type AccessRow = {
     clientName: string;
     userId: number;
     personName: string | null;
+    personPhone: string | null;
     eventCode: string;
     eventAction: string;
     similarity: number | null;

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, MessageCircle } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 
@@ -27,6 +27,7 @@ import {
     nestErrorMessage,
     parseResponseJson,
 } from "@/lib/api-fetch";
+import { toBrazilContactNumber } from "@/features/registrations/lib/registration-format";
 import { READER_DIRECTION_LABELS } from "@/lib/validations/readers";
 
 import { FacePhotoSheet } from "./FacePhotoSheet";
@@ -379,6 +380,13 @@ export function AccessesTable({
                     <TableHeader>
                         <TableRow className="bg-muted/40 hover:bg-muted/40">
                             <TableHead>Pessoa</TableHead>
+                            <TableHead className="text-center">
+                                <span className="sr-only">WhatsApp</span>
+                                <MessageCircle
+                                    className="inline size-4 text-muted-foreground"
+                                    aria-hidden
+                                />
+                            </TableHead>
                             <TableHead>Leitor</TableHead>
                             {hideClientFilter ? null : (
                                 <TableHead>Cliente</TableHead>
@@ -400,7 +408,7 @@ export function AccessesTable({
                         {data.items.length === 0 ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={hideClientFilter ? 7 : 8}
+                                    colSpan={hideClientFilter ? 8 : 9}
                                     className="h-24 text-center text-muted-foreground"
                                 >
                                     Nenhum acesso encontrado para os filtros
@@ -412,6 +420,9 @@ export function AccessesTable({
                                 const personLabel =
                                     row.personName?.trim() ||
                                     `Face #${row.userId}`;
+                                const contactNumber = toBrazilContactNumber(
+                                    row.personPhone,
+                                );
 
                                 return (
                                     <TableRow
@@ -424,6 +435,30 @@ export function AccessesTable({
                                     >
                                         <TableCell className="font-medium">
                                             {personLabel}
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="shrink-0"
+                                                disabled={!contactNumber}
+                                                aria-label={
+                                                    contactNumber
+                                                        ? `Abrir WhatsApp de ${personLabel}`
+                                                        : `Sem telefone no cadastro de ${personLabel}`
+                                                }
+                                                onClick={() => {
+                                                    if (!contactNumber) return;
+                                                    window.open(
+                                                        `https://wa.me/${contactNumber}`,
+                                                        "_blank",
+                                                        "noopener,noreferrer",
+                                                    );
+                                                }}
+                                            >
+                                                <MessageCircle className="size-4" />
+                                            </Button>
                                         </TableCell>
                                         <TableCell className="text-muted-foreground">
                                             {row.readerName}
