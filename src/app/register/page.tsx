@@ -1,12 +1,26 @@
 import { Suspense } from "react";
 
 import { RegisterForm } from "@/components/auth/RegisterForm";
+import {
+    BRAND_OG_HEIGHT,
+    BRAND_OG_WIDTH,
+    brandOgImagePath,
+} from "@/features/branding/og-image";
+import { getBrand } from "@/features/branding/server/get-brand";
 import { buildGenericPlatformMetadata } from "@/lib/responsible-register-metadata";
 
-export const metadata = buildGenericPlatformMetadata(
-    "Cadastro • Face2Go",
-    "Conclua seu cadastro na plataforma Face2Go.",
-);
+export async function generateMetadata() {
+    const brand = await getBrand();
+    return buildGenericPlatformMetadata(
+        `Cadastro • ${brand.appName}`,
+        `Conclua seu cadastro na plataforma ${brand.appName}.`,
+        {
+            url: brandOgImagePath(brand),
+            width: BRAND_OG_WIDTH,
+            height: BRAND_OG_HEIGHT,
+        },
+    );
+}
 
 export default function RegisterPage() {
     return (

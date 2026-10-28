@@ -31,6 +31,12 @@ const GENERIC_OG_IMAGE = {
     height: 630,
 } as const;
 
+type OgImage = {
+    url: string;
+    width: number;
+    height: number;
+};
+
 const BRAND_METADATA: Record<
     ResponsibleRegisterAppBrand,
     Pick<Metadata, "title" | "description" | "openGraph" | "twitter">
@@ -144,6 +150,7 @@ export function buildPublicLinkMetadata(
 export function buildGenericPlatformMetadata(
     title: string,
     description: string,
+    image: OgImage = GENERIC_OG_IMAGE,
 ): Metadata {
     return {
         title,
@@ -151,13 +158,13 @@ export function buildGenericPlatformMetadata(
         openGraph: {
             title,
             description,
-            images: [GENERIC_OG_IMAGE],
+            images: [image],
         },
         twitter: {
             card: "summary_large_image",
             title,
             description,
-            images: [GENERIC_OG_IMAGE.url],
+            images: [image.url],
         },
     };
 }

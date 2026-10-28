@@ -5,6 +5,11 @@ import { headers } from "next/headers";
 import { AppProviders } from "@/components/shared/AppProviders";
 import { BrandProvider } from "@/features/branding/components/BrandProvider";
 import { BrandStyle } from "@/features/branding/components/BrandStyle";
+import {
+    BRAND_OG_HEIGHT,
+    BRAND_OG_WIDTH,
+    brandOgImagePath,
+} from "@/features/branding/og-image";
 import { getBrand } from "@/features/branding/server/get-brand";
 import {
     buildGenericPlatformMetadata,
@@ -49,7 +54,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
     return {
         metadataBase,
-        ...buildGenericPlatformMetadata(title, PLATFORM_DESCRIPTION),
+        ...buildGenericPlatformMetadata(title, PLATFORM_DESCRIPTION, {
+            url: brandOgImagePath(brand),
+            width: BRAND_OG_WIDTH,
+            height: BRAND_OG_HEIGHT,
+        }),
         ...(brand.isDefault
             ? {}
             : { icons: { icon: brand.iconUrl, apple: brand.iconUrl } }),
