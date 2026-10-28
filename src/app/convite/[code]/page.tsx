@@ -4,6 +4,7 @@ import { ConviteWizard } from "@/components/convite/ConviteWizard";
 import {
     buildPublicLinkMetadata,
     fetchInviteRegisterPreview,
+    withDomainBrandMetadata,
 } from "@/lib/responsible-register-metadata";
 
 type PageProps = {
@@ -15,9 +16,12 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
     const { code } = await params;
     const preview = await fetchInviteRegisterPreview(code ?? "");
-    return buildPublicLinkMetadata(
-        preview?.appBrand ?? "face2go",
-        preview?.clientType,
+    return withDomainBrandMetadata(
+        buildPublicLinkMetadata(
+            preview?.appBrand ?? "face2go",
+            preview?.clientType,
+        ),
+        (appName) => `Link de convite da plataforma ${appName}`,
     );
 }
 

@@ -4,6 +4,7 @@ import { RetiradaWizard } from "@/components/retirada/RetiradaWizard";
 import {
     buildPublicLinkMetadata,
     fetchPickupRegisterPreview,
+    withDomainBrandMetadata,
 } from "@/lib/responsible-register-metadata";
 
 type PageProps = {
@@ -15,9 +16,12 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
     const { code } = await params;
     const preview = await fetchPickupRegisterPreview(code ?? "");
-    return buildPublicLinkMetadata(
-        preview?.appBrand ?? "face2go",
-        preview?.clientType,
+    return withDomainBrandMetadata(
+        buildPublicLinkMetadata(
+            preview?.appBrand ?? "face2go",
+            preview?.clientType,
+        ),
+        (appName) => `Link de retirada da plataforma ${appName}`,
     );
 }
 

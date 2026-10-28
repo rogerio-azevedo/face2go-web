@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
 
+import {
+    BRAND_OG_HEIGHT,
+    BRAND_OG_WIDTH,
+    brandOgImagePath,
+} from "@/features/branding/og-image";
+import { getBrand } from "@/features/branding/server/get-brand";
 import { getApiBaseUrl } from "@/lib/api-fetch";
 
 export type ResponsibleRegisterAppBrand = "ienh" | "face2go";
@@ -129,6 +135,19 @@ export function buildResponsibleRegisterMetadata(
     appBrand: ResponsibleRegisterAppBrand,
 ): Metadata {
     return BRAND_METADATA[appBrand];
+}
+
+export async function withDomainBrandMetadata(
+    fallback: Metadata,
+    description: (appName: string) => string,
+): Promise<Metadata> {
+    const brand = await getBrand();
+    if (brand.isDefault || brand.source !== "domain") return fallback;
+    return buildGenericPlatformMetadata(brand.appName, description(brand.appName), {
+        url: brandOgImagePath(brand),
+        width: BRAND_OG_WIDTH,
+        height: BRAND_OG_HEIGHT,
+    });
 }
 
 export function buildPublicLinkMetadata(

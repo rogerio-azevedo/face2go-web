@@ -4,6 +4,7 @@ import { CadastroWizard } from "@/components/cadastro/CadastroWizard";
 import {
     buildPublicLinkMetadata,
     fetchRegisterPreview,
+    withDomainBrandMetadata,
 } from "@/lib/responsible-register-metadata";
 
 type PageProps = {
@@ -15,9 +16,12 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
     const { code } = await params;
     const preview = await fetchRegisterPreview(code ?? "");
-    return buildPublicLinkMetadata(
-        preview?.appBrand ?? "face2go",
-        preview?.clientType,
+    return withDomainBrandMetadata(
+        buildPublicLinkMetadata(
+            preview?.appBrand ?? "face2go",
+            preview?.clientType,
+        ),
+        (appName) => `Link de cadastro da plataforma ${appName}`,
     );
 }
 
