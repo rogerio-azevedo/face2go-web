@@ -22,19 +22,25 @@ export function InviteGenerator({
     role: CompanyInviteRole;
     title?: string;
 }) {
-    const [lastCode, setLastCode] = useState<string | null>(null);
+    const [lastInvite, setLastInvite] = useState<{
+        registerUrl: string;
+        joinUrl: string;
+    } | null>(null);
     const [loading, setLoading] = useState(false);
 
     async function generate() {
         setLoading(true);
-        setLastCode(null);
+        setLastInvite(null);
         try {
             const formData = new FormData();
             formData.append("companyId", companyId);
             formData.append("role", role);
             const result = await generateInviteAction(formData);
             if (result.success) {
-                setLastCode(result.code);
+                setLastInvite({
+                    registerUrl: result.registerUrl,
+                    joinUrl: result.joinUrl,
+                });
                 toast.success("Link gerado.");
             } else {
                 toast.error(result.error);
@@ -43,9 +49,6 @@ export function InviteGenerator({
             setLoading(false);
         }
     }
-
-    const origin =
-        typeof window !== "undefined" ? window.location.origin : "";
 
     return (
         <div className="flex flex-col gap-2 rounded-lg border p-4">
@@ -63,19 +66,19 @@ export function InviteGenerator({
                     {loading ? "Gerando..." : "Gerar novo link"}
                 </Button>
             </div>
-            {lastCode ? (
+            {lastInvite ? (
                 <div className="mt-2 space-y-2">
                     <div className="break-all rounded bg-muted p-2 text-sm">
                         <p className="text-xs font-medium text-muted-foreground">
                             Novo cadastro
                         </p>
-                        Link: {origin}/register?invite={lastCode}
+                        Link: {lastInvite.registerUrl}
                     </div>
                     <div className="break-all rounded bg-muted p-2 text-sm">
                         <p className="text-xs font-medium text-muted-foreground">
                             Usuário existente
                         </p>
-                        Link: {origin}/join?invite={lastCode}
+                        Link: {lastInvite.joinUrl}
                     </div>
                 </div>
             ) : null}

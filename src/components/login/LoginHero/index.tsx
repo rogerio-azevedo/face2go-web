@@ -49,7 +49,7 @@ export function LoginHero() {
                 </div>
                 <h1 className="font-heading max-w-xl text-balance text-4xl leading-tight font-bold tracking-tight text-brand-midnight-navy lg:text-[2.375rem]">
                     Entre no{" "}
-                    <span className="text-brand-turquoise">
+                    <span style={{ color: brand.accentColor }}>
                         {brand.appName}
                     </span>{" "}
                     e acompanhe suas unidades com mais clareza.

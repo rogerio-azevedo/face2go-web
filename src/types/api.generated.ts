@@ -5785,6 +5785,13 @@ export interface components {
             /** @enum {string} */
             role: "company_admin" | "company_operator";
         };
+        TeamInviteUrlsDto: {
+            code: string;
+            /** Format: uri */
+            registerUrl: string;
+            /** Format: uri */
+            joinUrl: string;
+        };
         CreateClientDto: {
             name: string;
             /** @enum {string} */
@@ -6783,7 +6790,9 @@ export interface operations {
     AuthController_requestPassword: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                origin: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -7147,11 +7156,13 @@ export interface operations {
             };
         };
         responses: {
-            201: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["TeamInviteUrlsDto"];
+                };
             };
         };
     };
@@ -7373,11 +7384,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            201: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["TeamInviteUrlsDto"];
+                };
             };
         };
     };
@@ -7964,11 +7977,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            201: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["TeamInviteUrlsDto"];
+                };
             };
         };
     };
@@ -11090,11 +11105,13 @@ export interface operations {
             };
         };
         responses: {
-            201: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["TeamInviteUrlsDto"];
+                };
             };
         };
     };

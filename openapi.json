@@ -633,7 +633,16 @@
     "/api/auth/request-password": {
       "post": {
         "operationId": "AuthController_requestPassword",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "origin",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1194,8 +1203,15 @@
           }
         },
         "responses": {
-          "201": {
-            "description": ""
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamInviteUrlsDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1514,8 +1530,15 @@
           }
         ],
         "responses": {
-          "201": {
-            "description": ""
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamInviteUrlsDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2500,8 +2523,15 @@
         "operationId": "ClientInviteLinksController_generate",
         "parameters": [],
         "responses": {
-          "201": {
-            "description": ""
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamInviteUrlsDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -8581,8 +8611,15 @@
           }
         },
         "responses": {
-          "201": {
-            "description": ""
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamInviteUrlsDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -14727,6 +14764,27 @@
         },
         "required": [
           "role"
+        ]
+      },
+      "TeamInviteUrlsDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "registerUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "joinUrl": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "code",
+          "registerUrl",
+          "joinUrl"
         ]
       },
       "CreateClientDto": {

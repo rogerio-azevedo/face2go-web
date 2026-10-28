@@ -26,7 +26,10 @@ const generateCompanyInviteSchema = z.object({
 
 export async function generateCompanyInviteAction(
     input: unknown,
-): Promise<{ success: true; code: string } | { success: false; error: string }> {
+): Promise<
+    | { success: true; code: string; registerUrl: string; joinUrl: string }
+    | { success: false; error: string }
+> {
     try {
         const parsed = generateCompanyInviteSchema.safeParse(input);
         if (!parsed.success) {
@@ -43,7 +46,17 @@ export async function generateCompanyInviteAction(
         }
 
         revalidatePath('/company/usuarios');
-        return { success: true, code: (data as { code: string }).code };
+        const body = data as {
+            code: string;
+            registerUrl: string;
+            joinUrl: string;
+        };
+        return {
+            success: true,
+            code: body.code,
+            registerUrl: body.registerUrl,
+            joinUrl: body.joinUrl,
+        };
     } catch {
         return { success: false, error: 'Sem permissão.' };
     }

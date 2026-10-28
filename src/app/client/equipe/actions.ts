@@ -51,7 +51,8 @@ export async function listClientSelfInviteLinksAction(): Promise<
 export async function generateClientSelfInviteAction(input: {
     role: 'client_admin' | 'client_operator';
 }): Promise<
-    { success: true; code: string } | { success: false; error: string }
+    | { success: true; code: string; registerUrl: string; joinUrl: string }
+    | { success: false; error: string }
 > {
     const parsed = z
         .object({ role: clientInviteRoleSchema })
@@ -72,7 +73,17 @@ export async function generateClientSelfInviteAction(input: {
         }
 
         revalidatePath('/client/equipe');
-        return { success: true, code: (data as { code: string }).code };
+        const body = data as {
+            code: string;
+            registerUrl: string;
+            joinUrl: string;
+        };
+        return {
+            success: true,
+            code: body.code,
+            registerUrl: body.registerUrl,
+            joinUrl: body.joinUrl,
+        };
     } catch {
         return { success: false, error: 'Sem permissão.' };
     }

@@ -1,10 +1,12 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { BrandLogo } from "@/features/branding/components/BrandLogo";
 import {
     getInvitePreviewAction,
     registerWithInviteAction,
@@ -34,6 +36,15 @@ const clientRoleLabels: Record<string, string> = {
     client_admin: "Administrador do cliente",
     client_operator: "Operador do cliente",
 };
+
+function InviteBrand({ children }: { children: ReactNode }) {
+    return (
+        <div className="flex w-full max-w-md flex-col items-center gap-6">
+            <BrandLogo />
+            {children}
+        </div>
+    );
+}
 
 function inviteTitle(preview: InvitePreview): string {
     if (!preview) return "Cadastro";
@@ -164,7 +175,8 @@ export function RegisterForm() {
 
     if (!inviteCode) {
         return (
-            <Card className="w-full max-w-md shadow-md">
+            <InviteBrand>
+            <Card className="w-full shadow-md">
                 <CardHeader>
                     <CardTitle>Cadastro com convite</CardTitle>
                     <CardDescription>
@@ -181,24 +193,28 @@ export function RegisterForm() {
                     </Link>
                 </CardFooter>
             </Card>
+            </InviteBrand>
         );
     }
 
     if (inviteLoading) {
         return (
-            <Card className="w-full max-w-md shadow-md">
+            <InviteBrand>
+            <Card className="w-full shadow-md">
                 <CardContent className="pt-6">
                     <p className="text-muted-foreground text-sm">
                         Validando convite...
                     </p>
                 </CardContent>
             </Card>
+            </InviteBrand>
         );
     }
 
     if (!preview) {
         return (
-            <Card className="w-full max-w-md shadow-md">
+            <InviteBrand>
+            <Card className="w-full shadow-md">
                 <CardHeader>
                     <CardTitle>Convite inválido</CardTitle>
                     <CardDescription>
@@ -215,11 +231,13 @@ export function RegisterForm() {
                     </Link>
                 </CardFooter>
             </Card>
+            </InviteBrand>
         );
     }
 
     return (
-        <Card className="w-full max-w-md shadow-md">
+        <InviteBrand>
+        <Card className="w-full shadow-md">
             <CardHeader>
                 <CardTitle>{inviteTitle(preview)}</CardTitle>
                 <CardDescription>
@@ -349,6 +367,7 @@ export function RegisterForm() {
                 </>
             )}
         </Card>
+        </InviteBrand>
     );
 }
 

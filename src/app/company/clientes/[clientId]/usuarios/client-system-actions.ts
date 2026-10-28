@@ -50,7 +50,8 @@ export async function generateClientInviteFromCompanyAction(input: {
     clientId: string;
     role: 'client_admin' | 'client_operator';
 }): Promise<
-    { success: true; code: string } | { success: false; error: string }
+    | { success: true; code: string; registerUrl: string; joinUrl: string }
+    | { success: false; error: string }
 > {
     const parsed = z
         .object({
@@ -77,7 +78,17 @@ export async function generateClientInviteFromCompanyAction(input: {
         }
 
         revalidatePath(`/company/clientes/${parsed.data.clientId}/usuarios`);
-        return { success: true, code: (data as { code: string }).code };
+        const body = data as {
+            code: string;
+            registerUrl: string;
+            joinUrl: string;
+        };
+        return {
+            success: true,
+            code: body.code,
+            registerUrl: body.registerUrl,
+            joinUrl: body.joinUrl,
+        };
     } catch {
         return { success: false, error: 'Sem permissão.' };
     }

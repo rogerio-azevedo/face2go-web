@@ -19,7 +19,10 @@ function zodFirstMessage(error: unknown): string {
 
 export async function generateInviteAction(
     formData: FormData,
-): Promise<{ success: true; code: string } | { success: false; error: string }> {
+): Promise<
+    | { success: true; code: string; registerUrl: string; joinUrl: string }
+    | { success: false; error: string }
+> {
     try {
         const companyId = formData.get('companyId')?.toString() ?? '';
         const role = formData.get('role')?.toString() ?? '';
@@ -44,12 +47,21 @@ export async function generateInviteAction(
             return { success: false, error: nestErrorMessage(data) };
         }
 
-        const json = (await res.json()) as { code: string };
+        const json = (await res.json()) as {
+            code: string;
+            registerUrl: string;
+            joinUrl: string;
+        };
 
         revalidatePath(`/super-admin/companies/${parsed.data.companyId}`);
         revalidatePath('/super-admin/companies');
 
-        return { success: true, code: json.code };
+        return {
+            success: true,
+            code: json.code,
+            registerUrl: json.registerUrl,
+            joinUrl: json.joinUrl,
+        };
     } catch {
         return { success: false, error: 'Sem permissão.' };
     }
