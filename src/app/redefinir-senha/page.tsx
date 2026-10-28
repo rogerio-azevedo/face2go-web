@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
 import { LoginHero } from "@/components/login/LoginHero";
+import { BrandLogo } from "@/features/branding/components/BrandLogo";
+import { getBrand } from "@/features/branding/server/get-brand";
 import {
     Card,
     CardDescription,
@@ -11,12 +13,14 @@ import {
 } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
-import Image from "next/image";
 
-export const metadata: Metadata = {
-    title: "Redefinir senha • Face2go",
-    description: "Defina uma nova senha para sua conta Face2go",
-};
+export async function generateMetadata(): Promise<Metadata> {
+    const brand = await getBrand();
+    return {
+        title: `Redefinir senha • ${brand.appName}`,
+        description: `Defina uma nova senha para sua conta ${brand.appName}`,
+    };
+}
 
 type PageProps = {
     searchParams: Promise<{ token?: string }>;
@@ -36,14 +40,7 @@ export default async function RedefinirSenhaPage({ searchParams }: PageProps) {
                     <div className="flex flex-1 items-center justify-center py-6 lg:justify-start lg:py-0">
                         <Card className="w-full max-w-md rounded-2xl border border-border/70 bg-brand-white shadow-lg shadow-black/7 ring-1 ring-black/4">
                             <CardHeader className="gap-4 space-y-0">
-                                <Image
-                                    src="/face2go_dark.svg"
-                                    alt="Face2Go"
-                                    width={492}
-                                    height={185}
-                                    priority
-                                    className="h-10 w-auto max-w-[200px] shrink-0"
-                                />
+                                <BrandLogo />
                                 <CardTitle className="text-2xl font-semibold tracking-tight text-brand-midnight-navy">
                                     Link inválido
                                 </CardTitle>

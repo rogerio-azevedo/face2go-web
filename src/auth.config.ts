@@ -1,5 +1,6 @@
 import type { NextAuthConfig } from "next-auth";
 
+import { isPlatformHost } from "@/features/branding/platform-host";
 import { evaluateCompanyFeatureAction } from "@/lib/company-feature-access";
 import {
     getDashboardPathForRole,
@@ -7,6 +8,7 @@ import {
 } from "@/lib/dashboard-path";
 
 export const authConfig = {
+    trustHost: true,
     pages: {
         signIn: "/login",
     },
@@ -16,6 +18,11 @@ export const authConfig = {
             const user = auth?.user;
             const isLoggedIn = !!user;
             const role = user?.role;
+            const customDomain = !isPlatformHost(nextUrl.host);
+
+            if (customDomain && (path === "/" || path.startsWith("/super-admin"))) {
+                return Response.redirect(new URL("/login", nextUrl));
+            }
 
             if (path.startsWith("/autorizar-menor/") || path.startsWith("/autorizar-visitante/")) return true;
 
@@ -93,7 +100,9 @@ export const authConfig = {
             }
 
             if (path.startsWith("/super-admin")) {
-                if (!isLoggedIn) return false;
+                if (!isLoggedIn) {
+                    return Response.redirect(new URL("/login", nextUrl));
+                }
                 if (role !== "super_admin") {
                     return Response.redirect(
                         new URL("/login?error=Sem permissão", nextUrl)
@@ -103,7 +112,9 @@ export const authConfig = {
             }
 
             if (path.startsWith("/monitoring")) {
-                if (!isLoggedIn) return false;
+                if (!isLoggedIn) {
+                    return Response.redirect(new URL("/login", nextUrl));
+                }
                 if (role !== "company_admin" && role !== "company_operator") {
                     return Response.redirect(
                         new URL("/login?error=Sem permissão", nextUrl),
@@ -123,7 +134,9 @@ export const authConfig = {
             }
 
             if (path.startsWith("/company")) {
-                if (!isLoggedIn) return false;
+                if (!isLoggedIn) {
+                    return Response.redirect(new URL("/login", nextUrl));
+                }
                 if (role !== "company_admin" && role !== "company_operator") {
                     return Response.redirect(
                         new URL("/login?error=Sem permissão", nextUrl)
@@ -171,7 +184,9 @@ export const authConfig = {
             }
 
             if (path.startsWith("/client")) {
-                if (!isLoggedIn) return false;
+                if (!isLoggedIn) {
+                    return Response.redirect(new URL("/login", nextUrl));
+                }
                 const allowed =
                     role === "client_admin" ||
                     role === "client_operator" ||

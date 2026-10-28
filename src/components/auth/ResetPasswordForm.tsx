@@ -2,12 +2,12 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import { BrandLogo } from "@/features/branding/components/BrandLogo";
 import { resetPasswordWithToken } from "@/lib/auth-contexts";
 import {
     resetPasswordSchema,
@@ -65,14 +65,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
         return (
             <Card className="w-full max-w-md rounded-2xl border border-border/70 bg-brand-white shadow-lg shadow-black/7 ring-1 ring-black/4">
                 <CardHeader className="gap-4 space-y-0">
-                    <Image
-                        src="/face2go_dark.svg"
-                        alt="Face2Go"
-                        width={492}
-                        height={185}
-                        priority
-                        className="h-10 w-auto max-w-[200px] shrink-0"
-                    />
+                    <BrandLogo />
                     <CardTitle className="text-2xl font-semibold tracking-tight text-brand-midnight-navy">
                         Senha redefinida
                     </CardTitle>
@@ -99,14 +92,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     return (
         <Card className="w-full max-w-md rounded-2xl border border-border/70 bg-brand-white shadow-lg shadow-black/7 ring-1 ring-black/4">
             <CardHeader className="gap-5 space-y-0">
-                <Image
-                    src="/face2go_dark.svg"
-                    alt="Face2Go"
-                    width={492}
-                    height={185}
-                    priority
-                    className="h-10 w-auto max-w-[200px] shrink-0"
-                />
+                <BrandLogo />
                 <div className="space-y-1.5 pt-2">
                     <CardTitle className="text-2xl font-semibold tracking-tight text-brand-midnight-navy">
                         Nova senha

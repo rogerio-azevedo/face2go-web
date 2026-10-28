@@ -2,11 +2,15 @@ import type { Metadata } from "next";
 
 import { RequestPasswordForm } from "@/components/auth/RequestPasswordForm";
 import { LoginHero } from "@/components/login/LoginHero";
+import { getBrand } from "@/features/branding/server/get-brand";
 
-export const metadata: Metadata = {
-    title: "Recuperar senha • Face2go",
-    description: "Solicite um link para redefinir sua senha Face2go",
-};
+export async function generateMetadata(): Promise<Metadata> {
+    const brand = await getBrand();
+    return {
+        title: `Recuperar senha • ${brand.appName}`,
+        description: `Solicite um link para redefinir sua senha ${brand.appName}`,
+    };
+}
 
 export default function RecuperarSenhaPage() {
     return (

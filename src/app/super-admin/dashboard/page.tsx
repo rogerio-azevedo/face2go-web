@@ -8,6 +8,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { buttonVariants } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { apiFetchAuthed } from '@/lib/api-fetch';
 import { cn } from '@/lib/utils';
 import type { CompanyRow } from '@/types/domain';
@@ -66,10 +67,13 @@ export default async function SuperAdminDashboardPage() {
                                 className="block rounded-lg outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
                             >
                                 <Card className="h-full transition-colors hover:bg-muted/40">
-                                    <CardHeader>
+                                    <CardHeader className="gap-2">
                                         <CardTitle className="text-base">
                                             {company.name}
                                         </CardTitle>
+                                        {company.brandingEnabled ? (
+                                            <Badge variant="secondary">White-label</Badge>
+                                        ) : null}
                                     </CardHeader>
                                     <CardContent className="text-sm text-muted-foreground">
                                         {company.isActive ? (

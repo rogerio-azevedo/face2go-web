@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
 
 import { LoginHero } from "@/components/login/LoginHero";
+import { getBrand } from "@/features/branding/server/get-brand";
 
-export const metadata: Metadata = {
-    title: "Entrar • Face2go",
-    description: "Acesso à conta Face2go",
-};
+export async function generateMetadata(): Promise<Metadata> {
+    const brand = await getBrand();
+    return {
+        title: `Entrar • ${brand.appName}`,
+        description: `Acesso à conta ${brand.appName}`,
+    };
+}
 
 export default function LoginLayout({
     children,

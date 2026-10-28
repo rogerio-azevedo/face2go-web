@@ -544,7 +544,16 @@
     "/api/auth/select-context": {
       "post": {
         "operationId": "AuthController_selectContext",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "origin",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -688,6 +697,297 @@
         "summary": "Perfil do usuário autenticado (JWT)",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/api/companies/{companyId}/branding": {
+      "get": {
+        "operationId": "CompanyBrandingController_get",
+        "parameters": [
+          {
+            "name": "companyId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyBrandingResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "company-branding"
+        ]
+      },
+      "put": {
+        "operationId": "CompanyBrandingController_save",
+        "parameters": [
+          {
+            "name": "companyId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertCompanyBrandingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyBrandingResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "company-branding"
+        ]
+      },
+      "delete": {
+        "operationId": "CompanyBrandingController_reset",
+        "parameters": [
+          {
+            "name": "companyId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyBrandingResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "company-branding"
+        ]
+      }
+    },
+    "/api/companies/{companyId}/branding/assets/{kind}": {
+      "post": {
+        "operationId": "CompanyBrandingController_upload",
+        "parameters": [
+          {
+            "name": "companyId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyBrandingResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "company-branding"
+        ]
+      },
+      "delete": {
+        "operationId": "CompanyBrandingController_removeAsset",
+        "parameters": [
+          {
+            "name": "companyId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyBrandingResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "company-branding"
+        ]
+      }
+    },
+    "/api/companies/{companyId}/branding/domain/verify": {
+      "post": {
+        "operationId": "CompanyBrandingController_verify",
+        "parameters": [
+          {
+            "name": "companyId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyBrandingResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "company-branding"
+        ]
+      }
+    },
+    "/api/public/branding/resolve": {
+      "get": {
+        "operationId": "PublicBrandingController_resolve",
+        "parameters": [
+          {
+            "name": "host",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicBrandDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "company-branding"
+        ]
+      }
+    },
+    "/api/public/branding/assets/{companyId}/{kind}": {
+      "get": {
+        "operationId": "PublicBrandingController_asset",
+        "parameters": [
+          {
+            "name": "companyId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "company-branding"
         ]
       }
     },
@@ -14073,6 +14373,10 @@
           },
           "contextId": {
             "type": "string"
+          },
+          "host": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
@@ -14167,6 +14471,193 @@
         "required": [
           "token",
           "password"
+        ]
+      },
+      "CompanyBrandingResponseDto": {
+        "type": "object",
+        "properties": {
+          "companyId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "appName": {
+            "type": "string",
+            "nullable": true
+          },
+          "companyName": {
+            "type": "string"
+          },
+          "domainMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "primaryColor": {
+            "type": "string",
+            "nullable": true
+          },
+          "accentColor": {
+            "type": "string",
+            "nullable": true
+          },
+          "logoUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "logoDarkUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "iconUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "customDomain": {
+            "type": "string",
+            "nullable": true
+          },
+          "domainStatus": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "verified",
+              "error",
+              null
+            ],
+            "nullable": true
+          },
+          "domainVerifiedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "assetVersion": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "vercelConfigured": {
+            "type": "boolean"
+          },
+          "dns": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "CNAME"
+                ]
+              },
+              "host": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "host",
+              "value"
+            ],
+            "nullable": true
+          }
+        },
+        "required": [
+          "companyId",
+          "enabled",
+          "appName",
+          "companyName",
+          "primaryColor",
+          "accentColor",
+          "logoUrl",
+          "logoDarkUrl",
+          "iconUrl",
+          "customDomain",
+          "domainStatus",
+          "domainVerifiedAt",
+          "assetVersion",
+          "vercelConfigured",
+          "dns"
+        ]
+      },
+      "UpsertCompanyBrandingDto": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "appName": {
+            "type": "string",
+            "nullable": true
+          },
+          "primaryColor": {
+            "type": "string",
+            "nullable": true
+          },
+          "accentColor": {
+            "type": "string",
+            "nullable": true
+          },
+          "customDomain": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "enabled"
+        ]
+      },
+      "PublicBrandDto": {
+        "type": "object",
+        "properties": {
+          "companyId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "appName": {
+            "type": "string"
+          },
+          "colors": {
+            "type": "object",
+            "properties": {
+              "primary": {
+                "type": "string",
+                "nullable": true
+              },
+              "accent": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "primary",
+              "accent"
+            ]
+          },
+          "logoUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "logoDarkUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "iconUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "companyId",
+          "appName",
+          "colors",
+          "logoUrl",
+          "logoDarkUrl",
+          "iconUrl"
         ]
       },
       "CreateCompanyDto": {

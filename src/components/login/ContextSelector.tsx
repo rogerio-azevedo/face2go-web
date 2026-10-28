@@ -60,6 +60,11 @@ export function ContextSelector({
                 </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-2">
+                {contexts.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                        Nenhum acesso desta conta está disponível neste domínio.
+                    </p>
+                ) : null}
                 {contexts.map((context) => {
                     const Icon = contextIcon(context.type);
                     return (

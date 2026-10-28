@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { CircleCheckBig } from "lucide-react";
+
+import { BrandLogo } from "@/features/branding/components/BrandLogo";
 import { toast } from "sonner";
 
 import { getApiBaseUrl, nestErrorMessage } from "@/lib/api-fetch";
@@ -412,6 +414,7 @@ export function CadastroWizard({ code }: { code: string }) {
     return (
         <div className="mx-auto max-w-lg space-y-6 px-4 pt-8 pb-[max(2.5rem,calc(env(safe-area-inset-bottom)+1.5rem))]">
             <div className="text-center">
+                <BrandLogo className="mx-auto mb-3" />
                 <h1 className="text-xl font-semibold">{preview.clientName}</h1>
                 <p className="text-sm text-muted-foreground">
                     Cadastro ·{" "}

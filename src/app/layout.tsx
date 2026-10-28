@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { headers } from "next/headers";
 
 import { AppProviders } from "@/components/shared/AppProviders";
+import { BrandProvider } from "@/features/branding/components/BrandProvider";
+import { BrandStyle } from "@/features/branding/components/BrandStyle";
+import { getBrand } from "@/features/branding/server/get-brand";
 import {
     buildGenericPlatformMetadata,
     getAppBaseUrl,
@@ -24,16 +28,41 @@ const PLATFORM_TITLE = "Face2go - Plataforma de Controle de Acesso";
 const PLATFORM_DESCRIPTION =
     "Plataforma para gestão de cadastro integrada a leitores faciais, CFTV, câmeras LPR e catracas — soluções para escolas, clínicas, empresas e escritórios.";
 
-export const metadata: Metadata = {
-    metadataBase: new URL(getAppBaseUrl()),
-    ...buildGenericPlatformMetadata(PLATFORM_TITLE, PLATFORM_DESCRIPTION),
-};
+export async function generateMetadata(): Promise<Metadata> {
+    const brand = await getBrand();
+    const headerList = await headers();
+    const host = (
+        headerList.get("x-forwarded-host") ??
+        headerList.get("host") ??
+        ""
+    )
+        .split(",")[0]
+        ?.trim();
+    const proto = headerList.get("x-forwarded-proto") ?? "https";
+    const metadataBase =
+        brand.source === "domain" && host
+            ? new URL(`${proto}://${host}`)
+            : new URL(getAppBaseUrl());
+    const title = brand.isDefault
+        ? PLATFORM_TITLE
+        : `${brand.appName} - Plataforma de Controle de Acesso`;
 
-export default function RootLayout({
+    return {
+        metadataBase,
+        ...buildGenericPlatformMetadata(title, PLATFORM_DESCRIPTION),
+        ...(brand.isDefault
+            ? {}
+            : { icons: { icon: brand.iconUrl, apple: brand.iconUrl } }),
+    };
+}
+
+export default async function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    const brand = await getBrand();
+
     return (
         <html
             lang="pt-BR"
@@ -44,7 +73,10 @@ export default function RootLayout({
                 className="min-h-full flex flex-col font-sans"
                 suppressHydrationWarning
             >
-                <AppProviders>{children}</AppProviders>
+                <BrandStyle />
+                <BrandProvider brand={brand}>
+                    <AppProviders>{children}</AppProviders>
+                </BrandProvider>
             </body>
         </html>
     );

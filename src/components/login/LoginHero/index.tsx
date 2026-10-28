@@ -1,5 +1,9 @@
+"use client";
+
 import { Building2, Fingerprint, LayoutDashboard, Shield } from "lucide-react";
 import Link from "next/link";
+
+import { useBrand } from "@/features/branding/components/BrandProvider";
 
 const features = [
     {
@@ -23,6 +27,8 @@ const features = [
 const marketingUrl = process.env.NEXT_PUBLIC_MARKETING_URL ?? "";
 
 export function LoginHero() {
+    const brand = useBrand();
+
     return (
         <div className="flex flex-col gap-8 lg:gap-10">
             {marketingUrl ? (
@@ -44,7 +50,7 @@ export function LoginHero() {
                 <h1 className="font-heading max-w-xl text-balance text-4xl leading-tight font-bold tracking-tight text-brand-midnight-navy lg:text-[2.375rem]">
                     Entre no{" "}
                     <span className="text-brand-turquoise">
-                        Face2Go
+                        {brand.appName}
                     </span>{" "}
                     e acompanhe suas unidades com mais clareza.
                 </h1>

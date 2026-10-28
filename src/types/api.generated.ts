@@ -344,6 +344,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/companies/{companyId}/branding": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CompanyBrandingController_get"];
+        put: operations["CompanyBrandingController_save"];
+        post?: never;
+        delete: operations["CompanyBrandingController_reset"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/companies/{companyId}/branding/assets/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CompanyBrandingController_upload"];
+        delete: operations["CompanyBrandingController_removeAsset"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/companies/{companyId}/branding/domain/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CompanyBrandingController_verify"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/branding/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicBrandingController_resolve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/branding/assets/{companyId}/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicBrandingController_asset"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/companies": {
         parameters: {
             query?: never;
@@ -5618,6 +5698,7 @@ export interface components {
             /** @enum {string} */
             contextType: "super_admin" | "company" | "client" | "responsible" | "member" | "face_user";
             contextId?: string;
+            host?: string;
         };
         RegisterDto: {
             /** Format: email */
@@ -5639,6 +5720,50 @@ export interface components {
         ResetPasswordDto: {
             token: string;
             password: string;
+        };
+        CompanyBrandingResponseDto: {
+            /** Format: uuid */
+            companyId: string;
+            enabled: boolean;
+            appName: string | null;
+            companyName: string;
+            domainMessage?: string | null;
+            primaryColor: string | null;
+            accentColor: string | null;
+            logoUrl: string | null;
+            logoDarkUrl: string | null;
+            iconUrl: string | null;
+            customDomain: string | null;
+            /** @enum {string|null} */
+            domainStatus: "pending" | "verified" | "error" | null;
+            domainVerifiedAt: string | null;
+            assetVersion: number;
+            vercelConfigured: boolean;
+            dns: {
+                /** @enum {string} */
+                type: "CNAME";
+                host: string;
+                value: string;
+            } | null;
+        };
+        UpsertCompanyBrandingDto: {
+            enabled: boolean;
+            appName?: string | null;
+            primaryColor?: string | null;
+            accentColor?: string | null;
+            customDomain?: string | null;
+        };
+        PublicBrandDto: {
+            /** Format: uuid */
+            companyId: string;
+            appName: string;
+            colors: {
+                primary: string | null;
+                accent: string | null;
+            };
+            logoUrl: string | null;
+            logoDarkUrl: string | null;
+            iconUrl: string | null;
         };
         CreateCompanyDto: {
             name: string;
@@ -6593,7 +6718,9 @@ export interface operations {
     AuthController_selectContext: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                origin: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -6700,6 +6827,179 @@ export interface operations {
             query?: never;
             header?: never;
             path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CompanyBrandingController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyBrandingResponseDto"];
+                };
+            };
+        };
+    };
+    CompanyBrandingController_save: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpsertCompanyBrandingDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyBrandingResponseDto"];
+                };
+            };
+        };
+    };
+    CompanyBrandingController_reset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyBrandingResponseDto"];
+                };
+            };
+        };
+    };
+    CompanyBrandingController_upload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+                kind: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyBrandingResponseDto"];
+                };
+            };
+        };
+    };
+    CompanyBrandingController_removeAsset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+                kind: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyBrandingResponseDto"];
+                };
+            };
+        };
+    };
+    CompanyBrandingController_verify: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyBrandingResponseDto"];
+                };
+            };
+        };
+    };
+    PublicBrandingController_resolve: {
+        parameters: {
+            query: {
+                host: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicBrandDto"];
+                };
+            };
+        };
+    };
+    PublicBrandingController_asset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+                kind: string;
+            };
             cookie?: never;
         };
         requestBody?: never;

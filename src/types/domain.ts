@@ -20,6 +20,7 @@ export type CompanyRow = {
     email: string | null;
     logoUrl: string | null;
     isActive: boolean;
+    brandingEnabled?: boolean;
     createdAt: string;
     updatedAt: string;
 };

@@ -87,10 +87,13 @@ export async function apiFetchAuthed(
     const headers = new Headers(init?.headers);
     headers.set('Authorization', `Bearer ${token}`);
     const method = init?.method ?? 'GET';
+    const isFormData =
+        typeof FormData !== 'undefined' && init?.body instanceof FormData;
     if (
         method !== 'GET' &&
         method !== 'HEAD' &&
         init?.body !== undefined &&
+        !isFormData &&
         !headers.has('Content-Type')
     ) {
         headers.set('Content-Type', 'application/json');
@@ -105,10 +108,13 @@ export async function apiFetchPublic(
     const url = `${getApiBaseUrl()}${path.startsWith('/') ? path : `/${path}`}`;
     const headers = new Headers(init?.headers);
     const method = init?.method ?? 'GET';
+    const isFormData =
+        typeof FormData !== 'undefined' && init?.body instanceof FormData;
     if (
         method !== 'GET' &&
         method !== 'HEAD' &&
         init?.body !== undefined &&
+        !isFormData &&
         !headers.has('Content-Type')
     ) {
         headers.set('Content-Type', 'application/json');

@@ -72,6 +72,11 @@ export function CompanyTable({ companies: rows }: CompanyTableProps) {
                             <TableCell>{formatDate(company.createdAt)}</TableCell>
                             <TableCell className="text-right space-x-2">
                                 <ButtonLink
+                                    href={`/super-admin/companies/${company.id}/branding`}
+                                >
+                                    Marca
+                                </ButtonLink>
+                                <ButtonLink
                                     href={`/super-admin/companies/${company.id}`}
                                 >
                                     Convites

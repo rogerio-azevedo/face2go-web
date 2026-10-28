@@ -11,6 +11,7 @@ import {
 } from 'react';
 
 import { deferInEffect } from "@/lib/defer-in-effect";
+import { useBrand } from '@/features/branding/components/BrandProvider';
 import type {
     ArrivalLayout,
     ArrivalSseArrivalPayload,
@@ -119,6 +120,7 @@ export function ArrivalDisplay(props: {
     token: string;
 }) {
     const { clientId, token } = props;
+    const brand = useBrand();
     const { connected, arrivals, connectionError } = useArrivalStream({
         clientId,
         token,
@@ -135,8 +137,8 @@ export function ArrivalDisplay(props: {
     const vertical = layout === 'vertical';
 
     useEffect(() => {
-        document.title = 'Face2GO — Display de chegada';
-    }, []);
+        document.title = `${brand.appName} — Display de chegada`;
+    }, [brand.appName]);
 
     const contentGutterClass = vertical
         ? 'mx-2 md:mx-3'
@@ -154,7 +156,7 @@ export function ArrivalDisplay(props: {
             >
                 <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-600">
-                        Face2GO
+                        {brand.appName}
                     </p>
                     <p className="mt-1 text-lg font-semibold text-slate-800 md:text-2xl">
                         Chegada na escola

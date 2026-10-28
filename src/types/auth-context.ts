@@ -9,6 +9,8 @@ export type UserContextType =
 export type TenantBranding = {
     logoUrl: string | null;
     primaryColor: string | null;
+    accentColor?: string | null;
+    appName?: string | null;
 };
 
 export type UserContext =
@@ -24,6 +26,7 @@ export type UserContext =
           companyId: string;
           companyName: string;
           logoUrl: string | null;
+          branding?: TenantBranding;
           role: "company_admin" | "company_operator";
           label: string;
       }
@@ -42,6 +45,7 @@ export type UserContext =
           type: "responsible";
           contextId: string;
           responsibleId: string;
+          companyId?: string;
           clientId: string;
           clientName: string;
           branding: TenantBranding;
@@ -51,6 +55,7 @@ export type UserContext =
           type: "member";
           contextId: string;
           memberId: string;
+          companyId?: string;
           clientId: string;
           clientName: string;
           roleName: string;

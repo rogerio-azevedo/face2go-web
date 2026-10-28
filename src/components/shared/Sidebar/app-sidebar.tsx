@@ -21,8 +21,10 @@ import {
     UserCog,
     Users,
 } from "lucide-react";
-import Image from "next/image";
 import type { Session } from "next-auth";
+
+import { BrandLogo } from "@/features/branding/components/BrandLogo";
+import { useBrand } from "@/features/branding/components/BrandProvider";
 
 import {
     Sidebar,
@@ -358,6 +360,8 @@ export function AppSidebar({
 
     const { activeContext } = useAuthContexts();
     const tenantLogoUrl = contextLogoUrl(activeContext);
+    const brand = useBrand();
+    const name = productName === "Face2go" ? brand.appName : productName;
 
     return (
         <Sidebar collapsible="icon" {...props}>
@@ -369,17 +373,15 @@ export function AppSidebar({
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
                                 src={tenantLogoUrl}
-                                alt={productName}
+                                alt={name}
                                 className="h-auto max-h-8 w-8 object-contain"
                             />
                         ) : (
-                            <Image
-                                src="/icone.png"
-                                alt={productName}
-                                width={32}
-                                height={32}
-                                priority
-                                className="h-auto w-8"
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                                src={brand.iconUrl}
+                                alt={name}
+                                className="h-auto w-8 object-contain"
                             />
                         )}
                     </div>
@@ -389,18 +391,11 @@ export function AppSidebar({
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
                                 src={tenantLogoUrl}
-                                alt={productName}
+                                alt={name}
                                 className="h-auto max-h-11 w-[160px] max-w-full object-contain object-left"
                             />
                         ) : (
-                            <Image
-                                src="/face2go_dark.svg"
-                                alt={productName}
-                                width={160}
-                                height={45}
-                                priority
-                                className="dark:invert h-auto w-[160px] max-w-full"
-                            />
+                            <BrandLogo className="h-auto w-[160px] max-w-full" />
                         )}
                         {productSubtitle ? (
                             <span className="block truncate text-xs text-muted-foreground">

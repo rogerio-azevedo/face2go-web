@@ -32,12 +32,20 @@ export default async function EditCompanyPage({ params }: PageProps) {
     return (
         <div className="mx-auto flex max-w-2xl flex-col gap-6">
             <PageHeader title="Editar empresa" description={row.name} />
-            <Link
-                href="/super-admin/companies"
-                className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-            >
-                Voltar para empresas
-            </Link>
+            <div className="flex flex-wrap gap-4">
+                <Link
+                    href="/super-admin/companies"
+                    className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                >
+                    Voltar para empresas
+                </Link>
+                <Link
+                    href={`/super-admin/companies/${row.id}/branding`}
+                    className="text-sm text-primary underline-offset-4 hover:underline"
+                >
+                    Marca / White-label
+                </Link>
+            </div>
             <CompanyForm
                 mode="edit"
                 companyId={row.id}

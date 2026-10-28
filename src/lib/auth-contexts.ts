@@ -92,13 +92,17 @@ export function clearContextStorage(): void {
 export function selectContextPayload(context: UserContext): {
     contextType: UserContextType;
     contextId?: string;
+    host?: string;
 } {
+    const host =
+        typeof window === "undefined" ? undefined : window.location.host;
     if (context.type === "super_admin" || context.type === "face_user") {
-        return { contextType: context.type };
+        return { contextType: context.type, host };
     }
     return {
         contextType: context.type,
         contextId: context.contextId,
+        host,
     };
 }
 

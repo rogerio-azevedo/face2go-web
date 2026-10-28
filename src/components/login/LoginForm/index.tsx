@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -10,6 +9,9 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { ContextSelector } from "@/components/login/ContextSelector";
+import { BrandLogo } from "@/features/branding/components/BrandLogo";
+import { useBrand } from "@/features/branding/components/BrandProvider";
+import { contextsForBrand } from "@/features/branding/filter-login-contexts";
 import { Button } from "@/components/ui/button";
 import {
     Card,
@@ -52,6 +54,7 @@ function destinationAfterLogin(
 type LoginStep = "credentials" | "context";
 
 export function LoginForm() {
+    const brand = useBrand();
     const router = useRouter();
     const searchParams = useSearchParams();
     const errorParam = searchParams.get("error");
@@ -187,7 +190,7 @@ export function LoginForm() {
     if (step === "context" && loginPayload) {
         return (
             <ContextSelector
-                contexts={loginPayload.contexts}
+                contexts={contextsForBrand(loginPayload.contexts, brand)}
                 isSubmitting={isSubmitting}
                 onSelect={onSelectContext}
             />
@@ -197,14 +200,7 @@ export function LoginForm() {
     return (
         <Card className="w-full max-w-md rounded-2xl border border-border/70 bg-brand-white shadow-lg shadow-black/7 ring-1 ring-black/4">
             <CardHeader className="gap-5 space-y-0">
-                <Image
-                    src="/face2go_dark.svg"
-                    alt="Face2Go"
-                    width={492}
-                    height={185}
-                    priority
-                    className="h-10 w-auto max-w-[200px] shrink-0"
-                />
+                <BrandLogo />
                 <div className="space-y-1.5 pt-2">
                     <CardTitle className="text-2xl font-semibold tracking-tight text-brand-midnight-navy">
                         Entrar

@@ -8,6 +8,7 @@ import {
     type PublicRegistrationFormData,
 } from "@/components/public-registration/types";
 import { getApiBaseUrl } from "@/lib/api-fetch";
+import { BrandLogo } from "@/features/branding/components/BrandLogo";
 import { RELATIONSHIP_TYPE_LABELS } from "@/lib/validations/school";
 
 import { ResponsibleRegisterFaceStep } from "./ResponsibleRegisterFaceStep";
@@ -112,6 +113,7 @@ export function ResponsibleRegisterWizard({ code }: ResponsibleRegisterWizardPro
     return (
         <div className="mx-auto max-w-lg space-y-6 rounded-2xl border bg-card p-4 shadow-sm pt-4 md:p-6 md:pt-6">
             <header className="space-y-1 text-center">
+                <BrandLogo className="mx-auto" />
                 <p className="text-sm text-muted-foreground">{preview.clientName}</p>
                 <h1 className="text-xl font-semibold tracking-tight">
                     Cadastro de responsável

@@ -15,7 +15,7 @@ const sessionCredentialsSchema = z.object({
 });
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-    pages: authConfig.pages,
+    ...authConfig,
     session: { strategy: 'jwt' },
     callbacks: {
         ...authConfig.callbacks,
