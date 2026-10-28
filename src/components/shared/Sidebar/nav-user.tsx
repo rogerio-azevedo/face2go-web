@@ -99,7 +99,7 @@ export function NavUser({ user }: { user: NavSidebarUser }) {
                         <DropdownMenuItem
                             onClick={() => {
                                 clearContextStorage();
-                                void signOut();
+                                void signOut({ callbackUrl: "/login" });
                             }}
                         >
                             <LogOut className="size-4 shrink-0" />

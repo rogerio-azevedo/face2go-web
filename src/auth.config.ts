@@ -1,6 +1,9 @@
 import type { NextAuthConfig } from "next-auth";
 
-import { isPlatformHost } from "@/features/branding/platform-host";
+import {
+    isPlatformHost,
+    requestPublicOrigin,
+} from "@/features/branding/platform-host";
 import { evaluateCompanyFeatureAction } from "@/lib/company-feature-access";
 import {
     getDashboardPathForRole,
@@ -13,15 +16,17 @@ export const authConfig = {
         signIn: "/login",
     },
     callbacks: {
-        async authorized({ auth, request: { nextUrl } }) {
+        async authorized({ auth, request }) {
+            const nextUrl = request.nextUrl;
+            const origin = requestPublicOrigin(request);
             const path = nextUrl.pathname;
             const user = auth?.user;
             const isLoggedIn = !!user;
             const role = user?.role;
-            const customDomain = !isPlatformHost(nextUrl.host);
+            const customDomain = !isPlatformHost(new URL(origin).host);
 
             if (customDomain && (path === "/" || path.startsWith("/super-admin"))) {
-                return Response.redirect(new URL("/login", nextUrl));
+                return Response.redirect(new URL("/login", origin));
             }
 
             if (path.startsWith("/autorizar-menor/") || path.startsWith("/autorizar-visitante/")) return true;
@@ -62,7 +67,7 @@ export const authConfig = {
                         accessToken: auth?.accessToken,
                         user: auth?.user,
                     });
-                    return Response.redirect(new URL(dest, nextUrl));
+                    return Response.redirect(new URL(dest, origin));
                 }
                 return true;
             }
@@ -75,7 +80,7 @@ export const authConfig = {
             ) {
                 if (isLoggedIn) {
                     return Response.redirect(
-                        new URL(getDashboardPathForRole(role), nextUrl)
+                        new URL(getDashboardPathForRole(role), origin)
                     );
                 }
                 return true;
@@ -84,7 +89,7 @@ export const authConfig = {
             if (path === "/register" || path.startsWith("/register/")) {
                 if (isLoggedIn) {
                     return Response.redirect(
-                        new URL(getDashboardPathForRole(role), nextUrl)
+                        new URL(getDashboardPathForRole(role), origin)
                     );
                 }
                 return true;
@@ -93,7 +98,7 @@ export const authConfig = {
             if (path === "/join" || path.startsWith("/join/")) {
                 if (isLoggedIn) {
                     return Response.redirect(
-                        new URL(getDashboardPathForRole(role), nextUrl)
+                        new URL(getDashboardPathForRole(role), origin)
                     );
                 }
                 return true;
@@ -101,11 +106,11 @@ export const authConfig = {
 
             if (path.startsWith("/super-admin")) {
                 if (!isLoggedIn) {
-                    return Response.redirect(new URL("/login", nextUrl));
+                    return Response.redirect(new URL("/login", origin));
                 }
                 if (role !== "super_admin") {
                     return Response.redirect(
-                        new URL("/login?error=Sem permissão", nextUrl)
+                        new URL("/login?error=Sem permissão", origin)
                     );
                 }
                 return true;
@@ -113,11 +118,11 @@ export const authConfig = {
 
             if (path.startsWith("/monitoring")) {
                 if (!isLoggedIn) {
-                    return Response.redirect(new URL("/login", nextUrl));
+                    return Response.redirect(new URL("/login", origin));
                 }
                 if (role !== "company_admin" && role !== "company_operator") {
                     return Response.redirect(
-                        new URL("/login?error=Sem permissão", nextUrl),
+                        new URL("/login?error=Sem permissão", origin),
                     );
                 }
                 const allowed = await evaluateCompanyFeatureAction(
@@ -127,7 +132,7 @@ export const authConfig = {
                 );
                 if (!allowed) {
                     return Response.redirect(
-                        new URL("/company/dashboard", nextUrl),
+                        new URL("/company/dashboard", origin),
                     );
                 }
                 return true;
@@ -135,11 +140,11 @@ export const authConfig = {
 
             if (path.startsWith("/company")) {
                 if (!isLoggedIn) {
-                    return Response.redirect(new URL("/login", nextUrl));
+                    return Response.redirect(new URL("/login", origin));
                 }
                 if (role !== "company_admin" && role !== "company_operator") {
                     return Response.redirect(
-                        new URL("/login?error=Sem permissão", nextUrl)
+                        new URL("/login?error=Sem permissão", origin)
                     );
                 }
                 if (
@@ -147,7 +152,7 @@ export const authConfig = {
                     role !== "company_admin"
                 ) {
                     return Response.redirect(
-                        new URL("/company/dashboard", nextUrl)
+                        new URL("/company/dashboard", origin)
                     );
                 }
                 if (
@@ -161,7 +166,7 @@ export const authConfig = {
                     );
                     if (!allowed) {
                         return Response.redirect(
-                            new URL('/company/dashboard', nextUrl),
+                            new URL('/company/dashboard', origin),
                         );
                     }
                 }
@@ -176,7 +181,7 @@ export const authConfig = {
                     );
                     if (!allowed) {
                         return Response.redirect(
-                            new URL('/company/dashboard', nextUrl),
+                            new URL('/company/dashboard', origin),
                         );
                     }
                 }
@@ -185,7 +190,7 @@ export const authConfig = {
 
             if (path.startsWith("/client")) {
                 if (!isLoggedIn) {
-                    return Response.redirect(new URL("/login", nextUrl));
+                    return Response.redirect(new URL("/login", origin));
                 }
                 const allowed =
                     role === "client_admin" ||
@@ -193,7 +198,7 @@ export const authConfig = {
                     role === "face_user";
                 if (!allowed) {
                     return Response.redirect(
-                        new URL("/login?error=Sem permissão", nextUrl)
+                        new URL("/login?error=Sem permissão", origin)
                     );
                 }
                 return true;

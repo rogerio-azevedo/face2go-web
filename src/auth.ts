@@ -3,6 +3,10 @@ import Credentials from 'next-auth/providers/credentials';
 import { z } from 'zod';
 
 import { authConfig } from '@/auth.config';
+import {
+    authRedirectTarget,
+    requestPublicOrigin,
+} from '@/features/branding/platform-host';
 import type { Face2goCredentialsUser } from '@/lib/dashboard-path';
 import type { UserContext } from '@/types/auth-context';
 
@@ -19,6 +23,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     session: { strategy: 'jwt' },
     callbacks: {
         ...authConfig.callbacks,
+        async redirect({ url, baseUrl }) {
+            let origin = baseUrl;
+            try {
+                const { headers } = await import('next/headers');
+                const headerList = await headers();
+                origin = requestPublicOrigin({
+                    headers: headerList,
+                    nextUrl: new URL(baseUrl),
+                });
+            } catch {
+                origin = baseUrl;
+            }
+            return authRedirectTarget(url, origin, baseUrl);
+        },
         async jwt({ token, user }) {
             if (user) {
                 const u = user as Face2goCredentialsUser & {
