@@ -43,7 +43,8 @@ export default async function ClientDashboardPage() {
     const session = await auth();
     const role = session?.user?.role;
     const canManage = role === "client_admin" || role === "client_operator";
-    const canManageReaders = role === "client_admin";
+    const canManageReaders =
+        role === "client_admin" || role === "client_operator";
     const name = unitName(session?.activeContext);
 
     let data = EMPTY_DASHBOARD;

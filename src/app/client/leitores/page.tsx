@@ -14,7 +14,7 @@ export default async function ClientReadersPage() {
     if (!user?.clientId) {
         redirect("/login?error=Sem permissão");
     }
-    if (role !== "client_admin") {
+    if (role !== "client_admin" && role !== "client_operator") {
         redirect("/client/dashboard");
     }
 

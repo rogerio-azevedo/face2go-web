@@ -291,6 +291,11 @@ function navItemsForRole(
                     icon: History,
                 },
                 {
+                    title: "Leitores",
+                    url: "/client/leitores",
+                    icon: DoorOpen,
+                },
+                {
                     title: "Relatórios",
                     url: "/client/relatorios",
                     icon: FileBarChart,
