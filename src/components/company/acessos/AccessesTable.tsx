@@ -35,6 +35,13 @@ import { toDatetimeLocalInputValue } from "./datetime-filter";
 import { BlockUnitSelects } from "@/features/client-blocks/components/BlockUnitSelects";
 import type { BlockUnitOption } from "@/features/client-blocks/components/BlockUnitSelects";
 
+function facialEventLabel(code: string | null | undefined): string {
+    if (code === "RemoteOpen") return "Abertura remota";
+    if (code === "RemoteHoldOpen") return "Porta mantida aberta";
+    if (code === "RemoteRelease") return "Porta fechada";
+    return code ?? "";
+}
+
 /** Exibe instante UTC no relógio civil com offset fixo (minutos desde UTC). */
 function formatDateTime(iso: string | null, offsetMinutes: number): string {
     if (!iso) return "—";
@@ -514,9 +521,7 @@ export function AccessesTable({
                                         </TableCell>
                                         <TableCell>
                                             <span className="text-xs text-muted-foreground">
-                                                {row.eventCode === "RemoteOpen"
-                                                    ? "Abertura remota"
-                                                    : row.eventCode}
+                                                {facialEventLabel(row.eventCode)}
                                             </span>
                                         </TableCell>
                                         <TableCell className="text-center">

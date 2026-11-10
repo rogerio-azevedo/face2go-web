@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { ConnectionBadge } from "@/features/readers/components/ConnectionBadge";
 import { ReaderDetailsDialog } from "@/features/readers/components/ReaderDetailsDialog";
 import { ReaderEndpointDialog } from "@/features/readers/components/ReaderEndpointDialog";
+import { ReaderHoldOpenSwitch } from "@/features/readers/components/ReaderHoldOpenSwitch";
 import { ReaderOpenDoorButton } from "@/features/readers/components/ReaderOpenDoorButton";
 import {
     READER_BRAND_LABELS,
@@ -143,15 +144,26 @@ export function CompanyReaderMobileCard({
 
             <div className="mt-4 space-y-2">
                 {canManage ? (
-                    <ReaderOpenDoorButton
-                        readerId={reader.id}
-                        readerName={reader.name}
-                        disabled={!reader.isActive}
-                        variant="company"
-                        label="Abrir porta"
-                        size="lg"
-                        className="w-full"
-                    />
+                    <div className="flex items-center gap-3">
+                        <ReaderOpenDoorButton
+                            readerId={reader.id}
+                            readerName={reader.name}
+                            disabled={!reader.isActive}
+                            variant="company"
+                            label="Abrir porta"
+                            size="lg"
+                            className="min-w-0 flex-1"
+                        />
+                        <ReaderHoldOpenSwitch
+                            readerId={reader.id}
+                            readerName={reader.name}
+                            heldOpen={reader.doorHoldOpen === true}
+                            heldOpenAt={reader.doorHoldOpenedAt}
+                            heldOpenByName={reader.doorHoldOpenedByName}
+                            disabled={!reader.isActive}
+                            variant="company"
+                        />
+                    </div>
                 ) : null}
 
                 <div className="grid grid-cols-2 gap-2">

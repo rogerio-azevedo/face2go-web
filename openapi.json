@@ -3227,6 +3227,64 @@
         ]
       }
     },
+    "/api/readers/{readerId}/hold-open": {
+      "post": {
+        "operationId": "ReadersController_holdOpen",
+        "parameters": [
+          {
+            "name": "readerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Manter a porta do leitor aberta (modo sempre-aberto)",
+        "tags": [
+          "readers"
+        ]
+      }
+    },
+    "/api/readers/{readerId}/release": {
+      "post": {
+        "operationId": "ReadersController_releaseHold",
+        "parameters": [
+          {
+            "name": "readerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Encerrar o modo sempre-aberto da porta do leitor",
+        "tags": [
+          "readers"
+        ]
+      }
+    },
     "/api/readers/{readerId}/active": {
       "patch": {
         "operationId": "ReadersController_setActive",
@@ -3320,6 +3378,64 @@
           }
         ],
         "summary": "Acionar abertura remota do leitor da unidade",
+        "tags": [
+          "client-readers"
+        ]
+      }
+    },
+    "/api/client/readers/{readerId}/hold-open": {
+      "post": {
+        "operationId": "ClientReadersController_holdOpen",
+        "parameters": [
+          {
+            "name": "readerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Manter a porta do leitor da unidade aberta",
+        "tags": [
+          "client-readers"
+        ]
+      }
+    },
+    "/api/client/readers/{readerId}/release": {
+      "post": {
+        "operationId": "ClientReadersController_releaseHold",
+        "parameters": [
+          {
+            "name": "readerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Encerrar o modo sempre-aberto da porta da unidade",
         "tags": [
           "client-readers"
         ]

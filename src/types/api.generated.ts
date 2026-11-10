@@ -1306,6 +1306,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/readers/{readerId}/hold-open": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Manter a porta do leitor aberta (modo sempre-aberto) */
+        post: operations["ReadersController_holdOpen"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/readers/{readerId}/release": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Encerrar o modo sempre-aberto da porta do leitor */
+        post: operations["ReadersController_releaseHold"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/readers/{readerId}/active": {
         parameters: {
             query?: never;
@@ -1368,6 +1402,40 @@ export interface paths {
         put?: never;
         /** Acionar abertura remota do leitor da unidade */
         post: operations["ClientReadersController_openDoor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/readers/{readerId}/hold-open": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Manter a porta do leitor da unidade aberta */
+        post: operations["ClientReadersController_holdOpen"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/client/readers/{readerId}/release": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Encerrar o modo sempre-aberto da porta da unidade */
+        post: operations["ClientReadersController_releaseHold"];
         delete?: never;
         options?: never;
         head?: never;
@@ -8390,6 +8458,44 @@ export interface operations {
             };
         };
     };
+    ReadersController_holdOpen: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                readerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReadersController_releaseHold: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                readerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ReadersController_setActive: {
         parameters: {
             query?: never;
@@ -8455,6 +8561,44 @@ export interface operations {
         requestBody?: never;
         responses: {
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientReadersController_holdOpen: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                readerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ClientReadersController_releaseHold: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                readerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

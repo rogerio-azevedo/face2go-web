@@ -102,6 +102,9 @@ export type ClientReaderListRow = {
     brand: ReaderBrand;
     direction: ReaderDirection | null;
     isActive: boolean;
+    doorHoldOpen?: boolean;
+    doorHoldOpenedAt?: string | null;
+    doorHoldOpenedByName?: string | null;
 };
 
 export type ReaderListRow = {
@@ -132,6 +135,9 @@ export type ReaderListRow = {
     connectionMode?: 'direct' | 'auto_register';
     autoRegisterDeviceId?: string | null;
     lastSeenAt: string | null;
+    doorHoldOpen?: boolean;
+    doorHoldOpenedAt?: string | null;
+    doorHoldOpenedByName?: string | null;
     createdAt: string;
 };
 

@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { fetchClientReadersMonitorStatusAction } from "@/features/readers/actions/monitor";
 import { ConnectionBadge } from "@/features/readers/components/ConnectionBadge";
+import { ReaderHoldOpenSwitch } from "@/features/readers/components/ReaderHoldOpenSwitch";
 import { ReaderOpenDoorButton } from "@/features/readers/components/ReaderOpenDoorButton";
 import { deferInEffect } from "@/lib/defer-in-effect";
 import {
@@ -119,12 +120,25 @@ export function ClientReadersTable({
                                     />
                                 </TableCell>
                                 <TableCell>
-                                    <ReaderOpenDoorButton
-                                        readerId={row.id}
-                                        readerName={row.name}
-                                        disabled={!row.isActive}
-                                        variant="client"
-                                    />
+                                    <div className="flex items-center gap-3">
+                                        <ReaderOpenDoorButton
+                                            readerId={row.id}
+                                            readerName={row.name}
+                                            disabled={!row.isActive}
+                                            variant="client"
+                                        />
+                                        <ReaderHoldOpenSwitch
+                                            readerId={row.id}
+                                            readerName={row.name}
+                                            heldOpen={row.doorHoldOpen === true}
+                                            heldOpenAt={row.doorHoldOpenedAt}
+                                            heldOpenByName={
+                                                row.doorHoldOpenedByName
+                                            }
+                                            disabled={!row.isActive}
+                                            variant="client"
+                                        />
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         ))

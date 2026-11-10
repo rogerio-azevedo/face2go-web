@@ -32,6 +32,7 @@ import { ConnectionBadge } from "@/features/readers/components/ConnectionBadge";
 import { CompanyReadersMobileList } from "@/features/readers/components/CompanyReadersMobileList";
 import { ReaderEndpointDialog } from "@/features/readers/components/ReaderEndpointDialog";
 import { ReaderDetailsDialog } from "@/features/readers/components/ReaderDetailsDialog";
+import { ReaderHoldOpenSwitch } from "@/features/readers/components/ReaderHoldOpenSwitch";
 import { ReaderOpenDoorButton } from "@/features/readers/components/ReaderOpenDoorButton";
 import {
     READER_BRAND_LABELS,
@@ -342,12 +343,29 @@ export function ReadersTable({
                                     </TableCell>
                                     {canManage ? (
                                         <TableCell>
-                                            <ReaderOpenDoorButton
-                                                readerId={row.id}
-                                                readerName={row.name}
-                                                disabled={!row.isActive}
-                                                variant="company"
-                                            />
+                                            <div className="flex items-center gap-3">
+                                                <ReaderOpenDoorButton
+                                                    readerId={row.id}
+                                                    readerName={row.name}
+                                                    disabled={!row.isActive}
+                                                    variant="company"
+                                                />
+                                                <ReaderHoldOpenSwitch
+                                                    readerId={row.id}
+                                                    readerName={row.name}
+                                                    heldOpen={
+                                                        row.doorHoldOpen === true
+                                                    }
+                                                    heldOpenAt={
+                                                        row.doorHoldOpenedAt
+                                                    }
+                                                    heldOpenByName={
+                                                        row.doorHoldOpenedByName
+                                                    }
+                                                    disabled={!row.isActive}
+                                                    variant="company"
+                                                />
+                                            </div>
                                         </TableCell>
                                     ) : null}
                                     {canManage ? (
