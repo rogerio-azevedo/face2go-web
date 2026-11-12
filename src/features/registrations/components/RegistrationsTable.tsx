@@ -135,6 +135,7 @@ export function RegistrationsTable({
                             active={sortField === "local"}
                             dir={sortDir}
                             onClick={() => onToggleSort("local")}
+                            className="max-w-44"
                         />
                         <TableHead>Link</TableHead>
                         <SortableHead
@@ -159,7 +160,9 @@ export function RegistrationsTable({
                             </TableCell>
                         </TableRow>
                     ) : (
-                        rows.map((row) => (
+                        rows.map((row) => {
+                            const local = extraSummary(row);
+                            return (
                             <TableRow
                                 key={row.id}
                                 className={
@@ -247,8 +250,15 @@ export function RegistrationsTable({
                                 <TableCell className="text-xs font-medium tabular-nums">
                                     {row.age == null ? "—" : `${row.age} anos`}
                                 </TableCell>
-                                <TableCell className="text-xs">
-                                    {extraSummary(row)}
+                                <TableCell className="max-w-44 text-xs">
+                                    <span
+                                        className="block truncate"
+                                        title={
+                                            local === "—" ? undefined : local
+                                        }
+                                    >
+                                        {local}
+                                    </span>
                                 </TableCell>
                                 <TableCell className="font-mono text-xs">
                                     {row.registrationLinkCode ?? "—"}
@@ -281,7 +291,8 @@ export function RegistrationsTable({
                                     />
                                 </TableCell>
                             </TableRow>
-                        ))
+                            );
+                        })
                     )}
                 </TableBody>
             </Table>
