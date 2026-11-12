@@ -119,6 +119,10 @@ export function VisitorApprovalPanel({
                     {summary.visitorApprovalRequested
                         ? 'A aprovação será concluída automaticamente após o aceite.'
                         : 'Inicie a aprovação para concluir o cadastro após o aceite.'}
+                    {isAdmin &&
+                    (row.status === 'draft' || row.status === 'rejected')
+                        ? ' Como admin, use Aprovar no rodapé para concluir sem esperar o aceite.'
+                        : null}
                 </p>
             )}
             {summary.visitorApprovalRemovalPending && (

@@ -289,7 +289,15 @@ export function RegistrationsReviewBoard({
                 return;
             }
             setSheetOpen(false);
-            if (tab === "draft" && !(kind === "approve" && current.childApprovalStatus === "pending")) toast.message("Nenhum cadastro pendente restante.");
+            if (
+                tab === "draft" &&
+                !(
+                    kind === "approve" &&
+                    (current.childApprovalStatus === "pending" ||
+                        current.visitorApprovalStatus === "pending")
+                )
+            )
+                toast.message("Nenhum cadastro pendente restante.");
         });
     }
 

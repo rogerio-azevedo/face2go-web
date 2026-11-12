@@ -13,6 +13,7 @@ import {
 import { parseRegistrationFaceSyncEnqueue } from '@/lib/face-sync-result';
 import type { CreateRegistrationLinkBody } from '@/lib/registration-link-schedule';
 import type { RegistrationLinkListRow } from '@/types/domain';
+import { approvalDecisionMessage } from '@/features/registrations/lib/approval-decision-message';
 
 export async function approveCompanyRegistrationAction(
     clientId: string,
@@ -29,7 +30,10 @@ export async function approveCompanyRegistrationAction(
         const data = await parseResponseJson(res);
         if (!res.ok) return { error: nestErrorMessage(data) };
         revalidatePath(`/company/clientes/${cid.data}/usuarios`);
-        return { success: true, message: (data as Partial<import("@/features/child-approvals/types").ChildApprovalSummary> | null)?.childApprovalStatus === "pending" ? "Aprovação solicitada. Aguardando o aceite de um adulto da mesma unidade." : "Cadastro aprovado." };
+        return {
+            success: true,
+            message: approvalDecisionMessage(data),
+        };
     } catch {
         return { error: 'Sem permissão.' };
     }
