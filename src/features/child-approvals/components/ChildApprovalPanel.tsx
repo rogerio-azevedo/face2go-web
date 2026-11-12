@@ -111,6 +111,13 @@ export function ChildApprovalPanel({
                     </Button>
                 </div>
             )}
+            {summary.childApprovalPendingReason === 'no_eligible_adult' && (
+                <p role="status" className="text-muted-foreground text-sm">
+                    Nenhum adulto elegível com cadastro aprovado, nascimento, CPF
+                    e e-mail completos nesta unidade. A pendência será retomada
+                    quando houver um adulto apto.
+                </p>
+            )}
             {summary.childApprovalStatus === 'pending' && (
                 <p className="text-sm">
                     O acesso depende do aceite de outro adulto aprovado da mesma

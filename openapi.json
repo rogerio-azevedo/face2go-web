@@ -16000,6 +16000,15 @@
           "summary": {
             "type": "object",
             "properties": {
+              "childApprovalPendingReason": {
+                "type": "string",
+                "nullable": true,
+                "enum": [
+                  "no_eligible_adult",
+                  "awaiting_consent",
+                  null
+                ]
+              },
               "enableChildApprove": {
                 "type": "boolean"
               },
@@ -16027,6 +16036,7 @@
               }
             },
             "required": [
+              "childApprovalPendingReason",
               "enableChildApprove",
               "childApprovalRequired",
               "childApprovalStatus",

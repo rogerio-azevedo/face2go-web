@@ -6152,6 +6152,8 @@ export interface components {
         };
         ChildApprovalHistoryDto: {
             summary: {
+                /** @enum {string|null} */
+                childApprovalPendingReason: "no_eligible_adult" | "awaiting_consent" | null;
                 enableChildApprove: boolean;
                 childApprovalRequired: boolean;
                 /** @enum {string} */
