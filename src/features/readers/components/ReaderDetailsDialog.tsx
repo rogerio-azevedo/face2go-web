@@ -5,7 +5,6 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import {
     Dialog,
     DialogContent,
@@ -13,6 +12,9 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 import {
     refreshReaderDeviceInfoAction,
     type ReaderDeviceInfoResult,
@@ -21,6 +23,7 @@ import {
 type ReaderDetailsDialogProps = {
     readerId: string;
     readerName: string;
+    endpoint: string;
     model: string | null;
     serialNumber: string | null;
     firmwareVersion: string | null;
@@ -93,6 +96,15 @@ export function ReaderDetailsDialog(props: ReaderDetailsDialogProps) {
         }
     }
 
+    async function copyEndpoint() {
+        try {
+            await navigator.clipboard.writeText(props.endpoint);
+            toast.success("Endereço copiado.");
+        } catch {
+            toast.error("Não foi possível copiar.");
+        }
+    }
+
     return (
         <>
             <Button
@@ -114,6 +126,30 @@ export function ReaderDetailsDialog(props: ReaderDetailsDialogProps) {
                         <DialogTitle>Detalhes do leitor</DialogTitle>
                         <DialogDescription>{props.readerName}</DialogDescription>
                     </DialogHeader>
+
+                    <div className="space-y-3">
+                        <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
+                            Endereço
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <Input
+                                readOnly
+                                value={props.endpoint}
+                                className="font-mono text-sm"
+                            />
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                onClick={() => void copyEndpoint()}
+                                aria-label="Copiar endereço"
+                            >
+                                <Copy className="size-4" />
+                            </Button>
+                        </div>
+                    </div>
+
+                    <Separator />
 
                     <dl className="rounded-md border px-4">
                         <DetailRow label="Modelo" value={details.model} />

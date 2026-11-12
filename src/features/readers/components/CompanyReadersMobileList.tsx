@@ -10,10 +10,8 @@ type CompanyReadersMobileListProps = {
     readers: ReaderListRow[];
     hasUnfilteredReaders: boolean;
     canManage: boolean;
-    pending: boolean;
     monitorLoading: boolean;
     monitorByReaderId: Record<string, ReaderMonitorDeviceApiRow>;
-    onToggleActive: (readerId: string, isActive: boolean) => void;
     onOpenEdit: (reader: ReaderListRow) => void;
 };
 
@@ -21,10 +19,8 @@ export function CompanyReadersMobileList({
     readers,
     hasUnfilteredReaders,
     canManage,
-    pending,
     monitorLoading,
     monitorByReaderId,
-    onToggleActive,
     onOpenEdit,
 }: CompanyReadersMobileListProps) {
     if (readers.length === 0) {
@@ -44,10 +40,8 @@ export function CompanyReadersMobileList({
                     key={reader.id}
                     reader={reader}
                     canManage={canManage}
-                    pending={pending}
                     monitorLoading={monitorLoading}
                     monitorDevice={monitorByReaderId[reader.id]}
-                    onToggleActive={onToggleActive}
                     onOpenEdit={onOpenEdit}
                 />
             ))}

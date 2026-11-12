@@ -1,15 +1,11 @@
 "use client";
 
 import { AlertTriangle, Loader2, RefreshCw } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 
-import {
-    fetchReadersMonitorStatusAction,
-    toggleReaderActiveAction,
-} from "@/app/company/leitores/actions";
+import { fetchReadersMonitorStatusAction } from "@/app/company/leitores/actions";
 import { deferInEffect } from "@/lib/defer-in-effect";
 import type {
     ClientListRow,
@@ -19,7 +15,6 @@ import type {
 import { ReaderForm } from "@/components/company/leitores/ReaderForm";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import {
     Table,
     TableBody,
@@ -30,10 +25,10 @@ import {
 } from "@/components/ui/table";
 import { ConnectionBadge } from "@/features/readers/components/ConnectionBadge";
 import { CompanyReadersMobileList } from "@/features/readers/components/CompanyReadersMobileList";
-import { ReaderEndpointDialog } from "@/features/readers/components/ReaderEndpointDialog";
 import { ReaderDetailsDialog } from "@/features/readers/components/ReaderDetailsDialog";
 import { ReaderHoldOpenSwitch } from "@/features/readers/components/ReaderHoldOpenSwitch";
 import { ReaderOpenDoorButton } from "@/features/readers/components/ReaderOpenDoorButton";
+import { cn } from "@/lib/utils";
 import {
     READER_BRAND_LABELS,
     READER_DIRECTION_LABELS,
@@ -50,8 +45,6 @@ export function ReadersTable({
     clients: ClientListRow[];
     canManage: boolean;
 }) {
-    const router = useRouter();
-    const [pending, startTransition] = useTransition();
     const [sheetOpen, setSheetOpen] = useState(false);
     const [editReader, setEditReader] = useState<ReaderListRow | null>(null);
     const [filterClientId, setFilterClientId] = useState<string>("");
@@ -115,24 +108,7 @@ export function ReadersTable({
         setSheetOpen(true);
     }
 
-    function toggleActive(readerId: string, isActive: boolean) {
-        startTransition(async () => {
-            const result = await toggleReaderActiveAction({
-                readerId,
-                isActive,
-            });
-            if ("error" in result) {
-                toast.error(result.error);
-                return;
-            }
-            toast.success(
-                isActive ? "Leitor reativado." : "Leitor desativado.",
-            );
-            router.refresh();
-        });
-    }
-
-    const colSpan = canManage ? 11 : 8;
+    const colSpan = canManage ? 9 : 6;
 
     return (
         <>
@@ -190,10 +166,8 @@ export function ReadersTable({
                 readers={filteredReaders}
                 hasUnfilteredReaders={readers.length > 0}
                 canManage={canManage}
-                pending={pending}
                 monitorLoading={monitorLoading}
                 monitorByReaderId={monitorByReaderId}
-                onToggleActive={toggleActive}
                 onOpenEdit={openEdit}
             />
 
@@ -205,12 +179,10 @@ export function ReadersTable({
                             <TableHead>Nome</TableHead>
                             <TableHead>Marca</TableHead>
                             <TableHead>Detalhes</TableHead>
-                            <TableHead>Endereço</TableHead>
                             <TableHead title="No modo direto, monitor de eventos. No registro automático (sem NAT), sessão do gateway.">
                                 Conexão
                             </TableHead>
                             <TableHead>Direção</TableHead>
-                            <TableHead>Status</TableHead>
                             {canManage ? (
                                 <TableHead>Abrir</TableHead>
                             ) : null}
@@ -240,7 +212,17 @@ export function ReadersTable({
                             </TableRow>
                         ) : (
                             filteredReaders.map((row) => (
-                                <TableRow key={row.id}>
+                                <TableRow
+                                    key={row.id}
+                                    className={cn(
+                                        !row.isActive && "text-destructive",
+                                    )}
+                                    title={
+                                        !row.isActive
+                                            ? "Leitor inativo"
+                                            : undefined
+                                    }
+                                >
                                     <TableCell className="font-medium">
                                         {row.clientName}
                                     </TableCell>
@@ -290,17 +272,12 @@ export function ReadersTable({
                                         <ReaderDetailsDialog
                                             readerId={row.id}
                                             readerName={row.name}
+                                            endpoint={`${row.ip}:${row.port}`}
                                             model={row.model}
                                             serialNumber={row.serialNumber}
                                             firmwareVersion={row.firmwareVersion}
                                             syncedAt={row.deviceInfoSyncedAt}
                                             lastError={row.deviceInfoLastError}
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <ReaderEndpointDialog
-                                            readerName={row.name}
-                                            endpoint={`${row.ip}:${row.port}`}
                                         />
                                     </TableCell>
                                     <TableCell>
@@ -327,19 +304,6 @@ export function ReadersTable({
                                                 —
                                             </span>
                                         )}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Switch
-                                            checked={row.isActive}
-                                            disabled={pending || !canManage}
-                                            aria-label={`Status do leitor ${row.name}`}
-                                            onCheckedChange={(v) =>
-                                                toggleActive(
-                                                    row.id,
-                                                    v === true,
-                                                )
-                                            }
-                                        />
                                     </TableCell>
                                     {canManage ? (
                                         <TableCell>
@@ -393,7 +357,6 @@ export function ReadersTable({
                                                 type="button"
                                                 variant="outline"
                                                 size="sm"
-                                                disabled={pending}
                                                 onClick={() => openEdit(row)}
                                             >
                                                 Editar

@@ -5,10 +5,8 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { ConnectionBadge } from "@/features/readers/components/ConnectionBadge";
 import { ReaderDetailsDialog } from "@/features/readers/components/ReaderDetailsDialog";
-import { ReaderEndpointDialog } from "@/features/readers/components/ReaderEndpointDialog";
 import { ReaderHoldOpenSwitch } from "@/features/readers/components/ReaderHoldOpenSwitch";
 import { ReaderOpenDoorButton } from "@/features/readers/components/ReaderOpenDoorButton";
 import {
@@ -26,20 +24,16 @@ import type {
 type CompanyReaderMobileCardProps = {
     reader: ReaderListRow;
     canManage: boolean;
-    pending: boolean;
     monitorLoading: boolean;
     monitorDevice: ReaderMonitorDeviceApiRow | undefined;
-    onToggleActive: (readerId: string, isActive: boolean) => void;
     onOpenEdit: (reader: ReaderListRow) => void;
 };
 
 export function CompanyReaderMobileCard({
     reader,
     canManage,
-    pending,
     monitorLoading,
     monitorDevice,
-    onToggleActive,
     onOpenEdit,
 }: CompanyReaderMobileCardProps) {
     const nameId = `reader-${reader.id}-name`;
@@ -50,67 +44,66 @@ export function CompanyReaderMobileCard({
         READER_BRAND_LABELS[reader.brand as ReaderBrandSlug] ?? reader.brand;
     const showUsers =
         reader.brand === "intelbras" || reader.brand === "hikvision";
+    const inactive = !reader.isActive;
 
     return (
         <article
             aria-labelledby={nameId}
+            title={inactive ? "Leitor inativo" : undefined}
             className="bg-card rounded-lg border p-4 shadow-xs"
         >
-            <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                    <p className="text-muted-foreground text-xs font-medium">
-                        {reader.clientName}
-                    </p>
-                    <div className="mt-1 flex flex-wrap items-center gap-2">
-                        <h2
-                            id={nameId}
-                            className="text-foreground font-semibold break-words"
+            <div className="min-w-0">
+                <p
+                    className={cn(
+                        "text-xs font-medium",
+                        inactive
+                            ? "text-destructive"
+                            : "text-muted-foreground",
+                    )}
+                >
+                    {reader.clientName}
+                </p>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <h2
+                        id={nameId}
+                        className={cn(
+                            "font-semibold break-words",
+                            inactive ? "text-destructive" : "text-foreground",
+                        )}
+                    >
+                        {reader.name}
+                    </h2>
+                    {reader.minimumAccessAge != null ? (
+                        <Badge
+                            variant="outline"
+                            className="border-orange-300 bg-orange-100 font-semibold text-orange-900 hover:bg-orange-100"
+                            title={`Só sincroniza pessoas com data válida e ${reader.minimumAccessAge} anos ou mais`}
                         >
-                            {reader.name}
-                        </h2>
-                        {reader.minimumAccessAge != null ? (
-                            <Badge
-                                variant="outline"
-                                className="border-orange-300 bg-orange-100 font-semibold text-orange-900 hover:bg-orange-100"
-                                title={`Só sincroniza pessoas com data válida e ${reader.minimumAccessAge} anos ou mais`}
-                            >
-                                {reader.minimumAccessAge}+
-                            </Badge>
-                        ) : null}
-                    </div>
-                    {reader.agePolicyStatus === "pending" ? (
-                        <span
-                            className="text-muted-foreground mt-1 inline-flex items-center gap-1 text-xs"
-                            title="Aplicando a política no equipamento"
-                        >
-                            <Loader2 className="size-3.5 animate-spin" />
-                            Aplicando política
-                        </span>
-                    ) : null}
-                    {reader.agePolicyStatus === "failed" ? (
-                        <span
-                            className="text-destructive mt-1 inline-flex items-center gap-1 text-xs font-medium"
-                            title={
-                                reader.agePolicyError ??
-                                "Falha ao aplicar a política no equipamento"
-                            }
-                        >
-                            <AlertTriangle className="size-3.5" />
-                            Falha na política
-                        </span>
+                            {reader.minimumAccessAge}+
+                        </Badge>
                     ) : null}
                 </div>
-
-                <div className="flex shrink-0 items-center gap-2">
-                    <Switch
-                        checked={reader.isActive}
-                        disabled={pending || !canManage}
-                        aria-label={`Status do leitor ${reader.name}`}
-                        onCheckedChange={(checked) =>
-                            onToggleActive(reader.id, checked === true)
+                {reader.agePolicyStatus === "pending" ? (
+                    <span
+                        className="text-muted-foreground mt-1 inline-flex items-center gap-1 text-xs"
+                        title="Aplicando a política no equipamento"
+                    >
+                        <Loader2 className="size-3.5 animate-spin" />
+                        Aplicando política
+                    </span>
+                ) : null}
+                {reader.agePolicyStatus === "failed" ? (
+                    <span
+                        className="text-destructive mt-1 inline-flex items-center gap-1 text-xs font-medium"
+                        title={
+                            reader.agePolicyError ??
+                            "Falha ao aplicar a política no equipamento"
                         }
-                    />
-                </div>
+                    >
+                        <AlertTriangle className="size-3.5" />
+                        Falha na política
+                    </span>
+                ) : null}
             </div>
 
             <dl className="mt-4 grid grid-cols-3 gap-3 border-y py-3 text-sm">
@@ -170,19 +163,13 @@ export function CompanyReaderMobileCard({
                     <ReaderDetailsDialog
                         readerId={reader.id}
                         readerName={reader.name}
+                        endpoint={`${reader.ip}:${reader.port}`}
                         model={reader.model}
                         serialNumber={reader.serialNumber}
                         firmwareVersion={reader.firmwareVersion}
                         syncedAt={reader.deviceInfoSyncedAt}
                         lastError={reader.deviceInfoLastError}
                         triggerLabel="Detalhes"
-                        triggerVariant="outline"
-                        triggerClassName="w-full"
-                    />
-                    <ReaderEndpointDialog
-                        readerName={reader.name}
-                        endpoint={`${reader.ip}:${reader.port}`}
-                        triggerLabel="Endereço"
                         triggerVariant="outline"
                         triggerClassName="w-full"
                     />
@@ -204,7 +191,6 @@ export function CompanyReaderMobileCard({
                             variant="outline"
                             size="lg"
                             className={cn(!showUsers && "col-span-2")}
-                            disabled={pending}
                             aria-label={`Editar leitor ${reader.name}`}
                             onClick={() => onOpenEdit(reader)}
                         >
