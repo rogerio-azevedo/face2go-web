@@ -19,6 +19,7 @@ import {
     deleteCompanyRegistrationAction,
     restoreCompanyRegistrationAction,
 } from "@/app/company/clientes/[clientId]/usuarios/actions";
+import { manageChildApproval } from "@/features/child-approvals/actions";
 import { listClientBlocksAction } from "@/features/client-blocks/actions";
 import { AllowSimilarFaceDialog } from "@/features/faces/components/AllowSimilarFaceDialog";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
@@ -134,6 +135,9 @@ export function RegistrationsReviewBoard({
         null,
     );
     const [retakeBusyId, setRetakeBusyId] = useState<string | null>(null);
+    const [resendChildBusyId, setResendChildBusyId] = useState<string | null>(
+        null,
+    );
     const [retakeLink, setRetakeLink] = useState<{
         personName: string | null;
         phone: string | null;
@@ -359,6 +363,41 @@ export function RegistrationsReviewBoard({
         });
     }
 
+    async function runResendChildApproval(row: ClientRegistrationListRow) {
+        setResendChildBusyId(row.id);
+        try {
+            const result = await manageChildApproval(
+                { variant, companyClientId, registrationId: row.id },
+                "resend",
+            );
+            if (!result.ok) {
+                toast.error(result.error);
+                return;
+            }
+            toast.success(result.data.message);
+            await Promise.all([
+                queryClient.invalidateQueries({
+                    queryKey: [
+                        "child-approvals",
+                        variant,
+                        companyClientId ?? "self",
+                        row.id,
+                    ],
+                }),
+                invalidateRegistrationsList(
+                    queryClient,
+                    variant,
+                    companyClientId,
+                ),
+                queryClient.invalidateQueries({
+                    queryKey: ["registration-events"],
+                }),
+            ]);
+        } finally {
+            setResendChildBusyId(null);
+        }
+    }
+
     async function runDelete(row: ClientRegistrationListRow, reason: string) {
         const res =
             variant === "client"
@@ -418,6 +457,7 @@ export function RegistrationsReviewBoard({
         busy: pending,
         syncingId,
         retakeBusyId,
+        resendChildBusyId,
         onView: openDetail,
         onHistory: setHistoryRow,
         onSync: (row: ClientRegistrationListRow) => void runSyncFace(row),
@@ -425,6 +465,8 @@ export function RegistrationsReviewBoard({
         onAllowSimilarFace: setSimilarRow,
         onEdit: setEditRow,
         onRetake: (row: ClientRegistrationListRow) => void openRetake(row),
+        onResendChildApproval: (row: ClientRegistrationListRow) =>
+            void runResendChildApproval(row),
         onReject: (row: ClientRegistrationListRow) => {
             setActiveRow(row);
             setDecision("reject");

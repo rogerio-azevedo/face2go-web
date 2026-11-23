@@ -10,6 +10,7 @@ import {
     Phone,
     RefreshCw,
     RotateCcw,
+    Send,
     ShieldAlert,
     ShieldX,
     Trash2,
@@ -53,6 +54,7 @@ export function RegistrationRowActions({
     onAllowSimilarFace,
     onEdit,
     onRetake,
+    onResendChildApproval,
     onReject,
     onDelete,
     onRestore,
@@ -68,6 +70,7 @@ export function RegistrationRowActions({
     onAllowSimilarFace: () => void;
     onEdit: () => void;
     onRetake: () => void;
+    onResendChildApproval?: () => void;
     onReject: () => void;
     onDelete: () => void;
     onRestore: () => Promise<void>;
@@ -86,6 +89,10 @@ export function RegistrationRowActions({
             row.status === "rejected" ||
             row.status === "approved" ||
             row.status === "blocked");
+    const canResendChildApproval =
+        !isDeleted &&
+        row.childApprovalStatus === "pending" &&
+        Boolean(onResendChildApproval);
     const canDelete = isAdmin && isApproved;
     const canRestore = isAdmin && isDeleted;
     const canAllowSimilar =
@@ -126,6 +133,12 @@ export function RegistrationRowActions({
                         <DropdownMenuItem onClick={onRetake}>
                             <Camera />
                             Refazer foto
+                        </DropdownMenuItem>
+                    ) : null}
+                    {canResendChildApproval ? (
+                        <DropdownMenuItem onClick={onResendChildApproval}>
+                            <Send />
+                            Reenviar autorização
                         </DropdownMenuItem>
                     ) : null}
                     <DropdownMenuItem

@@ -124,7 +124,9 @@ export function ChildApprovalPanel({
                     unidade.{' '}
                     {summary.childApprovalRequested
                         ? 'A aprovação será concluída automaticamente após o aceite.'
-                        : 'Inicie a aprovação para concluir o cadastro após o aceite.'}
+                        : row.status === 'rejected'
+                          ? 'Reenvie as solicitações para pedir um novo aceite e concluir a aprovação automaticamente.'
+                          : 'Inicie a aprovação para concluir o cadastro após o aceite.'}
                     {isAdmin &&
                     (row.status === 'draft' || row.status === 'rejected')
                         ? ' Como admin, use Aprovar no rodapé para concluir sem esperar o aceite.'
@@ -224,18 +226,16 @@ export function ChildApprovalPanel({
                 </>
             )}
             <div className="flex flex-wrap gap-2">
-                {summary.childApprovalStatus === 'pending' &&
-                    (row.status !== 'rejected' ||
-                        summary.childApprovalRequested) && (
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={mutation.isPending}
-                            onClick={() => mutation.mutate('resend')}
-                        >
-                            Reenviar solicitações
-                        </Button>
-                    )}
+                {row.isActive && summary.childApprovalStatus === 'pending' && (
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={mutation.isPending}
+                        onClick={() => mutation.mutate('resend')}
+                    >
+                        Reenviar solicitações
+                    </Button>
+                )}
                 {isAdmin &&
                     summary.enableChildApprove &&
                     row.isMinor &&

@@ -34,6 +34,7 @@ export type RegistrationListActionProps = {
     busy: boolean;
     syncingId: string | null;
     retakeBusyId: string | null;
+    resendChildBusyId: string | null;
     onView: (row: ClientRegistrationListRow) => void;
     onHistory: (row: ClientRegistrationListRow) => void;
     onSync: (row: ClientRegistrationListRow) => void;
@@ -41,6 +42,7 @@ export type RegistrationListActionProps = {
     onAllowSimilarFace: (row: ClientRegistrationListRow) => void;
     onEdit: (row: ClientRegistrationListRow) => void;
     onRetake: (row: ClientRegistrationListRow) => void;
+    onResendChildApproval: (row: ClientRegistrationListRow) => void;
     onReject: (row: ClientRegistrationListRow) => void;
     onDelete: (row: ClientRegistrationListRow) => void;
     onRestore: (row: ClientRegistrationListRow) => Promise<void>;
@@ -99,6 +101,7 @@ export function RegistrationsTable({
     busy,
     syncingId,
     retakeBusyId,
+    resendChildBusyId,
     onView,
     onHistory,
     onSync,
@@ -106,6 +109,7 @@ export function RegistrationsTable({
     onAllowSimilarFace,
     onEdit,
     onRetake,
+    onResendChildApproval,
     onReject,
     onDelete,
     onRestore,
@@ -274,7 +278,8 @@ export function RegistrationsTable({
                                         busy={
                                             busy ||
                                             syncingId === row.id ||
-                                            retakeBusyId === row.id
+                                            retakeBusyId === row.id ||
+                                            resendChildBusyId === row.id
                                         }
                                         onView={() => onView(row)}
                                         onHistory={() => onHistory(row)}
@@ -285,6 +290,9 @@ export function RegistrationsTable({
                                         }
                                         onEdit={() => onEdit(row)}
                                         onRetake={() => onRetake(row)}
+                                        onResendChildApproval={() =>
+                                            onResendChildApproval(row)
+                                        }
                                         onReject={() => onReject(row)}
                                         onDelete={() => onDelete(row)}
                                         onRestore={() => onRestore(row)}

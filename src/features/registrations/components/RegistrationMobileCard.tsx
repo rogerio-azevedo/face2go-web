@@ -113,7 +113,8 @@ export function RegistrationMobileCard({
                 busy={
                     actions.busy ||
                     actions.syncingId === row.id ||
-                    actions.retakeBusyId === row.id
+                    actions.retakeBusyId === row.id ||
+                    actions.resendChildBusyId === row.id
                 }
                 onView={() => actions.onView(row)}
                 onHistory={() => actions.onHistory(row)}
@@ -122,6 +123,7 @@ export function RegistrationMobileCard({
                 onAllowSimilarFace={() => actions.onAllowSimilarFace(row)}
                 onEdit={() => actions.onEdit(row)}
                 onRetake={() => actions.onRetake(row)}
+                onResendChildApproval={() => actions.onResendChildApproval(row)}
                 onReject={() => actions.onReject(row)}
                 onDelete={() => actions.onDelete(row)}
                 onRestore={() => actions.onRestore(row)}
