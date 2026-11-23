@@ -14199,6 +14199,106 @@
           "emergency-events"
         ]
       }
+    },
+    "/api/readers/{readerId}/isup-key": {
+      "get": {
+        "operationId": "ReaderIsupKeyController_reveal",
+        "parameters": [
+          {
+            "name": "readerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "key"
+                  ],
+                  "properties": {
+                    "key": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "readers"
+        ]
+      },
+      "put": {
+        "operationId": "ReaderIsupKeyController_setKey",
+        "parameters": [
+          {
+            "name": "readerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetReaderIsupKeyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "key",
+                    "reconnectRequested"
+                  ],
+                  "properties": {
+                    "key": {
+                      "type": "string"
+                    },
+                    "reconnectRequested": {
+                      "type": "boolean",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "readers"
+        ]
+      }
     }
   },
   "info": {
@@ -17437,6 +17537,15 @@
           "note": {
             "type": "string",
             "maxLength": 500
+          }
+        }
+      },
+      "SetReaderIsupKeyDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[!-~]{1,32}$"
           }
         }
       }

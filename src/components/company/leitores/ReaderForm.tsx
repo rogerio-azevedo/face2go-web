@@ -13,6 +13,7 @@ import {
     updateReaderAction,
 } from "@/app/company/leitores/actions";
 import { revealReaderPasswordAction } from "@/features/readers/actions/credentials";
+import { ReaderIsupKeyField } from "@/features/readers/components/ReaderIsupKeyField";
 import { deferInEffect } from "@/lib/defer-in-effect";
 import type { ClientListRow, ReaderListRow } from "@/types/domain";
 import { Button } from "@/components/ui/button";
@@ -242,7 +243,16 @@ export function ReaderForm({
 
     const ehomeSourceId =
         mode === "edit" ? reader?.id : createdReaderId;
-    const ehomeId = ehomeSourceId ? ehomeDeviceId(ehomeSourceId) : "";
+    const ehomeId =
+        reader?.autoRegisterDeviceId?.trim() ||
+        (ehomeSourceId ? ehomeDeviceId(ehomeSourceId) : "");
+    const isupReaderId =
+        createdReaderId ??
+        (reader?.brand === "hikvision" &&
+        reader.connectionMode === "auto_register" &&
+        reader.autoRegisterDeviceId?.trim()
+            ? reader.id
+            : null);
 
     async function copyEhomeId() {
         if (!ehomeId) return;
@@ -532,9 +542,19 @@ export function ReaderForm({
                                             </div>
                                             <p className="text-muted-foreground text-xs">
                                                 {isHikvision
-                                                    ? "Salve o leitor, copie este código e cole no Device ID do aparelho (Rede → Platform Access, ISUP 5.0, servidor 184.194.233.81, porta 7660, chave ISUP_KEY). Sem hífen."
+                                                    ? "Salve o leitor, copie este código e cole no Device ID do aparelho (Rede → Platform Access, ISUP 5.0, servidor 184.194.233.81, porta 7660 e a chave ISUP deste leitor)."
                                                     : "Salve o leitor, copie este código e cole no Dispositivo ID do aparelho (Rede → Registro automático de CGI). Sem hífen."}
                                             </p>
+                                            {open && isHikvision && isupReaderId ? (
+                                                <ReaderIsupKeyField
+                                                    key={isupReaderId}
+                                                    readerId={isupReaderId}
+                                                />
+                                            ) : isHikvision ? (
+                                                <p className="text-muted-foreground text-xs">
+                                                    Salve o leitor para configurar a chave ISUP.
+                                                </p>
+                                            ) : null}
                                         </div>
                                     ) : null}
                                 </>
