@@ -4,6 +4,16 @@ import { Copy, Eye, EyeOff } from 'lucide-react';
 import { useId, useState } from 'react';
 import { toast } from 'sonner';
 
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,6 +29,15 @@ export function ReaderIsupKeyField({ readerId }: { readerId: string }) {
     const [editing, setEditing] = useState(false);
     const [draft, setDraft] = useState('');
     const [busy, setBusy] = useState(false);
+    const [confirmation, setConfirmation] = useState<
+        'generate' | 'manual' | null
+    >(null);
+    const [saveError, setSaveError] = useState<string | null>(null);
+
+    function confirmKey(mode: 'generate' | 'manual') {
+        setSaveError(null);
+        setConfirmation(mode);
+    }
 
     async function toggleVisibility() {
         if (visible) {
@@ -35,6 +54,10 @@ export function ReaderIsupKeyField({ readerId }: { readerId: string }) {
             }
             setKey(result.data.key);
             setVisible(true);
+        } catch {
+            toast.error(
+                'Não foi possível consultar a chave ISUP. Tente novamente.',
+            );
         } finally {
             setBusy(false);
         }
@@ -51,23 +74,19 @@ export function ReaderIsupKeyField({ readerId }: { readerId: string }) {
     }
 
     async function saveKey() {
-        if (
-            !window.confirm(
-                'Definir a chave ISUP deste leitor? Se a chave mudar, grave a nova chave no equipamento para que ele volte a conectar.',
-            )
-        ) {
-            return;
-        }
+        if (!confirmation || busy) return;
         setBusy(true);
+        setSaveError(null);
         try {
             const result = await setReaderIsupKeyAction(
                 readerId,
-                draft || undefined,
+                confirmation === 'manual' ? draft : undefined,
             );
             if (!result.ok) {
-                toast.error(result.error);
+                setSaveError(result.error);
                 return;
             }
+            setConfirmation(null);
             setDraft('');
             setEditing(false);
             setKey(result.data.key);
@@ -79,6 +98,10 @@ export function ReaderIsupKeyField({ readerId }: { readerId: string }) {
             } else {
                 toast.success('Chave ISUP salva.');
             }
+        } catch {
+            setSaveError(
+                'Não foi possível confirmar o salvamento. Consulte a chave atual antes de tentar de novo.',
+            );
         } finally {
             setBusy(false);
         }
@@ -131,7 +154,9 @@ export function ReaderIsupKeyField({ readerId }: { readerId: string }) {
             </div>
             {editing ? (
                 <div className="space-y-2">
-                    <Label htmlFor={`${fieldId}-new`}>Nova chave ISUP</Label>
+                    <Label htmlFor={`${fieldId}-new`}>
+                        Chave gravada no aparelho
+                    </Label>
                     <Input
                         id={`${fieldId}-new`}
                         type="password"
@@ -146,18 +171,14 @@ export function ReaderIsupKeyField({ readerId }: { readerId: string }) {
                         disabled={busy}
                         className="bg-card h-10"
                     />
-                    <p className="text-muted-foreground text-xs">
-                        Informe a chave já gravada no aparelho ou deixe o campo
-                        vazio para gerar uma nova.
-                    </p>
                     <div className="flex flex-wrap gap-2">
                         <Button
                             type="button"
                             variant="outline"
-                            disabled={busy}
-                            onClick={saveKey}
+                            disabled={busy || !draft}
+                            onClick={() => confirmKey('manual')}
                         >
-                            {draft ? 'Salvar chave' : 'Gerar chave'}
+                            Salvar chave
                         </Button>
                         <Button
                             type="button"
@@ -173,15 +194,67 @@ export function ReaderIsupKeyField({ readerId }: { readerId: string }) {
                     </div>
                 </div>
             ) : (
-                <Button
-                    type="button"
-                    variant="outline"
-                    disabled={busy}
-                    onClick={() => setEditing(true)}
-                >
-                    Definir chave
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        disabled={busy}
+                        onClick={() => confirmKey('generate')}
+                    >
+                        Gerar chave ISUP
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        disabled={busy}
+                        onClick={() => setEditing(true)}
+                    >
+                        Informar chave existente
+                    </Button>
+                </div>
             )}
+            <AlertDialog
+                open={confirmation !== null}
+                onOpenChange={(open) => {
+                    if (!open && !busy) setConfirmation(null);
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            {confirmation === 'generate'
+                                ? 'Gerar e salvar uma nova chave ISUP?'
+                                : 'Salvar a chave ISUP informada?'}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {confirmation === 'generate'
+                                ? 'O leitor só vai voltar a se conectar depois que você gravar a nova chave no aparelho.'
+                                : 'Confira se esta é a chave gravada no aparelho para que o leitor continue se conectando.'}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    {saveError ? (
+                        <p role="alert" className="text-destructive text-sm">
+                            {saveError}
+                        </p>
+                    ) : null}
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={busy}>
+                            Cancelar
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            type="button"
+                            disabled={busy}
+                            onClick={saveKey}
+                        >
+                            {busy
+                                ? 'Salvando…'
+                                : confirmation === 'generate'
+                                  ? 'Gerar e salvar'
+                                  : 'Salvar chave'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
